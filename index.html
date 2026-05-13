@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>苏州轨道交通11号线商业开发作战图</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>苏州地铁11号线商业开发作战图</title>
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
     <div id="app">
@@ -17,7 +17,7 @@
             <header class="header">
                 <div class="header-content">
                     <h1 class="main-title">
-                        <span class="title-highlight">苏州轨道交通11号线</span>
+                        <span class="title-highlight">苏州地铁11号线</span>
                         <span class="title-normal">商业开发作战图</span>
                     </h1>
                     <p class="sub-title">SUZHOU METRO LINE 11 COMMERCIAL DEVELOPMENT BATTLE MAP</p>
@@ -25,6 +25,7 @@
                 <!-- 顶部操作栏 -->
                 <div class="top-actions">
                     <button class="btn btn-print" onclick="app.printMap()">🖨️ 打印作战图</button>
+                    <button class="btn btn-export" onclick="app.showHDExportHelp()" title="导出高清PNG海报">🖼️ 导出高清海报</button>
                     <button class="btn btn-export" onclick="app.exportData()">📥 导出数据</button>
                     <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 导入数据</button>
                     <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.importData(this)">
@@ -37,7 +38,6 @@
             <section class="stats-panel">
                 <div class="stats-title">
                     <span class="stats-label">全线商业概况</span>
-                    <span class="stats-date">（统计截至：<span class="editable" data-field="statsDate">2024年5月20日</span>）</span>
                 </div>
                 <div class="stats-grid">
                     <!-- 由 JS 动态生成 -->
@@ -50,8 +50,6 @@
                 <div class="legend-section">
                     <div class="legend-item"><span class="legend-line line-m11"></span> <span>11号线</span></div>
                     <div class="legend-item"><span class="legend-line line-other"></span> <span>其他线路</span></div>
-                    <div class="legend-item"><span class="legend-station transfer"></span> <span>换乘站</span></div>
-                    <div class="legend-item"><span class="legend-station normal"></span> <span>一般站点</span></div>
                 </div>
                 <div class="legend-section">
                     <h4>商铺状态说明</h4>
@@ -83,8 +81,6 @@
             <!-- 底部备注 -->
             <footer class="footer">
                 <span>*出租率 = 已出租商铺 / 商铺总数</span>
-                <span>*数据为模拟数据，仅供参考</span>
-                <span>*统计截止：<span class="editable" data-field="statsDate">2024年5月20日</span></span>
             </footer>
         </div>
     </div>
@@ -108,22 +104,6 @@
             </select>
           </div>
           <div class="editor-field">
-            <label>商铺总数</label>
-            <input type="number" id="editTotal" min="0" />
-          </div>
-          <div class="editor-field">
-            <label>已出租</label>
-            <input type="number" id="editRented" min="0" />
-          </div>
-          <div class="editor-field">
-            <label>空置</label>
-            <input type="number" id="editVacant" min="0" />
-          </div>
-          <div class="editor-field">
-            <label>装修中</label>
-            <input type="number" id="editRenovating" min="0" />
-          </div>
-          <div class="editor-field">
             <label>坐标 X</label>
             <input type="number" id="editX" min="0" />
           </div>
@@ -138,7 +118,6 @@
               <option value="bottom">下方</option>
               <option value="left">左侧</option>
               <option value="right">右侧</option>
-              <option value="bottom-right">右下</option>
             </select>
           </div>
           <div class="editor-field">
@@ -148,6 +127,10 @@
               <option value="true">是</option>
             </select>
           </div>
+          <div class="editor-field full-width">
+            <label>商铺列表（双击卡片可编辑承租方）</label>
+            <div id="editShops" class="shops-edit-list"></div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -156,6 +139,54 @@
       </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- 高清导出说明弹窗 -->
+    <div class="modal" id="hdExportModal">
+      <div class="modal-title">🖼️ 高清海报导出指南</div>
+      <div class="modal-body" style="max-width:520px;">
+        <p style="margin-bottom:12px;color:#666;">本工具支持导出 2K~8K 高清 PNG，可直接用于海报印刷上墙。</p>
+        
+        <table class="hd-table">
+          <thead>
+            <tr><th>规格</th><th>分辨率</th><th>建议打印尺寸</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>2K</strong></td><td>2520×1080</td><td>42×18 cm @150dpi</td><td>PPT/网页展示</td></tr>
+            <tr><td><strong>4K</strong></td><td>5040×2160</td><td>85×36 cm @150dpi</td><td>A1海报上墙</td></tr>
+            <tr><td><strong>6K</strong></td><td>7560×3240</td><td>128×54 cm @150dpi</td><td>A0大幅海报</td></tr>
+            <tr><td><strong>8K</strong></td><td>10080×4320</td><td>85×36 cm @300dpi</td><td>专业印刷</td></tr>
+          </tbody>
+        </table>
+        
+        <div class="hd-steps">
+          <h4>📋 导出步骤</h4>
+          <ol>
+            <li>确保本地服务器已启动（<code>python -m http.server 8080</code>）</li>
+            <li>在项目目录打开命令行（终端/PowerShell）</li>
+            <li>运行导出命令（已安装依赖）：<br><code>node tools/export-hd.js</code></li>
+            <li>导出的 PNG 文件保存在 <code>output/</code> 文件夹</li>
+          </ol>
+        </div>
+        
+        <div class="hd-tips">
+          <h4>💡 快速命令</h4>
+          <pre><code># 导出全部规格
+npm run export-hd
+
+# 仅导出 4K（推荐，A1海报）
+npm run export-4k
+
+# 仅导出 8K（最高清）
+npm run export-8k</code></pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-reset" onclick="app.closeHDExportModal()">关闭</button>
+      </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay" onclick="app.closeModal(); app.closeHDExportModal();"></div>
+
+    <script src="js/app.js?v=2"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "suzhou-metro-11-battle-map",
+  "version": "1.0.0",
+  "description": "苏州地铁11号线商业开发作战图",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "export-hd": "node tools/export-hd.js",
+    "export-2k": "node tools/export-hd.js 2K",
+    "export-4k": "node tools/export-hd.js 4K",
+    "export-6k": "node tools/export-hd.js 6K",
+    "export-8k": "node tools/export-hd.js 8K"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}
