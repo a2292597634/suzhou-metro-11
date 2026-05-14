@@ -639,15 +639,17 @@ const BattleMap = {
   },
 
   // 缩放
-  zoom(delta, centerX, centerY) {
+  // screenX, screenY: 相对于 #app 左上角的屏幕坐标
+  zoom(delta, screenX, screenY) {
     const factor = delta < 0 ? 1.1 : 0.9;
     const newScale = Math.max(this.viewport.minScale, Math.min(this.viewport.maxScale, this.viewport.scale * factor));
 
-    // 以指定点为中心缩放
-    const dx = centerX - this.viewport.x;
-    const dy = centerY - this.viewport.y;
-    this.viewport.x += dx * (1 - newScale / this.viewport.scale);
-    this.viewport.y += dy * (1 - newScale / this.viewport.scale);
+    // 转换为相对于 #app 中心的坐标（考虑 transform-origin: center center）
+    const relX = screenX - window.innerWidth / 2 - this.viewport.x;
+    const relY = screenY - window.innerHeight / 2 - this.viewport.y;
+
+    this.viewport.x += relX * (1 - newScale / this.viewport.scale);
+    this.viewport.y += relY * (1 - newScale / this.viewport.scale);
     this.viewport.scale = newScale;
 
     this.applyTransform();
@@ -772,15 +774,16 @@ const BattleMap = {
   },
 
   zoomIn() {
-    const vw = window.innerWidth / 2;
-    const vh = window.innerHeight / 2;
-    this.zoom(-1, vw, vh);
+    // 以线路图中心点（当前视口中心）进行缩放
+    const cx = window.innerWidth / 2 + this.viewport.x;
+    const cy = window.innerHeight / 2 + this.viewport.y;
+    this.zoom(-1, cx, cy);
   },
 
   zoomOut() {
-    const vw = window.innerWidth / 2;
-    const vh = window.innerHeight / 2;
-    this.zoom(1, vw, vh);
+    const cx = window.innerWidth / 2 + this.viewport.x;
+    const cy = window.innerHeight / 2 + this.viewport.y;
+    this.zoom(1, cx, cy);
   },
 
   // 显示提示
