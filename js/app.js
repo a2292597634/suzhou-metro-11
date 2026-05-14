@@ -8,7 +8,7 @@ const BattleMap = {
     width: 2520,
     height: 1080,
     mainLineY: 480,
-    storageKey: 'suzhou_m11_battle_map_data_v2'
+    storageKey: 'suzhou_m11_battle_map_data_v3'
   },
 
   // 商业价值分级说明
@@ -22,35 +22,91 @@ const BattleMap = {
   // 默认站点数据（坐标、等级、商铺列表）— 按苏州地铁官网11号线站点顺序
   getDefaultStations() {
     return [
-      { id: 'weiting', name: '唯亭站', grade: 'C', shops: [{ no: 1, area: 18.69, tenant: '' }], x: 80, y: 480, pos: 'top', transfer: false },
-      { id: 'caoxieshan', name: '草鞋山站', grade: 'C', shops: [{ no: 1, area: 24.38, tenant: '' }, { no: 2, area: 13.88, tenant: '' }], x: 160, y: 480, pos: 'bottom', transfer: false },
-      { id: 'yangchenghudong', name: '阳澄湖东站', grade: 'A', shops: [{ no: 1, area: 11.85, tenant: '' }, { no: 2, area: 15.4, tenant: '' }, { no: 3, area: 25.72, tenant: '' }], x: 240, y: 480, pos: 'top', transfer: false },
-      { id: 'zhengyi', name: '正仪站', grade: 'B', shops: [{ no: 1, area: 20.66, tenant: '' }, { no: 2, area: 20.46, tenant: '' }], x: 320, y: 480, pos: 'bottom', transfer: false },
-      { id: 'lianhuagongyuan', name: '莲湖公园站', grade: 'A', shops: [{ no: 1, area: 13.4, tenant: '' }, { no: 2, area: 11.85, tenant: '' }, { no: 3, area: 15.14, tenant: '' }], x: 400, y: 480, pos: 'top', transfer: false },
-      { id: 'zuchongzhi', name: '祖冲之公园站', grade: 'C', shops: [{ no: 1, area: 19.11, tenant: '' }, { no: 2, area: 14.69, tenant: '' }], x: 480, y: 480, pos: 'bottom', transfer: false },
-      { id: 'kunshanwenhua', name: '昆山文化艺术中心站', grade: 'S', shops: [{ no: 1, area: 28.27, tenant: '' }, { no: 2, area: 29.23, tenant: '' }], x: 580, y: 480, pos: 'top', transfer: false },
-      { id: 'gongqing', name: '共青站', grade: 'B', shops: [{ no: 1, area: 14.63, tenant: '' }, { no: 2, area: 25.12, tenant: '' }], x: 660, y: 480, pos: 'bottom', transfer: false },
-      { id: 'jiangpu', name: '江浦站', grade: 'C', shops: [{ no: 1, area: 12.68, tenant: '' }, { no: 2, area: 13.04, tenant: '' }], x: 740, y: 480, pos: 'top', transfer: false },
-      { id: 'baimajing', name: '白马泾路站', grade: 'B', shops: [{ no: 1, area: 28.8, tenant: '' }, { no: 2, area: 27.69, tenant: '' }], x: 820, y: 480, pos: 'bottom', transfer: false },
-      { id: 'yushanguangchang', name: '玉山广场站', grade: 'S', shops: [{ no: 1, area: 14.2, tenant: '' }, { no: 2, area: 29.8, tenant: '' }, { no: 3, area: 22.3, tenant: '' }], x: 910, y: 480, pos: 'top', transfer: false },
-      { id: 'xiuyi', name: '绣衣站', grade: 'B', shops: [{ no: 1, area: 17.5, tenant: '' }], x: 990, y: 480, pos: 'bottom', transfer: false },
-      { id: 'kunshanchengshi', name: '昆山城市广场站', grade: 'S', shops: [{ no: 1, area: 14.53, tenant: '' }, { no: 2, area: 13.72, tenant: '' }, { no: 3, area: 23.2, tenant: '' }], x: 1070, y: 480, pos: 'top', transfer: false },
-      { id: 'jinpudaqiao', name: '金浦大桥东站', grade: 'A', shops: [{ no: 1, area: 14.6, tenant: '' }, { no: 2, area: 13.16, tenant: '' }, { no: 3, area: 12.2, tenant: '' }], x: 1150, y: 480, pos: 'bottom', transfer: false },
-      { id: 'shunfanbei', name: '顺帆北路站', grade: 'C', shops: [{ no: 1, area: 14.03, tenant: '' }, { no: 2, area: 14.8, tenant: '' }], x: 1230, y: 480, pos: 'top', transfer: false },
-      { id: 'yuchijing', name: '鱼池泾站', grade: 'C', shops: [{ no: 1, area: 12.79, tenant: '' }, { no: 2, area: 17.85, tenant: '' }], x: 1310, y: 480, pos: 'bottom', transfer: false },
-      { id: 'baihetan', name: '白河潭站', grade: 'C', shops: [{ no: 1, area: 21.09, tenant: '' }, { no: 2, area: 24.8, tenant: '' }], x: 1390, y: 480, pos: 'top', transfer: false },
-      { id: 'bingxi', name: '兵希站', grade: 'C', shops: [{ no: 1, area: 21.16, tenant: '' }, { no: 2, area: 16.65, tenant: '' }, { no: 3, area: 22.55, tenant: '' }], x: 1470, y: 480, pos: 'bottom', transfer: false },
-      { id: 'xiajiahe', name: '夏驾河公园站', grade: 'B', shops: [{ no: 1, area: 29.86, tenant: '' }, { no: 2, area: 29.95, tenant: '' }], x: 1560, y: 480, pos: 'top', transfer: false },
-      { id: 'shengzhuang', name: '盛庄站', grade: 'C', shops: [{ no: 1, area: 13.53, tenant: '' }, { no: 2, area: 12.18, tenant: '' }], x: 1560, y: 580, pos: 'right', transfer: false },
-      { id: 'zhangjilu', name: '章基路南站', grade: 'C', shops: [{ no: 1, area: 29.66, tenant: '' }, { no: 2, area: 10.12, tenant: '' }], x: 1560, y: 720, pos: 'left', transfer: false },
-      { id: 'xiaqiao', name: '夏桥站', grade: 'C', shops: [{ no: 1, area: 12.75, tenant: '' }], x: 1560, y: 780, pos: 'bottom', transfer: false },
-      { id: 'shentongjing', name: '神童泾站', grade: 'B', shops: [{ no: 1, area: 19.46, tenant: '' }], x: 1740, y: 813, pos: 'bottom', transfer: false },
-      { id: 'lujia', name: '菉葭站', grade: 'C', shops: [{ no: 1, area: 18.21, tenant: '' }, { no: 2, area: 18.36, tenant: '' }, { no: 3, area: 23.74, tenant: '' }], x: 1780, y: 820, pos: 'top', transfer: false },
-      { id: 'huaqiaobolan', name: '花桥博览中心站', grade: 'A', shops: [{ no: 1, area: 16.59, tenant: '' }, { no: 2, area: 11.2, tenant: '' }, { no: 3, area: 12.57, tenant: '' }, { no: 4, area: 14.98, tenant: '' }], x: 1900, y: 840, pos: 'bottom', transfer: false },
-      { id: 'jishan', name: '集善站', grade: 'C', shops: [{ no: 1, area: 15.67, tenant: '' }, { no: 2, area: 17.01, tenant: '' }], x: 2060, y: 840, pos: 'top', transfer: false },
-      { id: 'huaxigongyuan', name: '花溪公园站', grade: 'B', shops: [{ no: 1, area: 14.88, tenant: '' }, { no: 2, area: 24.64, tenant: '' }, { no: 3, area: 24.64, tenant: '' }], x: 2220, y: 840, pos: 'bottom', transfer: false },
-      { id: 'huaqiao', name: '花桥站', grade: 'S', shops: [{ no: 1, area: 28.34, tenant: '' }, { no: 2, area: 10.54, tenant: '' }, { no: 3, area: 14.09, tenant: '' }], x: 2380, y: 840, pos: 'top', transfer: true, transferLine: '上海11号线' }
-    ];
+      { id: 'weiting', name: '唯亭站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺', area: 18.69, tenant: '' }],
+        x: 80, y: 480, pos: 'top', transfer: false },
+      { id: 'caoxieshan', name: '草鞋山站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 13.88, tenant: '无人便利店' }, { no: 2, name: 'B商铺（4号出口）', area: 24.38, tenant: '' }],
+        x: 170, y: 480, pos: 'bottom', transfer: false },
+      { id: 'yangchenghudong', name: '阳澄湖东站', grade: 'A',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 25.72, tenant: '' }, { no: 2, name: 'B1商铺（4号出口）', area: 11.85, tenant: '' }, { no: 3, name: 'B2商铺（4号出口）', area: 15.4, tenant: '' }],
+        x: 260, y: 480, pos: 'top', transfer: false },
+      { id: 'zhengyi', name: '正仪站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 20.46, tenant: '' }, { no: 2, name: 'B商铺（4号出口）', area: 20.66, tenant: '' }],
+        x: 350, y: 480, pos: 'bottom', transfer: false },
+      { id: 'lianhuagongyuan', name: '莲湖公园站', grade: 'A',
+        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 15.14, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 11.85, tenant: '' }, { no: 3, name: 'C商铺（4号出口）', area: 13.4, tenant: '' }],
+        x: 440, y: 480, pos: 'top', transfer: false },
+      { id: 'zuchongzhi', name: '祖冲之公园站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 14.69, tenant: '无人便利店' }, { no: 2, name: 'B商铺（4号出口）', area: 19.11, tenant: '牙博士口腔' }, { no: 3, name: '多经点位1', area: 17.28, tenant: '' }, { no: 4, name: '多经点位2', area: 17.28, tenant: '' }],
+        x: 530, y: 480, pos: 'bottom', transfer: false },
+      { id: 'kunshanwenhua', name: '昆山文化艺术中心站', grade: 'S',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 29.23, tenant: '昆山有礼' }, { no: 2, name: 'B商铺（4号出口）', area: 28.27, tenant: '美汇口腔' }],
+        x: 620, y: 480, pos: 'top', transfer: false },
+      { id: 'gongqing', name: '共青站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.63, tenant: '11号咖啡店' }, { no: 2, name: 'B商铺（2号出口）', area: 25.12, tenant: '美汇口腔' }],
+        x: 710, y: 480, pos: 'bottom', transfer: false },
+      { id: 'jiangpu', name: '江浦站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（4号出口）', area: 12.68, tenant: '牙博士口腔' }, { no: 2, name: 'A1商铺（4号出口）', area: 13.04, tenant: '包一切馅饼' }, { no: 3, name: '多经点位', area: 7.44, tenant: '手机维修店' }],
+        x: 800, y: 480, pos: 'top', transfer: false },
+      { id: 'baimajing', name: '白马泾路站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 28.8, tenant: '怀旧零食店' }, { no: 2, name: 'B商铺（3号出口）', area: 27.69, tenant: '有一家便利店' }],
+        x: 890, y: 480, pos: 'bottom', transfer: false },
+      { id: 'yushanguangchang', name: '玉山广场站', grade: 'S',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 32.0, tenant: '11号便利店' }, { no: 2, name: 'B商铺（3号出口）', area: 15.0, tenant: '11号咖啡店' }, { no: 3, name: 'C商铺（1号2号出口）', area: 20.9, tenant: '包一切馅饼' }, { no: 4, name: '多经点位1', area: 15.12, tenant: '美汇口腔' }, { no: 5, name: '多经点位2', area: 15.12, tenant: '' }],
+        x: 980, y: 480, pos: 'top', transfer: false },
+      { id: 'xiuyi', name: '绣衣站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺', area: 17.5, tenant: '牙博士口腔' }, { no: 2, name: '多经点位', area: 18.9, tenant: '' }],
+        x: 1070, y: 480, pos: 'bottom', transfer: false },
+      { id: 'kunshanchengshi', name: '昆山城市广场站', grade: 'S',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 13.72, tenant: '昆山有礼' }, { no: 2, name: 'B商铺（2号出口）', area: 23.2, tenant: '' }, { no: 3, name: 'C商铺（4号出口）', area: 14.53, tenant: '无人便利店' }],
+        x: 1160, y: 480, pos: 'top', transfer: false },
+      { id: 'jinpudaqiao', name: '金浦大桥东站', grade: 'A',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.04, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 12.74, tenant: '11号咖啡店' }, { no: 3, name: 'C商铺（2号出口）', area: 10.88, tenant: '' }],
+        x: 1250, y: 480, pos: 'bottom', transfer: false },
+      { id: 'shunfanbei', name: '顺帆北路站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.03, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 14.8, tenant: '' }],
+        x: 1340, y: 480, pos: 'top', transfer: false },
+      { id: 'yuchijing', name: '鱼池泾站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 17.85, tenant: '' }, { no: 2, name: 'B商铺（4号出口）', area: 12.97, tenant: '' }],
+        x: 1430, y: 480, pos: 'bottom', transfer: false },
+      { id: 'baihetan', name: '白河潭站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 24.8, tenant: '汇城房产' }, { no: 2, name: 'B商铺（3号出口）', area: 21.09, tenant: '牙博士口腔' }, { no: 3, name: '多经点位', area: 22.68, tenant: '' }],
+        x: 1520, y: 480, pos: 'top', transfer: false },
+      { id: 'bingxi', name: '兵希站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 21.16, tenant: '全家便利店' }, { no: 2, name: 'A1商铺（1号出口）', area: 16.65, tenant: '' }, { no: 3, name: 'A2商铺（1号出口）', area: 22.55, tenant: '咖啡店' }],
+        x: 1610, y: 480, pos: 'bottom', transfer: false },
+      { id: 'xiajiahe', name: '夏驾河公园站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 29.86, tenant: '美宜佳超市' }],
+        x: 1700, y: 480, pos: 'top', transfer: false },
+      { id: 'shengzhuang', name: '盛庄站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 13.53, tenant: '自习室' }, { no: 2, name: 'B商铺（4号出口）', area: 12.18, tenant: '自习室' }],
+        x: 1700, y: 580, pos: 'right', transfer: false },
+      { id: 'zhangjilu', name: '章基路南站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 10.12, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 29.66, tenant: '' }],
+        x: 1700, y: 720, pos: 'left', transfer: false },
+      { id: 'xiaqiao', name: '夏桥站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 12.75, tenant: '' }],
+        x: 1700, y: 780, pos: 'right', transfer: false },
+      { id: 'shentongjing', name: '神童泾站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 19.46, tenant: '' }],
+        x: 1810, y: 800, pos: 'bottom', transfer: false },
+      { id: 'lujia', name: '菉葭站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 18.36, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 23.74, tenant: '便利店' }, { no: 3, name: 'C商铺（5号出口）', area: 18.21, tenant: '' }],
+        x: 1920, y: 820, pos: 'top', transfer: false },
+      { id: 'huaqiaobolan', name: '花桥博览中心站', grade: 'A',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 11.2, tenant: '' }, { no: 2, name: 'B商铺（2号出口）', area: 14.98, tenant: '' }, { no: 3, name: 'C商铺（3号出口）', area: 12.57, tenant: '' }, { no: 4, name: 'D商铺（4号出口）', area: 16.59, tenant: '' }],
+        x: 2040, y: 840, pos: 'bottom', transfer: false },
+      { id: 'jishan', name: '集善站', grade: 'C',
+        shops: [{ no: 1, name: 'A商铺（1号出口)', area: 17.01, tenant: '' }, { no: 2, name: 'B商铺（2号出口)', area: 15.67, tenant: '' }],
+        x: 2150, y: 840, pos: 'top', transfer: false },
+      { id: 'huaxigongyuan', name: '花溪公园站', grade: 'B',
+        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.88, tenant: '' }, { no: 2, name: 'B商铺（2号出口）', area: 24.64, tenant: '' }, { no: 3, name: 'C商铺（3号出口）', area: 24.64, tenant: '' }],
+        x: 2270, y: 840, pos: 'bottom', transfer: false },
+      { id: 'huaqiao', name: '花桥站', grade: 'S',
+        shops: [{ no: 1, name: 'A号商铺', area: 19.81, tenant: '蜜雪冰城' }, { no: 2, name: 'B号商铺', area: 27.14, tenant: '' }, { no: 3, name: 'C号商铺', area: 21.3, tenant: '全家' }, { no: 4, name: 'D号商铺', area: 34.14, tenant: '喜士多' }, { no: 5, name: 'E号商铺', area: 28.23, tenant: '' }, { no: 6, name: 'F号商铺', area: 10.54, tenant: '苏燕记' }, { no: 7, name: 'G号商铺', area: 14.09, tenant: '牙博士' }],
+        x: 2380, y: 840, pos: 'top', transfer: true, transferLine: '上海11号线' }
+];
   },
 
   getDefaultGlobalStats() {
@@ -258,10 +314,10 @@ const BattleMap = {
     `;
 
     // 线路走向：水平 → 垂直向下 → 斜线 → 水平
-    const lineHorizontal1 = `M 80,480 L 1560,480`;
-    const lineVertical = `L 1560,780`;
-    const lineSlant1 = `L 1780,820`;
-    const lineSlant2 = `L 1900,840`;
+    const lineHorizontal1 = `M 80,480 L 1700,480`;
+    const lineVertical = `L 1700,780`;
+    const lineSlant1 = `L 1920,820`;
+    const lineSlant2 = `L 2040,840`;
     const lineHorizontal2 = `L 2380,840`;
     const fullLinePath = `${lineHorizontal1} ${lineVertical} ${lineSlant1} ${lineSlant2} ${lineHorizontal2}`;
 
@@ -316,23 +372,89 @@ const BattleMap = {
   },
 
   // 渲染站点卡片
+  // 动态避让：检测卡片重叠并微调位置
+  resolveCardOverlaps(cards) {
+    const minGap = 4;
+    const maxIter = 30;
+    const maxShift = 50;
+
+    for (let iter = 0; iter < maxIter; iter++) {
+      let moved = false;
+
+      for (let i = 0; i < cards.length; i++) {
+        for (let j = i + 1; j < cards.length; j++) {
+          const a = cards[i];
+          const b = cards[j];
+
+          const overlapLeft = Math.max(a.left, b.left);
+          const overlapRight = Math.min(a.left + a.width, b.left + b.width);
+          const overlapTop = Math.max(a.top, b.top);
+          const overlapBottom = Math.min(a.top + a.height, b.top + b.height);
+
+          if (overlapRight > overlapLeft && overlapBottom > overlapTop) {
+            const overlapW = overlapRight - overlapLeft;
+            const overlapH = overlapBottom - overlapTop;
+            moved = true;
+
+            const bothTop = a.pos === 'top' && b.pos === 'top';
+            const bothBottom = a.pos === 'bottom' && b.pos === 'bottom';
+            const bothRight = a.pos === 'right' && b.pos === 'right';
+            const bothLeft = a.pos === 'left' && b.pos === 'left';
+            const topBottom = (a.pos === 'top' && b.pos === 'bottom') || (a.pos === 'bottom' && b.pos === 'top');
+
+            if (bothTop || bothBottom) {
+              // 同侧上下卡片：水平错开（保持垂直方向不变）
+              const half = (overlapW + minGap) / 2;
+              a.left = Math.max(a.origLeft - maxShift, a.left - half);
+              b.left = Math.min(b.origLeft + maxShift, b.left + half);
+            } else if (bothRight || bothLeft) {
+              // 同侧左右卡片：垂直错开
+              const half = (overlapH + minGap) / 2;
+              a.top = Math.max(a.origTop - maxShift, a.top - half);
+              b.top = Math.min(b.origTop + maxShift, b.top + half);
+            } else if (topBottom) {
+              // 上下相对：沿垂直方向推开
+              const half = (overlapH + minGap) / 2;
+              if (a.pos === 'top') {
+                a.top = Math.max(a.origTop - maxShift, a.top - half);
+                b.top = Math.min(b.origTop + maxShift, b.top + half);
+              } else {
+                a.top = Math.min(a.origTop + maxShift, a.top + half);
+                b.top = Math.max(b.origTop - maxShift, b.top - half);
+              }
+            } else {
+              // 其他情况：沿重叠较小的方向推开
+              if (overlapW < overlapH) {
+                const half = (overlapW + minGap) / 2;
+                a.left = Math.max(a.origLeft - maxShift, Math.min(a.origLeft + maxShift, a.left - half));
+                b.left = Math.max(b.origLeft - maxShift, Math.min(b.origLeft + maxShift, b.left + half));
+              } else {
+                const half = (overlapH + minGap) / 2;
+                a.top = Math.max(a.origTop - maxShift, Math.min(a.origTop + maxShift, a.top - half));
+                b.top = Math.max(b.origTop - maxShift, Math.min(b.origTop + maxShift, b.top + half));
+              }
+            }
+          }
+        }
+      }
+
+      if (!moved) break;
+    }
+  },
+
   renderStations() {
     const layer = document.getElementById('stationsLayer');
     layer.innerHTML = '';
 
-    this.stations.forEach((s, idx) => {
-      const card = document.createElement('div');
-      card.className = `station-card card-${s.pos}`;
-      card.dataset.id = s.id;
-      
-      // 卡片尺寸统一按5个商铺配置，确保同一水平线对齐
-      const cardW = 150;
-      const lineH = 20;
-      const headerH = 30;
-      const padding = 18;
-      const maxShops = 4;
+    // 1. 计算所有卡片的初始位置和尺寸
+    const cardInfos = this.stations.map((s, idx) => {
+      const cardW = 160;
+      const lineH = 22;
+      const headerH = 35;
+      const padding = 20;
+      const maxShops = Math.max(4, (s.shops || []).length);
       const cardH = headerH + maxShops * lineH + padding;
-      
+
       let left, top;
       if (s.pos === 'top') {
         left = s.x - cardW / 2;
@@ -351,16 +473,32 @@ const BattleMap = {
         top = s.y + 45;
       }
 
-      card.style.left = left + 'px';
-      card.style.top = top + 'px';
-      card.style.width = cardW + 'px';
-      card.style.height = cardH + 'px';
+      return {
+        idx, id: s.id, station: s,
+        left, top, width: cardW, height: cardH,
+        origLeft: left, origTop: top, pos: s.pos,
+        x: s.x, y: s.y
+      };
+    });
 
-      // 商铺列表
+    // 2. 动态避让
+    this.resolveCardOverlaps(cardInfos);
+
+    // 3. 使用避让后的位置渲染卡片
+    cardInfos.forEach(info => {
+      const s = info.station;
+      const card = document.createElement('div');
+      card.className = `station-card card-${s.pos}`;
+      card.dataset.id = s.id;
+      card.style.left = info.left + 'px';
+      card.style.top = info.top + 'px';
+      card.style.width = info.width + 'px';
+      card.style.height = info.height + 'px';
+
       const shopsHtml = (s.shops || []).map((shop, si) => `
-        <div class="card-shop-row" data-idx="${idx}" data-si="${si}">
-          <span class="shop-name">${shop.no}号商铺</span>
-          <span class="shop-tenant">${shop.tenant || ''}</span>
+        <div class="card-shop-row" data-idx="${info.idx}" data-si="${si}">
+          <span class="shop-name" title="${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}">${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}</span>
+          <span class="shop-tenant" title="${shop.tenant || ''}">${shop.tenant || ''}</span>
         </div>
       `).join('');
 
@@ -375,7 +513,41 @@ const BattleMap = {
       layer.appendChild(card);
     });
 
-    // 双击卡片打开商铺编辑器
+    // 4. 绘制卡片到站点的连接线（保持固定间距，确保站名显示）
+    const svg = document.getElementById('metroLines');
+    svg.querySelectorAll('.connector-group').forEach(el => el.remove());
+    const connectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    connectorGroup.setAttribute('class', 'connector-group');
+    cardInfos.forEach(info => {
+      const s = info.station;
+      let endX, endY;
+      if (s.pos === 'top') {
+        endX = info.left + info.width / 2;
+        endY = info.top + info.height;
+      } else if (s.pos === 'bottom') {
+        endX = info.left + info.width / 2;
+        endY = info.top;
+      } else if (s.pos === 'right') {
+        endX = info.left;
+        endY = info.top + info.height / 2;
+      } else if (s.pos === 'left') {
+        endX = info.left + info.width;
+        endY = info.top + info.height / 2;
+      } else {
+        endX = info.left + info.width / 2;
+        endY = info.top;
+      }
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', s.x);
+      line.setAttribute('y1', s.y);
+      line.setAttribute('x2', endX);
+      line.setAttribute('y2', endY);
+      line.setAttribute('class', 'connector-line');
+      connectorGroup.appendChild(line);
+    });
+    svg.appendChild(connectorGroup);
+
+    // 5. 双击卡片打开商铺编辑器
     document.querySelectorAll('.station-card').forEach(card => {
       card.addEventListener('dblclick', (e) => {
         const idx = this.stations.findIndex(s => s.id === card.dataset.id);
@@ -531,7 +703,7 @@ const BattleMap = {
     const shopsContainer = document.getElementById('editShops');
     shopsContainer.innerHTML = (s.shops || []).map((shop, si) => `
       <div class="shop-edit-row">
-        <span class="shop-edit-no">${shop.no}号商铺</span>
+        <span class="shop-edit-no">${shop.name || shop.no + '号商铺'}</span>
         <input type="text" class="shop-edit-tenant" data-si="${si}" value="${shop.tenant}" placeholder="承租方" />
       </div>
     `).join('');

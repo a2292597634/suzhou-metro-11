@@ -536,6 +536,17 @@ html, body {
   fill: #333;
   text-anchor: middle;
   pointer-events: none;
+  paint-order: stroke fill;
+  stroke: rgba(255,255,255,0.85);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.connector-line {
+  stroke: rgba(0,0,0,0.25);
+  stroke-width: 1;
+  stroke-dasharray: 4,3;
+  pointer-events: none;
 }
 
 /* 流动光效 */
@@ -559,7 +570,7 @@ html, body {
   box-shadow: var(--shadow);
   overflow: hidden;
   z-index: 20;
-  width: 150px;
+  width: 160px;
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: default;
 }
@@ -615,7 +626,12 @@ html, body {
 
 .card-shop-row .shop-name {
   color: #333;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 4px;
 }
 
 .card-shop-row .shop-tenant {
@@ -625,7 +641,8 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 70px;
+  max-width: 90px;
+  flex-shrink: 0;
 }
 
 /* 站点卡片位置调整 */
