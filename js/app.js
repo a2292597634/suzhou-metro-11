@@ -614,12 +614,17 @@ const BattleMap = {
   isDragging: false,
   dragStart: { x: 0, y: 0 },
   lastMouse: { x: 0, y: 0 },
+  isTouchDragging: false,
+  touchStart: { x: 0, y: 0 },
+  lastTouchDistance: 0,
+  touchMid: { x: 0, y: 0 },
 
   // 初始化视口（自动适配屏幕）
   initViewport() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const padding = 60;
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const padding = isMobile ? 10 : 60;
     const scaleX = (vw - padding) / this.config.width;
     const scaleY = (vh - padding) / this.config.height;
     this.viewport.scale = Math.min(scaleX, scaleY, 1);
@@ -747,6 +752,55 @@ const BattleMap = {
     // 禁用右键菜单
     app.addEventListener('contextmenu', (e) => {
       e.preventDefault();
+    });
+
+    // ===== Touch 事件支持（手机端单指拖动 + 双指缩放） =====
+    app.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        this.isTouchDragging = true;
+        this.touchStart.x = e.touches[0].clientX;
+        this.touchStart.y = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        this.isTouchDragging = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        this.lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        this.touchMid.x = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        this.touchMid.y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      }
+    }, { passive: false });
+
+    app.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && this.isTouchDragging) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - this.touchStart.x;
+        const dy = e.touches[0].clientY - this.touchStart.y;
+        this.viewport.x += dx;
+        this.viewport.y += dy;
+        this.touchStart.x = e.touches[0].clientX;
+        this.touchStart.y = e.touches[0].clientY;
+        this.applyTransform();
+      } else if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (this.lastTouchDistance > 0) {
+          const delta = this.lastTouchDistance - distance;
+          const rect = app.getBoundingClientRect();
+          const cx = this.touchMid.x - rect.left;
+          const cy = this.touchMid.y - rect.top;
+          this.zoom(delta * 0.5, cx, cy);
+        }
+        this.lastTouchDistance = distance;
+        this.touchMid.x = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        this.touchMid.y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      }
+    }, { passive: false });
+
+    app.addEventListener('touchend', () => {
+      this.isTouchDragging = false;
+      this.lastTouchDistance = 0;
     });
 
     // 窗口大小变化时重新适配（防抖）
