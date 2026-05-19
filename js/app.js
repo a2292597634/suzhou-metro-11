@@ -8,7 +8,7 @@ const BattleMap = {
     width: 2520,
     height: 1080,
     mainLineY: 480,
-    storageKey: 'suzhou_m11_battle_map_data_v3'
+    storageKey: 'suzhou_m11_battle_map_data_v4'
   },
 
   // 商业价值分级说明
@@ -20,103 +20,140 @@ const BattleMap = {
   },
 
   // 默认站点数据（坐标、等级、商铺列表）— 按苏州地铁官网11号线站点顺序
-  getDefaultStations() {
+    getDefaultStations() {
     return [
       { id: 'weiting', name: '唯亭站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺', area: 18.69, tenant: '' }],
+        shops: [{ no: 1, shortNo: 'S11-1', name: 'A商铺', type: '商铺', area: 18.69, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 80, y: 480, pos: 'top', transfer: false },
       { id: 'caoxieshan', name: '草鞋山站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 13.88, tenant: '无人便利店' }, { no: 2, name: 'B商铺（4号出口）', area: 24.38, tenant: '' }],
+        shops: [{ no: 2, shortNo: 'S11-2', name: 'A商铺（2号出口）', type: '商铺', area: 13.88, tenant: '无人便利店', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 3, shortNo: 'S11-3', name: 'B商铺（4号出口）', type: '商铺', area: 24.38, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 170, y: 480, pos: 'bottom', transfer: false },
       { id: 'yangchenghudong', name: '阳澄湖东站', grade: 'A',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 25.72, tenant: '' }, { no: 2, name: 'B1商铺（4号出口）', area: 11.85, tenant: '' }, { no: 3, name: 'B2商铺（4号出口）', area: 15.4, tenant: '' }],
+        shops: [{ no: 4, shortNo: 'S11-4', name: 'A商铺（3号出口）', type: '商铺', area: 25.72, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 5, shortNo: 'S11-5', name: 'B1商铺（4号出口）', type: '商铺', area: 11.85, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 6, shortNo: 'S11-6', name: 'B2商铺（4号出口）', type: '商铺', area: 15.4, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 260, y: 480, pos: 'top', transfer: false },
       { id: 'zhengyi', name: '正仪站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 20.46, tenant: '' }, { no: 2, name: 'B商铺（4号出口）', area: 20.66, tenant: '' }],
+        shops: [{ no: 7, shortNo: 'S11-7', name: 'A商铺（3号出口）', type: '商铺', area: 20.46, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }, { no: 8, shortNo: 'S11-8', name: 'B商铺（4号出口）', type: '商铺', area: 20.66, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 350, y: 480, pos: 'bottom', transfer: false },
       { id: 'lianhuagongyuan', name: '莲湖公园站', grade: 'A',
-        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 15.14, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 11.85, tenant: '' }, { no: 3, name: 'C商铺（4号出口）', area: 13.4, tenant: '' }],
+        shops: [{ no: 9, shortNo: 'S11-9', name: 'A商铺（2号出口）', type: '商铺', area: 15.14, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 10, shortNo: 'S11-10', name: 'B商铺（3号出口）', type: '商铺', area: 11.85, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 11, shortNo: 'S11-11', name: 'C商铺（4号出口）', type: '商铺', area: 13.4, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 440, y: 480, pos: 'top', transfer: false },
       { id: 'zuchongzhi', name: '祖冲之公园站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 14.69, tenant: '无人便利店' }, { no: 2, name: 'B商铺（4号出口）', area: 19.11, tenant: '牙博士口腔' }, { no: 3, name: '多经点位1', area: 17.28, tenant: '' }, { no: 4, name: '多经点位2', area: 17.28, tenant: '' }],
+        shops: [{ no: 12, shortNo: 'S11-12', name: 'A商铺（3号出口）', type: '商铺', area: 14.69, tenant: '无人便利店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 13, shortNo: 'S11-13', name: 'B商铺（4号出口）', type: '商铺', area: 19.11, tenant: '牙博士口腔', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 14, shortNo: '待定', name: '多经点位1', type: '多经点位', area: 17.28, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 15, shortNo: '待定', name: '多经点位2', type: '多经点位', area: 17.28, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 530, y: 480, pos: 'bottom', transfer: false },
       { id: 'kunshanwenhua', name: '昆山文化艺术中心站', grade: 'S',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 29.23, tenant: '昆山有礼' }, { no: 2, name: 'B商铺（4号出口）', area: 28.27, tenant: '美汇口腔' }],
+        shops: [{ no: 16, shortNo: 'S11-14', name: 'A商铺（3号出口）', type: '商铺', area: 29.23, tenant: '昆山有礼', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 17, shortNo: 'S11-15', name: 'B商铺（4号出口）', type: '商铺', area: 28.27, tenant: '美汇口腔', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 620, y: 480, pos: 'top', transfer: false },
       { id: 'gongqing', name: '共青站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.63, tenant: '11号咖啡店' }, { no: 2, name: 'B商铺（2号出口）', area: 25.12, tenant: '美汇口腔' }],
+        shops: [{ no: 18, shortNo: 'S11-16', name: 'A商铺（1号出口）', type: '商铺', area: 14.63, tenant: '11号咖啡店', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 19, shortNo: 'S11-17', name: 'B商铺（2号出口）', type: '商铺', area: 25.12, tenant: '美汇口腔', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 710, y: 480, pos: 'bottom', transfer: false },
       { id: 'jiangpu', name: '江浦站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（4号出口）', area: 12.68, tenant: '牙博士口腔' }, { no: 2, name: 'A1商铺（4号出口）', area: 13.04, tenant: '包一切馅饼' }, { no: 3, name: '多经点位', area: 7.44, tenant: '手机维修店' }],
+        shops: [{ no: 20, shortNo: 'S11-18', name: 'A商铺（4号出口）', type: '商铺', area: 12.68, tenant: '牙博士口腔', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 21, shortNo: 'S11-19', name: 'A1商铺（4号出口）', type: '商铺', area: 13.04, tenant: '包一切馅饼', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 22, shortNo: 'S11-18-1', name: '多经点位', type: '多经点位', area: 7.44, tenant: '手机维修店', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 800, y: 480, pos: 'top', transfer: false },
       { id: 'baimajing', name: '白马泾路站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 28.8, tenant: '怀旧零食店' }, { no: 2, name: 'B商铺（3号出口）', area: 27.69, tenant: '有一家便利店' }],
+        shops: [{ no: 23, shortNo: 'S11-20', name: 'A商铺（1号出口）', type: '商铺', area: 28.8, tenant: '怀旧零食店', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 24, shortNo: 'S11-21', name: 'B商铺（3号出口）', type: '商铺', area: 27.69, tenant: '有一家便利店', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 890, y: 480, pos: 'bottom', transfer: false },
       { id: 'yushanguangchang', name: '玉山广场站', grade: 'S',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 32.0, tenant: '11号便利店' }, { no: 2, name: 'B商铺（3号出口）', area: 15.0, tenant: '11号咖啡店' }, { no: 3, name: 'C商铺（1号2号出口）', area: 20.9, tenant: '包一切馅饼' }, { no: 4, name: '多经点位1', area: 15.12, tenant: '美汇口腔' }, { no: 5, name: '多经点位2', area: 15.12, tenant: '' }],
+        shops: [{ no: 25, shortNo: 'S11-22', name: 'A商铺（3号出口）', type: '商铺', area: 32.0, tenant: '11号便利店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 26, shortNo: 'S11-23', name: 'B商铺（3号出口）', type: '商铺', area: 15.0, tenant: '11号咖啡店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 27, shortNo: 'S11-24', name: 'C商铺（1号2号出口）', type: '商铺', area: 20.9, tenant: '包一切馅饼', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 28, shortNo: 'S11-18-2', name: '多经点位1', type: '多经点位', area: 15.12, tenant: '美汇口腔', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 29, shortNo: '待定', name: '多经点位2', type: '多经点位', area: 15.12, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 980, y: 480, pos: 'top', transfer: false },
       { id: 'xiuyi', name: '绣衣站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺', area: 17.5, tenant: '牙博士口腔' }, { no: 2, name: '多经点位', area: 18.9, tenant: '' }],
+        shops: [{ no: 30, shortNo: 'S11-25', name: 'A商铺', type: '商铺', area: 17.5, tenant: '牙博士口腔', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 31, shortNo: '待定', name: '多经点位', type: '多经点位', area: 18.9, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1070, y: 480, pos: 'bottom', transfer: false },
       { id: 'kunshanchengshi', name: '昆山城市广场站', grade: 'S',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 13.72, tenant: '昆山有礼' }, { no: 2, name: 'B商铺（2号出口）', area: 23.2, tenant: '' }, { no: 3, name: 'C商铺（4号出口）', area: 14.53, tenant: '无人便利店' }],
+        shops: [{ no: 32, shortNo: 'S11-26', name: 'A商铺（1号出口）', type: '商铺', area: 13.72, tenant: '昆山有礼', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 33, shortNo: 'S11-27', name: 'B商铺（2号出口）', type: '商铺', area: 23.2, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 34, shortNo: 'S11-28', name: 'C商铺（4号出口）', type: '商铺', area: 14.53, tenant: '无人便利店', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 1160, y: 480, pos: 'top', transfer: false },
       { id: 'jinpudaqiao', name: '金浦大桥东站', grade: 'A',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.04, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 12.74, tenant: '11号咖啡店' }, { no: 3, name: 'C商铺（2号出口）', area: 10.88, tenant: '' }],
+        shops: [{ no: 35, shortNo: 'S11-29', name: 'A商铺（1号出口）', type: '商铺', area: 14.04, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 36, shortNo: 'S11-30', name: 'B商铺（3号出口）', type: '商铺', area: 12.74, tenant: '11号咖啡店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 37, shortNo: 'S11-31', name: 'C商铺（2号出口）', type: '商铺', area: 10.88, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1250, y: 480, pos: 'bottom', transfer: false },
       { id: 'shunfanbei', name: '顺帆北路站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.03, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 14.8, tenant: '' }],
+        shops: [{ no: 38, shortNo: 'S11-32', name: 'A商铺（1号出口）', type: '商铺', area: 14.03, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }, { no: 39, shortNo: 'S11-33', name: 'B商铺（3号出口）', type: '商铺', area: 14.8, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1340, y: 480, pos: 'top', transfer: false },
       { id: 'yuchijing', name: '鱼池泾站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（2号出口）', area: 17.85, tenant: '' }, { no: 2, name: 'B商铺（4号出口）', area: 12.97, tenant: '' }],
+        shops: [{ no: 40, shortNo: 'S11-34', name: 'A商铺（2号出口）', type: '商铺', area: 17.85, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }, { no: 41, shortNo: 'S11-35', name: 'B商铺（4号出口）', type: '商铺', area: 12.97, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1430, y: 480, pos: 'bottom', transfer: false },
       { id: 'baihetan', name: '白河潭站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 24.8, tenant: '汇城房产' }, { no: 2, name: 'B商铺（3号出口）', area: 21.09, tenant: '牙博士口腔' }, { no: 3, name: '多经点位', area: 22.68, tenant: '' }],
+        shops: [{ no: 42, shortNo: 'S11-36', name: 'A商铺（1号出口）', type: '商铺', area: 24.8, tenant: '汇城房产', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 43, shortNo: 'S11-37', name: 'B商铺（3号出口）', type: '商铺', area: 21.09, tenant: '牙博士口腔', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 44, shortNo: '待定', name: '多经点位', type: '多经点位', area: 22.68, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1520, y: 480, pos: 'top', transfer: false },
       { id: 'bingxi', name: '兵希站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 21.16, tenant: '全家便利店' }, { no: 2, name: 'A1商铺（1号出口）', area: 16.65, tenant: '' }, { no: 3, name: 'A2商铺（1号出口）', area: 22.55, tenant: '咖啡店' }],
+        shops: [{ no: 45, shortNo: 'S11-38', name: 'A商铺（1号出口）', type: '商铺', area: 21.16, tenant: '全家便利店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 46, shortNo: 'S11-39', name: 'A1商铺（1号出口）', type: '商铺', area: 16.65, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 47, shortNo: 'S11-40', name: 'A2商铺（1号出口）', type: '商铺', area: 22.55, tenant: '咖啡店', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 1610, y: 480, pos: 'bottom', transfer: false },
       { id: 'xiajiahe', name: '夏驾河公园站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 29.86, tenant: '美宜佳超市' }],
+        shops: [{ no: 48, shortNo: 'S11-41', name: 'A商铺（1号出口）', type: '商铺', area: 29.86, tenant: '美宜佳超市', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 1700, y: 480, pos: 'top', transfer: false },
       { id: 'shengzhuang', name: '盛庄站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 13.53, tenant: '自习室' }, { no: 2, name: 'B商铺（4号出口）', area: 12.18, tenant: '自习室' }],
+        shops: [{ no: 49, shortNo: 'S11-43', name: 'A商铺（3号出口）', type: '商铺', area: 13.53, tenant: '自习室', contact: '', openDate: '', status: '营业中', remark: '' }, { no: 50, shortNo: 'S11-44', name: 'B商铺（4号出口）', type: '商铺', area: 12.18, tenant: '自习室', contact: '', openDate: '', status: '营业中', remark: '' }],
         x: 1700, y: 580, pos: 'right', transfer: false },
       { id: 'zhangjilu', name: '章基路南站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 10.12, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 29.66, tenant: '' }],
+        shops: [{ no: 51, shortNo: 'S11-45', name: 'A商铺（1号出口）', type: '商铺', area: 10.12, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }, { no: 52, shortNo: 'S11-46', name: 'B商铺（3号出口）', type: '商铺', area: 29.66, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1700, y: 720, pos: 'left', transfer: false },
       { id: 'xiaqiao', name: '夏桥站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 12.75, tenant: '' }],
+        shops: [{ no: 53, shortNo: 'S11-47', name: 'A商铺（1号出口）', type: '商铺', area: 12.75, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1700, y: 780, pos: 'right', transfer: false },
       { id: 'shentongjing', name: '神童泾站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（3号出口）', area: 19.46, tenant: '' }],
+        shops: [{ no: 54, shortNo: 'S11-48', name: 'A商铺（3号出口）', type: '商铺', area: 19.46, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1810, y: 800, pos: 'bottom', transfer: false },
       { id: 'lujia', name: '菉葭站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 18.36, tenant: '' }, { no: 2, name: 'B商铺（3号出口）', area: 23.74, tenant: '便利店' }, { no: 3, name: 'C商铺（5号出口）', area: 18.21, tenant: '' }],
+        shops: [{ no: 55, shortNo: 'S11-49', name: 'A商铺（1号出口）', type: '商铺', area: 18.36, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 56, shortNo: 'S11-50', name: 'B商铺（3号出口）', type: '商铺', area: 23.74, tenant: '便利店', contact: '', openDate: '', status: '营业中', remark: '' },
+        { no: 57, shortNo: 'S11-51', name: 'C商铺（5号出口）', type: '商铺', area: 18.21, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 1920, y: 820, pos: 'top', transfer: false },
       { id: 'huaqiaobolan', name: '花桥博览中心站', grade: 'A',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 11.2, tenant: '' }, { no: 2, name: 'B商铺（2号出口）', area: 14.98, tenant: '' }, { no: 3, name: 'C商铺（3号出口）', area: 12.57, tenant: '' }, { no: 4, name: 'D商铺（4号出口）', area: 16.59, tenant: '' }],
+        shops: [{ no: 58, shortNo: 'S11-52', name: 'A商铺（1号出口）', type: '商铺', area: 11.2, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 59, shortNo: 'S11-53', name: 'B商铺（2号出口）', type: '商铺', area: 14.98, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 60, shortNo: 'S11-54', name: 'C商铺（3号出口）', type: '商铺', area: 12.57, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 61, shortNo: 'S11-55', name: 'D商铺（4号出口）', type: '商铺', area: 16.59, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 2040, y: 840, pos: 'bottom', transfer: false },
       { id: 'jishan', name: '集善站', grade: 'C',
-        shops: [{ no: 1, name: 'A商铺（1号出口)', area: 17.01, tenant: '' }, { no: 2, name: 'B商铺（2号出口)', area: 15.67, tenant: '' }],
+        shops: [{ no: 62, shortNo: 'S11-56', name: 'A商铺（1号出口)', type: '商铺', area: 17.01, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }, { no: 63, shortNo: 'S11-57', name: 'B商铺（2号出口)', type: '商铺', area: 15.67, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 2150, y: 840, pos: 'top', transfer: false },
       { id: 'huaxigongyuan', name: '花溪公园站', grade: 'B',
-        shops: [{ no: 1, name: 'A商铺（1号出口）', area: 14.88, tenant: '' }, { no: 2, name: 'B商铺（2号出口）', area: 24.64, tenant: '' }, { no: 3, name: 'C商铺（3号出口）', area: 24.64, tenant: '' }],
+        shops: [{ no: 64, shortNo: 'S11-58', name: 'A商铺（1号出口）', type: '商铺', area: 14.88, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 65, shortNo: 'S11-59', name: 'B商铺（2号出口）', type: '商铺', area: 24.64, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' },
+        { no: 66, shortNo: 'S11-60', name: 'C商铺（3号出口）', type: '商铺', area: 24.64, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
         x: 2270, y: 840, pos: 'bottom', transfer: false },
       { id: 'huaqiao', name: '花桥站', grade: 'S',
-        shops: [{ no: 1, name: 'A号商铺', area: 19.81, tenant: '蜜雪冰城' }, { no: 2, name: 'B号商铺', area: 27.14, tenant: '' }, { no: 3, name: 'C号商铺', area: 21.3, tenant: '全家' }, { no: 4, name: 'D号商铺', area: 34.14, tenant: '喜士多' }, { no: 5, name: 'E号商铺', area: 28.23, tenant: '' }, { no: 6, name: 'F号商铺', area: 10.54, tenant: '苏燕记' }, { no: 7, name: 'G号商铺', area: 14.09, tenant: '牙博士' }],
-        x: 2380, y: 840, pos: 'top', transfer: true, transferLine: '上海11号线' }
-];
+        shops: [{ no: 67, shortNo: '待定', name: 'A号商铺', type: '商铺', area: 19.81, tenant: '蜜雪冰城', contact: '', openDate: '', status: '营业中', remark: '上海花桥站' },
+        { no: 68, shortNo: '待定', name: 'B号商铺', type: '商铺', area: 27.14, tenant: '', contact: '', openDate: '', status: '装修中', remark: '上海花桥站' },
+        { no: 69, shortNo: '待定', name: 'C号商铺', type: '商铺', area: 21.3, tenant: '全家', contact: '', openDate: '', status: '营业中', remark: '上海花桥站' },
+        { no: 70, shortNo: '待定', name: 'D号商铺', type: '商铺', area: 34.14, tenant: '喜士多', contact: '', openDate: '', status: '营业中', remark: '上海花桥站' },
+        { no: 71, shortNo: '待定', name: 'E号商铺', type: '商铺', area: 28.23, tenant: '', contact: '', openDate: '', status: '装修中', remark: '苏州花桥站' },
+        { no: 72, shortNo: '待定', name: 'F号商铺', type: '商铺', area: 10.54, tenant: '苏燕记', contact: '', openDate: '', status: '营业中', remark: '苏州花桥站' },
+        { no: 73, shortNo: '待定', name: 'G号商铺', type: '商铺', area: 14.09, tenant: '牙博士', contact: '', openDate: '', status: '营业中', remark: '苏州花桥站' }],
+        x: 2380, y: 840, pos: 'top', transfer: true, transferLine: '上海11号线' },
+    ];
   },
 
-  getDefaultGlobalStats() {
+
+    getDefaultGlobalStats() {
     return {
       statsDate: '2024年5月20日',
-      totalShops: '',
-      rentedShops: '',
-      vacantShops: ''
+      totalShops: 73,
+      rentedShops: 35,
+      vacantShops: 38,
+      rentRate: '47.9%'
     };
   },
+
 
   // 计算出租率（支持空值）
   calcRate() {
@@ -130,22 +167,56 @@ const BattleMap = {
     return ((rentedNum / totalNum) * 100).toFixed(1);
   },
 
-  // 计算全局统计
+  // 计算全局统计（自动从站点商铺状态计算）
   calcGlobalStats() {
-    // 全局统计改为手动输入模式，不再自动计算
+    let total = 0, rented = 0, vacant = 0;
+    this.stations.forEach(s => {
+      (s.shops || []).forEach(shop => {
+        total++;
+        if (shop.status === '营业中' || shop.status === '装修中') {
+          rented++;
+        } else {
+          vacant++;
+        }
+      });
+    });
+    this.globalStats.totalShops = total;
+    this.globalStats.rentedShops = rented;
+    this.globalStats.vacantShops = vacant;
   },
 
   // 初始化
-  init() {
-    this.loadData();
+  async init() {
+    await this.loadData();
     this.calcGlobalStats();
     this.render();
     this.setupEventListeners();
     this.initViewport();
   },
 
-  // 加载数据（localStorage > 默认）
-  loadData() {
+  // 后端 API 地址（同域自动适配，也可手动指定）
+  apiBase: '', // 空字符串表示同域
+
+  // 加载数据（后端API > localStorage > 默认）
+  async loadData() {
+    // 先尝试从后端 API 加载
+    try {
+      const res = await fetch(`${this.apiBase}/api/data`);
+      if (res.ok) {
+        const result = await res.json();
+        if (result.data) {
+          this.stations = result.data.stations || this.getDefaultStations();
+          this.globalStats = result.data.globalStats || this.getDefaultGlobalStats();
+          if (result.data.gradeInfo) this.gradeInfo = result.data.gradeInfo;
+          console.log('✅ 已从服务器加载数据');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('服务器不可用，尝试本地存储', e);
+    }
+
+    // 回退到 localStorage
     try {
       const saved = localStorage.getItem(this.config.storageKey);
       if (saved) {
@@ -153,28 +224,57 @@ const BattleMap = {
         this.stations = data.stations || this.getDefaultStations();
         this.globalStats = data.globalStats || this.getDefaultGlobalStats();
         if (data.gradeInfo) this.gradeInfo = data.gradeInfo;
+        console.log('✅ 已从本地存储加载数据');
         return;
       }
     } catch (e) {
       console.warn('加载保存数据失败，使用默认数据', e);
     }
+
+    // 使用默认数据
     this.stations = this.getDefaultStations();
     this.globalStats = this.getDefaultGlobalStats();
   },
 
-  // 保存到 localStorage
-  saveData() {
+  // 保存到后端 API
+  async saveData() {
+    const data = {
+      stations: this.stations,
+      globalStats: this.globalStats,
+      gradeInfo: this.gradeInfo
+    };
+
+    // 先尝试保存到后端
     try {
-      const data = {
-        stations: this.stations,
-        globalStats: this.globalStats,
-        gradeInfo: this.gradeInfo,
-        savedAt: new Date().toISOString()
-      };
-      localStorage.setItem(this.config.storageKey, JSON.stringify(data));
-      this.showToast('💾 数据已保存到本地');
+      const res = await fetch(`${this.apiBase}/api/data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+      });
+      if (res.ok) {
+        // 同时备份到 localStorage
+        this.saveToLocal(data);
+        this.showToast('💾 数据已保存到服务器');
+        return;
+      }
     } catch (e) {
-      this.showToast('❌ 保存失败：' + e.message, 'error');
+      console.warn('服务器保存失败，回退到本地', e);
+    }
+
+    // 回退到 localStorage
+    this.saveToLocal(data);
+    this.showToast('💾 数据已保存到本地（服务器不可用）');
+  },
+
+  // 保存到 localStorage（内部方法）
+  saveToLocal(data) {
+    try {
+      localStorage.setItem(this.config.storageKey, JSON.stringify({
+        ...data,
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.error('本地保存失败', e);
     }
   },
 
@@ -199,7 +299,7 @@ const BattleMap = {
   // 导入 JSON
   importData(file) {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target.result);
         if (data.stations && Array.isArray(data.stations)) {
@@ -208,7 +308,7 @@ const BattleMap = {
           if (data.gradeInfo) this.gradeInfo = data.gradeInfo;
           this.calcGlobalStats();
           this.render();
-          this.saveData();
+          await this.saveData();
           this.showToast('📤 数据导入成功');
         } else {
           throw new Error('数据格式不正确');
@@ -260,14 +360,14 @@ const BattleMap = {
         <div class="stat-icon">🏪</div>
         <div class="stat-info">
           <div class="stat-label">全线商铺总数</div>
-          <div class="stat-value"><span class="editable-num num-red" data-field="totalShops">${total}</span> <span class="unit">间</span></div>
+          <div class="stat-value"><span class="num-red">${total}</span> <span class="unit">间</span></div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">✅</div>
         <div class="stat-info">
           <div class="stat-label">已出租</div>
-          <div class="stat-value"><span class="editable-num num-green" data-field="rentedShops">${rented}</span> <span class="unit">间</span></div>
+          <div class="stat-value"><span class="num-green">${rented}</span> <span class="unit">间</span></div>
         </div>
       </div>
       <div class="stat-card">
@@ -442,6 +542,40 @@ const BattleMap = {
     }
   },
 
+  // 线路边界保护：确保卡片不与垂直线路段 (x=1700, y=480~780) 重叠
+  enforceLineBoundaries(cards) {
+    const VERT_X = 1700;
+    const VERT_Y1 = 480;
+    const VERT_Y2 = 780;
+    const SAFE_GAP = 18;
+    const MAX_SHIFT = 50;
+
+    cards.forEach(card => {
+      const cL = card.left;
+      const cR = card.left + card.width;
+      const cT = card.top;
+      const cB = card.top + card.height;
+      const cx = (cL + cR) / 2;
+
+      // 只在卡片与垂直段在垂直方向有重叠时才处理
+      if (cB <= VERT_Y1 || cT >= VERT_Y2) return;
+
+      if (cx < VERT_X) {
+        // 卡片在垂直段左侧：限制右边缘
+        const maxRight = VERT_X - SAFE_GAP;
+        if (cR > maxRight) {
+          card.left = Math.max(card.origLeft - MAX_SHIFT, maxRight - card.width);
+        }
+      } else {
+        // 卡片在垂直段右侧：限制左边缘
+        const minLeft = VERT_X + SAFE_GAP;
+        if (cL < minLeft) {
+          card.left = Math.min(card.origLeft + MAX_SHIFT, minLeft);
+        }
+      }
+    });
+  },
+
   renderStations() {
     const layer = document.getElementById('stationsLayer');
     layer.innerHTML = '';
@@ -484,7 +618,10 @@ const BattleMap = {
     // 2. 动态避让
     this.resolveCardOverlaps(cardInfos);
 
-    // 3. 使用避让后的位置渲染卡片
+    // 3. 线路边界保护
+    this.enforceLineBoundaries(cardInfos);
+
+    // 4. 使用避让后的位置渲染卡片
     cardInfos.forEach(info => {
       const s = info.station;
       const card = document.createElement('div');
@@ -495,8 +632,14 @@ const BattleMap = {
       card.style.width = info.width + 'px';
       card.style.height = info.height + 'px';
 
+      const statusColor = {
+        '营业中': '#34c759',
+        '装修中': '#ff9500',
+        '未出租': '#ff3b30'
+      };
       const shopsHtml = (s.shops || []).map((shop, si) => `
         <div class="card-shop-row" data-idx="${info.idx}" data-si="${si}">
+          <span class="shop-status-dot" style="background:${statusColor[shop.status] || '#86868b'};" title="${shop.status}"></span>
           <span class="shop-name" title="${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}">${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}</span>
           <span class="shop-tenant" title="${shop.tenant || ''}">${shop.tenant || ''}</span>
         </div>
@@ -579,13 +722,13 @@ const BattleMap = {
         e.stopPropagation();
         const gradeKey = el.dataset.grade;
         const field = el.dataset.field;
-        this.makeEditable(el, (val) => {
+        this.makeEditable(el, async (val) => {
           this.gradeInfo[gradeKey][field] = val;
           el.dataset.raw = val;
           // 更新显示：空值用空格占位
           const displayVal = val.trim() !== '' ? val : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
           el.textContent = displayVal;
-          this.saveData();
+          await this.saveData();
           this.showToast('✅ 分级信息已更新');
         }, false, true);
       });
@@ -603,7 +746,7 @@ const BattleMap = {
     document.querySelectorAll('#stationsLayer .editable-num').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.makeEditable(el, (val) => {
+        this.makeEditable(el, async (val) => {
           const idx = parseInt(el.dataset.idx);
           const field = el.dataset.field;
           const numVal = parseInt(val) || 0;
@@ -612,7 +755,7 @@ const BattleMap = {
           // 自动重新计算出租率和统计
           this.calcGlobalStats();
           this.render();
-          this.saveData();
+          await this.saveData();
         });
       });
     });
@@ -623,12 +766,12 @@ const BattleMap = {
     document.querySelectorAll('.stats-panel .editable-num').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.makeEditable(el, (val) => {
+        this.makeEditable(el, async (val) => {
           const field = el.dataset.field;
           // 支持空值：输入为空时保存空字符串，否则保存数字
           this.globalStats[field] = val === '' ? '' : (parseInt(val) || 0);
           this.render();
-          this.saveData();
+          await this.saveData();
         });
       });
     });
@@ -636,11 +779,11 @@ const BattleMap = {
     document.querySelectorAll('.stats-panel .editable').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.makeEditable(el, (val) => {
+        this.makeEditable(el, async (val) => {
           const field = el.dataset.field;
           this.globalStats[field] = val;
           this.render();
-          this.saveData();
+          await this.saveData();
         }, false);
       });
     });
@@ -699,14 +842,44 @@ const BattleMap = {
     document.getElementById('editPos').value = s.pos;
     document.getElementById('editTransfer').value = s.transfer ? 'true' : 'false';
     
-    // 渲染商铺列表编辑器
+    // 渲染商铺列表编辑器（完整表格）
     const shopsContainer = document.getElementById('editShops');
-    shopsContainer.innerHTML = (s.shops || []).map((shop, si) => `
-      <div class="shop-edit-row">
-        <span class="shop-edit-no">${shop.name || shop.no + '号商铺'}</span>
-        <input type="text" class="shop-edit-tenant" data-si="${si}" value="${shop.tenant}" placeholder="承租方" />
-      </div>
+    const rows = (s.shops || []).map((shop, si) => `
+      <tr>
+        <td class="col-name"><input type="text" data-field="name" data-si="${si}" value="${shop.name || ''}" /></td>
+        <td class="col-type"><input type="text" data-field="type" data-si="${si}" value="${shop.type || ''}" /></td>
+        <td class="col-area"><input type="number" data-field="area" data-si="${si}" value="${shop.area || 0}" step="0.01" /></td>
+        <td class="col-tenant"><input type="text" data-field="tenant" data-si="${si}" value="${shop.tenant || ''}" /></td>
+        <td class="col-contact"><input type="text" data-field="contact" data-si="${si}" value="${shop.contact || ''}" /></td>
+        <td class="col-date"><input type="text" data-field="openDate" data-si="${si}" value="${shop.openDate || ''}" /></td>
+        <td class="col-status">
+          <select data-field="status" data-si="${si}">
+            <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
+            <option value="装修中" ${shop.status === '装修中' ? 'selected' : ''}>装修中</option>
+            <option value="营业中" ${shop.status === '营业中' ? 'selected' : ''}>营业中</option>
+          </select>
+        </td>
+        <td class="col-remark"><input type="text" data-field="remark" data-si="${si}" value="${shop.remark || ''}" /></td>
+      </tr>
     `).join('');
+    
+    shopsContainer.innerHTML = `
+      <table class="shop-edit-table">
+        <thead>
+          <tr>
+            <th class="col-name">铺号</th>
+            <th class="col-type">属性</th>
+            <th class="col-area">面积</th>
+            <th class="col-tenant">承租方</th>
+            <th class="col-contact">联系方式</th>
+            <th class="col-date">开业时间</th>
+            <th class="col-status">状态</th>
+            <th class="col-remark">备注</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
     
     document.getElementById('stationModal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
@@ -733,14 +906,20 @@ const BattleMap = {
     s.pos = document.getElementById('editPos').value;
     s.transfer = document.getElementById('editTransfer').value === 'true';
     
-    // 保存商铺承租方
-    document.querySelectorAll('#editShops .shop-edit-tenant').forEach(input => {
-      const si = parseInt(input.dataset.si);
+    // 保存所有商铺字段
+    document.querySelectorAll('#editShops [data-field]').forEach(el => {
+      const si = parseInt(el.dataset.si);
+      const field = el.dataset.field;
       if (s.shops[si]) {
-        s.shops[si].tenant = input.value.trim();
+        if (field === 'area') {
+          s.shops[si][field] = parseFloat(el.value) || 0;
+        } else {
+          s.shops[si][field] = el.value.trim();
+        }
       }
     });
     
+    this.calcGlobalStats();
     this.render();
     this.saveData();
     this.closeModal();
