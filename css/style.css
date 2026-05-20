@@ -605,8 +605,26 @@ html, body {
 }
 
 .card-grade-bar {
-  height: 5px;
-  width: 100%;
+  height: 10px;
+  width: calc(100% - 16px);
+  margin: 6px auto 0;
+  border-radius: 5px;
+  position: relative;
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.08) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card-grade-bar::before {
+  content: attr(data-rate);
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  letter-spacing: 0.5px;
 }
 
 .card-grade-s { background: var(--grade-s); }
@@ -1197,4 +1215,283 @@ html, body {
 
 .hd-tips code {
   font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* ========================================
+   移动端适配（屏幕宽度 ≤ 768px）
+   ======================================== */
+
+@media screen and (max-width: 768px) {
+  html, body {
+    font-size: 14px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* 标题栏 */
+  .header {
+    height: 52px;
+    padding: 0 12px;
+    backdrop-filter: blur(12px) saturate(150%);
+  }
+
+  .main-title {
+    font-size: 18px;
+    letter-spacing: 0;
+  }
+
+  .sub-title {
+    font-size: 10px;
+    letter-spacing: 1px;
+    display: none;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  .btn span {
+    display: none;
+  }
+
+  /* 统计面板 */
+  .stats-panel {
+    top: 58px;
+    left: 8px;
+    right: 8px;
+    min-width: auto;
+    width: auto;
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  .stats-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .stats-grid {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    padding: 6px 10px;
+    border-radius: 10px;
+    min-width: 70px;
+    flex: 1;
+  }
+
+  .stat-icon {
+    font-size: 18px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  /* 图例和分级面板 */
+  .legend-panel {
+    left: 8px;
+    bottom: 50px;
+    width: auto;
+    min-width: 140px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+  }
+
+  .grade-panel {
+    left: 8px;
+    bottom: 8px;
+    width: auto;
+    min-width: 180px;
+    max-width: 220px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .legend-panel h3,
+  .grade-panel h3 {
+    font-size: 13px;
+  }
+
+  /* 视口控制按钮 */
+  .viewport-controls {
+    bottom: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .viewport-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  /* 站点卡片 */
+  .station-card {
+    border-radius: 12px;
+    width: 140px;
+  }
+
+  .card-title {
+    font-size: 12px;
+  }
+
+  .card-shop-row {
+    font-size: 11px;
+  }
+
+  .shop-status-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  /* 模态框 */
+  .modal {
+    min-width: auto;
+    width: 94vw;
+    max-width: 94vw;
+    max-height: 90vh;
+    padding: 16px;
+    border-radius: 18px;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .editor-form {
+    gap: 10px;
+  }
+
+  .editor-field input,
+  .editor-field select {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  /* 编辑器表格 - 横向滚动 */
+  .shops-edit-table {
+    max-height: 50vh;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .shop-edit-table {
+    font-size: 11px;
+  }
+
+  .shop-edit-table th,
+  .shop-edit-table td {
+    padding: 4px 3px;
+  }
+
+  .shop-edit-table input,
+  .shop-edit-table select {
+    padding: 3px 4px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+
+  .shop-edit-table .col-name { min-width: 80px; }
+  .shop-edit-table .col-type { min-width: 50px; }
+  .shop-edit-table .col-area { min-width: 45px; }
+  .shop-edit-table .col-tenant { min-width: 60px; }
+  .shop-edit-table .col-contact { min-width: 55px; }
+  .shop-edit-table .col-date { min-width: 55px; }
+  .shop-edit-table .col-status { min-width: 50px; }
+  .shop-edit-table .col-remark { min-width: 60px; }
+
+  .modal-footer {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Toast */
+  .toast {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  /* 底部备注 */
+  .footer {
+    left: 8px;
+    right: 8px;
+    font-size: 10px;
+    gap: 8px;
+  }
+}
+
+/* 超小屏（≤ 480px）额外优化 */
+@media screen and (max-width: 480px) {
+  .header {
+    height: 48px;
+    padding: 0 8px;
+  }
+
+  .main-title {
+    font-size: 15px;
+  }
+
+  .btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .stats-panel {
+    top: 54px;
+    padding: 8px 10px;
+  }
+
+  .stat-card {
+    min-width: 60px;
+    padding: 5px 8px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .station-card {
+    width: 130px;
+  }
+
+  .card-title {
+    font-size: 11px;
+  }
+
+  .card-shop-row {
+    font-size: 10px;
+  }
+
+  .modal {
+    width: 96vw;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .shop-edit-table {
+    font-size: 10px;
+  }
 }

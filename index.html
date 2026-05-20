@@ -26,9 +26,9 @@
                 <div class="top-actions">
                     <button class="btn btn-print" onclick="app.printMap()">🖨️ 打印作战图</button>
                     <button class="btn btn-export" onclick="app.showHDExportHelp()" title="导出高清PNG海报">🖼️ 导出高清海报</button>
-                    <button class="btn btn-export" onclick="app.exportData()">📥 导出数据</button>
-                    <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 导入数据</button>
-                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.importData(this)">
+                    <button class="btn btn-export" onclick="app.exportExcel()">📥 导出Excel</button>
+                    <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 导入Excel</button>
+                    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="app.importExcel(this)">
                     <button class="btn btn-reset" onclick="app.resetData()">🔄 恢复默认</button>
                     <button class="btn btn-save" onclick="app.saveNow()">💾 立即保存</button>
                 </div>
@@ -187,6 +187,7 @@ npm run export-8k</code></pre>
     <!-- 遮罩层 -->
     <div class="overlay" id="overlay" onclick="app.closeModal(); app.closeHDExportModal();"></div>
 
+    <script src="js/xlsx.full.min.js"></script>
     <script src="js/app.js?v=3"></script>
 </body>
 </html>

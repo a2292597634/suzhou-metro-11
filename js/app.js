@@ -147,10 +147,10 @@ const BattleMap = {
     getDefaultGlobalStats() {
     return {
       statsDate: '2024年5月20日',
-      totalShops: 73,
-      rentedShops: 35,
-      vacantShops: 38,
-      rentRate: '47.9%'
+      totalShops: 66,
+      rentedShops: 33,
+      vacantShops: 33,
+      rentRate: '50.0%'
     };
   },
 
@@ -167,11 +167,20 @@ const BattleMap = {
     return ((rentedNum / totalNum) * 100).toFixed(1);
   },
 
-  // 计算全局统计（自动从站点商铺状态计算）
+  // HTML 转义（防止 XSS）
+  escapeHtml(text) {
+    if (typeof text !== 'string') return String(text);
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  },
+
+  // 计算全局统计（自动从站点商铺状态计算，多经点位不计入）
   calcGlobalStats() {
     let total = 0, rented = 0, vacant = 0;
     this.stations.forEach(s => {
       (s.shops || []).forEach(shop => {
+        if (shop.type === '多经点位') return;
         total++;
         if (shop.status === '营业中' || shop.status === '装修中') {
           rented++;
@@ -278,46 +287,107 @@ const BattleMap = {
     }
   },
 
-  // 导出 JSON
-  exportData() {
-    const data = {
-      stations: this.stations,
-      globalStats: this.globalStats,
-      gradeInfo: this.gradeInfo,
-      exportedAt: new Date().toISOString()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `苏州地铁11号线商业作战图数据_${new Date().toLocaleDateString()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    this.showToast('📥 数据已导出');
+  // 导出 Excel
+  exportExcel() {
+    // 构建表头
+    const headers = ['序号', '车站', '商铺简洁序号', '铺号', '商铺属性', '面积(㎡)', '商户', '联系方式', '开业时间', '状态', '备注'];
+    const rows = [headers];
+    let seq = 1;
+
+    this.stations.forEach(s => {
+      (s.shops || []).forEach(shop => {
+        rows.push([
+          seq++,
+          s.name,
+          shop.shortNo || '',
+          shop.name || '',
+          shop.type || '商铺',
+          shop.area || 0,
+          shop.tenant || '',
+          shop.contact || '',
+          shop.openDate || '',
+          shop.status || '未出租',
+          shop.remark || ''
+        ]);
+      });
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, '商铺信息');
+    XLSX.writeFile(wb, `轨道交通11号线商铺信息表_${new Date().toLocaleDateString()}.xlsx`);
+    this.showToast('📥 Excel 已导出');
   },
 
-  // 导入 JSON
-  importData(file) {
+  // 导入 Excel
+  importExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const data = JSON.parse(e.target.result);
-        if (data.stations && Array.isArray(data.stations)) {
-          this.stations = data.stations;
-          this.globalStats = data.globalStats || this.getDefaultGlobalStats();
-          if (data.gradeInfo) this.gradeInfo = data.gradeInfo;
-          this.calcGlobalStats();
-          this.render();
-          await this.saveData();
-          this.showToast('📤 数据导入成功');
-        } else {
-          throw new Error('数据格式不正确');
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        if (json.length < 2) {
+          throw new Error('Excel 文件为空或格式不正确');
         }
+
+        // 按车站分组导入
+        const shopsByStation = {};
+        let currentStation = null;
+
+        for (let i = 1; i < json.length; i++) {
+          const row = json[i];
+          if (!row[3]) continue; // 跳过无铺号的行
+
+          const stationName = row[1] ? String(row[1]).trim() : currentStation;
+          if (!stationName) continue;
+          currentStation = stationName;
+
+          if (!shopsByStation[stationName]) {
+            shopsByStation[stationName] = [];
+          }
+
+          shopsByStation[stationName].push({
+            shortNo: row[2] ? String(row[2]) : '',
+            name: row[3] ? String(row[3]) : '',
+            type: row[4] ? String(row[4]) : '商铺',
+            area: parseFloat(row[5]) || 0,
+            tenant: row[6] ? String(row[6]) : '',
+            contact: row[7] ? String(row[7]) : '',
+            openDate: row[8] ? String(row[8]) : '',
+            status: row[9] ? String(row[9]) : '未出租',
+            remark: row[10] ? String(row[10]) : ''
+          });
+        }
+
+        // 更新站点数据
+        this.stations.forEach(s => {
+          const stationName = s.name;
+          if (shopsByStation[stationName]) {
+            // 保留原有 no 字段，更新其他字段
+            s.shops = shopsByStation[stationName].map((shop, idx) => ({
+              no: idx + 1,
+              ...shop
+            }));
+          }
+        });
+
+        this.calcGlobalStats();
+        this.render();
+        await this.saveData();
+        this.showToast('📤 Excel 导入成功');
       } catch (err) {
         this.showToast('❌ 导入失败：' + err.message, 'error');
+        console.error(err);
       }
+      input.value = '';
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   },
 
   // 恢复默认
@@ -637,18 +707,32 @@ const BattleMap = {
         '装修中': '#ff9500',
         '未出租': '#ff3b30'
       };
-      const shopsHtml = (s.shops || []).map((shop, si) => `
+      const shopsHtml = (s.shops || []).map((shop, si) => {
+        const displayName = (shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '');
+        return `
         <div class="card-shop-row" data-idx="${info.idx}" data-si="${si}">
-          <span class="shop-status-dot" style="background:${statusColor[shop.status] || '#86868b'};" title="${shop.status}"></span>
-          <span class="shop-name" title="${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}">${(shop.name || shop.no + '号商铺').replace(/[（(].*?[)）]/g, '')}</span>
-          <span class="shop-tenant" title="${shop.tenant || ''}">${shop.tenant || ''}</span>
+          <span class="shop-status-dot" style="background:${statusColor[shop.status] || '#86868b'};" title="${this.escapeHtml(shop.status || '')}"></span>
+          <span class="shop-name" title="${this.escapeHtml(displayName)}">${this.escapeHtml(displayName)}</span>
+          <span class="shop-tenant" title="${this.escapeHtml(shop.tenant || '')}">${this.escapeHtml(shop.tenant || '')}</span>
         </div>
-      `).join('');
+      `;
+      }).join('');
+
+      // 计算站点出租率（排除多经点位）
+      const validShops = (s.shops || []).filter(sh => sh.type !== '多经点位');
+      const totalValid = validShops.length;
+      const rentedValid = validShops.filter(sh => sh.status !== '未出租').length;
+      const rate = totalValid > 0 ? Math.round((rentedValid / totalValid) * 100) : 0;
+
+      let barColor;
+      if (rate === 0) barColor = '#ff3b30';
+      else if (rate < 60) barColor = '#ff9500';
+      else barColor = '#34c759';
 
       card.innerHTML = `
-        <div class="card-grade-bar" style="background:#52c41a;"></div>
+        <div class="card-grade-bar" style="background:${barColor};" data-rate="${rate}%"></div>
         <div class="card-body">
-          <div class="card-title">${s.name}</div>
+          <div class="card-title">${this.escapeHtml(s.name)}</div>
           ${shopsHtml}
         </div>
       `;
@@ -1215,6 +1299,12 @@ const BattleMap = {
 const app = {
   saveNow: () => BattleMap.saveData(),
   exportData: () => BattleMap.exportData(),
+  exportExcel: () => BattleMap.exportExcel(),
+  importExcel: (input) => {
+    if (input.files && input.files[0]) {
+      BattleMap.importExcel(input);
+    }
+  },
   importData: (input) => {
     if (input.files && input.files[0]) {
       BattleMap.importData(input.files[0]);
