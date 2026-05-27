@@ -70,7 +70,10 @@ window.app = {
   },
 
   showHDExportHelp: () => interaction.showHDExportHelp(),
-  closeHDExportModal: () => interaction.closeHDExportModal()
+  closeHDExportModal: () => interaction.closeHDExportModal(),
+
+  addShopRow: () => interaction.addShopRow(),
+  deleteShopRow: (btn) => interaction.deleteShopRow(btn)
 };
 
 // 渲染后绑定的事件（需要在 DOM 更新后执行）
