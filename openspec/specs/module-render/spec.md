@@ -1,7 +1,7 @@
 # module-render Specification
 
-## Purpose
-TBD - created by archiving change refactor-appjs-modular. Update Purpose after archive.
+## 用途
+渲染引擎模块规范（SVG 线路、站点卡片、统计面板、图例）。
 ## Requirements
 ### Requirement: 渲染模块绘制 SVG 地铁线路
 渲染模块须生成地铁线路、站点和连接线的 SVG 内容。

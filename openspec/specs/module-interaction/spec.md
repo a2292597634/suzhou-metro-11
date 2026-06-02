@@ -1,7 +1,7 @@
 # module-interaction Specification
 
-## Purpose
-TBD - created by archiving change refactor-appjs-modular. Update Purpose after archive.
+## 用途
+用户交互处理模块规范（编辑、模态框、事件监听）。
 ## Requirements
 ### Requirement: 交互模块处理站点编辑
 交互模块须支持通过单击和双击编辑站点数据。

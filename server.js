@@ -1,21 +1,22 @@
 /**
  * 苏州地铁11号线商业作战图 - 本地服务器
- * 功能：提供静态文件 + SQLite数据库API
+ * 功能：提供静态文件 + PostgreSQL数据库API (Prisma ORM)
  * 启动：node server.js
  */
 
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const { PrismaClient } = require('@prisma/client');
 const path = require('path');
-const fs = require('fs');
+const os = require('os');
 
+const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 解析 JSON body
 app.use(express.json({ limit: '10mb' }));
 
-// 跨域支持（允许局域网内其他设备访问）
+// 跨域支持
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -26,83 +27,176 @@ app.use((req, res, next) => {
   next();
 });
 
-// 确保数据目录存在
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// 初始化 SQLite 数据库
-const DB_PATH = path.join(DATA_DIR, 'battle-map.db');
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error('数据库连接失败:', err.message);
-  } else {
-    console.log('SQLite 数据库已连接:', DB_PATH);
-  }
-});
-
-// 创建数据表
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS battle_map (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      data TEXT NOT NULL,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('建表失败:', err.message);
-    else console.log('数据表已就绪');
-  });
-});
-
 // ========== API 路由 ==========
 
 // 获取数据
-app.get('/api/data', (req, res) => {
-  db.get('SELECT data, updated_at FROM battle_map WHERE id = 1', (err, row) => {
-    if (err) {
-      console.error('读取失败:', err.message);
-      return res.status(500).json({ error: '数据库读取失败' });
-    }
-    if (!row) {
-      return res.json({ data: null, updatedAt: null });
-    }
-    try {
-      const data = JSON.parse(row.data);
-      res.json({ data, updatedAt: row.updated_at });
-    } catch (e) {
-      res.status(500).json({ error: '数据解析失败' });
-    }
-  });
+app.get('/api/data', async (req, res) => {
+  try {
+    const stations = await prisma.station.findMany({
+      include: { shops: true },
+      orderBy: { x: 'asc' }
+    });
+
+    const globalStats = await prisma.globalStats.findUnique({
+      where: { id: 1 }
+    });
+
+    const gradeInfos = await prisma.gradeInfo.findMany();
+
+    // 转换为前端格式
+    const gradeInfo = {};
+    gradeInfos.forEach(g => {
+      gradeInfo[g.id] = { name: g.name, desc: g.desc || '', color: g.color };
+    });
+
+    // 转换 stations 格式（移除 Prisma 元字段）
+    const formattedStations = stations.map(s => ({
+      id: s.id,
+      name: s.name,
+      grade: s.grade,
+      x: s.x,
+      y: s.y,
+      pos: s.pos,
+      transfer: s.transfer,
+      transferLine: s.transferLine,
+      shops: s.shops.map(shop => ({
+        no: shop.no,
+        shortNo: shop.shortNo,
+        name: shop.name,
+        type: shop.type,
+        area: shop.area,
+        tenant: shop.tenant || '',
+        contact: shop.contact || '',
+        openDate: shop.openDate || '',
+        status: shop.status,
+        remark: shop.remark || ''
+      }))
+    }));
+
+    res.json({
+      data: {
+        stations: formattedStations,
+        globalStats: globalStats || null,
+        gradeInfo
+      }
+    });
+  } catch (err) {
+    console.error('读取失败:', err.message);
+    res.status(500).json({ error: '数据库读取失败' });
+  }
 });
 
 // 保存数据
-app.post('/api/data', (req, res) => {
+app.post('/api/data', async (req, res) => {
   const { data } = req.body;
   if (!data) {
     return res.status(400).json({ error: '缺少 data 字段' });
   }
-  
-  const jsonStr = JSON.stringify(data);
-  
-  db.run(
-    'INSERT OR REPLACE INTO battle_map (id, data, updated_at) VALUES (1, ?, datetime("now"))',
-    [jsonStr],
-    function(err) {
-      if (err) {
-        console.error('保存失败:', err.message);
-        return res.status(500).json({ error: '数据库保存失败' });
+
+  try {
+    // 使用事务保存所有数据
+    await prisma.$transaction(async (tx) => {
+      // 1. 保存站点和商铺
+      for (const s of (data.stations || [])) {
+        await tx.station.upsert({
+          where: { id: s.id },
+          update: {
+            name: s.name,
+            grade: s.grade,
+            x: s.x,
+            y: s.y,
+            pos: s.pos,
+            transfer: s.transfer || false,
+            transferLine: s.transferLine || null
+          },
+          create: {
+            id: s.id,
+            name: s.name,
+            grade: s.grade,
+            x: s.x,
+            y: s.y,
+            pos: s.pos,
+            transfer: s.transfer || false,
+            transferLine: s.transferLine || null
+          }
+        });
+
+        // 删除该站点的旧商铺
+        await tx.shop.deleteMany({ where: { stationId: s.id } });
+
+        // 插入新商铺
+        for (const shop of (s.shops || [])) {
+          await tx.shop.create({
+            data: {
+              no: shop.no,
+              shortNo: shop.shortNo || '',
+              name: shop.name,
+              type: shop.type || '商铺',
+              area: shop.area || 0,
+              tenant: shop.tenant || '',
+              contact: shop.contact || '',
+              openDate: shop.openDate || '',
+              status: shop.status || '未出租',
+              remark: shop.remark || '',
+              stationId: s.id
+            }
+          });
+        }
       }
-      console.log(`数据已保存 [${new Date().toLocaleString()}]`);
-      res.json({ success: true, updatedAt: new Date().toISOString() });
-    }
-  );
+
+      // 2. 保存全局统计
+      if (data.globalStats) {
+        await tx.globalStats.upsert({
+          where: { id: 1 },
+          update: {
+            statsDate: data.globalStats.statsDate || '',
+            totalShops: data.globalStats.totalShops || 0,
+            rentedShops: data.globalStats.rentedShops || 0,
+            vacantShops: data.globalStats.vacantShops || 0,
+            rentRate: data.globalStats.rentRate || ''
+          },
+          create: {
+            id: 1,
+            statsDate: data.globalStats.statsDate || '',
+            totalShops: data.globalStats.totalShops || 0,
+            rentedShops: data.globalStats.rentedShops || 0,
+            vacantShops: data.globalStats.vacantShops || 0,
+            rentRate: data.globalStats.rentRate || ''
+          }
+        });
+      }
+
+      // 3. 保存分级信息
+      if (data.gradeInfo) {
+        for (const [key, info] of Object.entries(data.gradeInfo)) {
+          await tx.gradeInfo.upsert({
+            where: { id: key },
+            update: {
+              name: info.name || '',
+              desc: info.desc || '',
+              color: info.color || ''
+            },
+            create: {
+              id: key,
+              name: info.name || '',
+              desc: info.desc || '',
+              color: info.color || ''
+            }
+          });
+        }
+      }
+    });
+
+    console.log(`数据已保存 [${new Date().toLocaleString()}]`);
+    res.json({ success: true, updatedAt: new Date().toISOString() });
+  } catch (err) {
+    console.error('保存失败:', err.message);
+    res.status(500).json({ error: '数据库保存失败' });
+  }
 });
 
-// 获取本机 IP（方便同事访问）
+// 获取本机 IP
 app.get('/api/ip', (req, res) => {
-  const os = require('os');
   const interfaces = os.networkInterfaces();
   const ips = [];
   for (const name of Object.keys(interfaces)) {
@@ -117,12 +211,10 @@ app.get('/api/ip', (req, res) => {
 
 // ========== 静态文件服务 ==========
 
-// 根路径返回 index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 静态资源
 app.use(express.static(__dirname));
 
 // 启动服务器
@@ -131,9 +223,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('  苏州地铁11号线商业作战图 服务器已启动');
   console.log('========================================');
   console.log(`\n本机访问: http://localhost:${PORT}`);
-  
-  // 显示局域网 IP
-  const os = require('os');
+
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
@@ -147,11 +237,9 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 // 优雅关闭
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\n正在关闭数据库连接...');
-  db.close((err) => {
-    if (err) console.error(err.message);
-    else console.log('数据库已安全关闭');
-    process.exit(0);
-  });
+  await prisma.$disconnect();
+  console.log('数据库已安全关闭');
+  process.exit(0);
 });

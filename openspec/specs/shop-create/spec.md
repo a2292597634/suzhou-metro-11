@@ -1,56 +1,56 @@
-# shop-create Specification
+# shop-create 规范
 
-## Purpose
-TBD - created by archiving change add-shop-crud. Update Purpose after archive.
+## 用途
+站点编辑器中商铺的增删功能规范。
+
 ## Requirements
-### Requirement: Shop can be added in station editor
-The system SHALL allow users to add a new shop row in the station editor modal.
+### Requirement: 站点编辑器支持添加商铺
+系统 SHALL 允许用户在站点编辑器模态框中添加新商铺行。
 
-#### Scenario: Click add shop button
-- **WHEN** user clicks the "添加商铺" button in the station editor
-- **THEN** a new empty row is appended to the shop table with default values
+#### Scenario: 点击添加商铺按钮
+- **WHEN** 用户点击编辑器中的"添加商铺"按钮
+- **THEN** 在商铺表格末尾追加一行带默认值的新行
 
-#### Scenario: New row has default values
-- **WHEN** a new shop row is created
-- **THEN** it has empty name, type="商铺", area=0, empty tenant/contact/openDate/remark, status="未出租"
+#### Scenario: 新行默认值为空铺号
+- **WHEN** 创建新商铺行时
+- **THEN** 该行铺号为空、属性="商铺"、面积=0、承租方/联系方式/开业时间/备注为空、状态="未出租"
 
-### Requirement: Shop row deletion with confirmation
-The system SHALL allow users to delete a shop row with a confirmation dialog.
+### Requirement: 商铺行删除需确认
+系统 SHALL 允许用户删除商铺行并弹出确认提示。
 
-#### Scenario: Click delete button
-- **WHEN** user clicks the delete button on a shop row
-- **THEN** a confirmation dialog appears asking "确定删除该商铺？"
+#### Scenario: 点击删除按钮
+- **WHEN** 用户点击某行商铺的删除按钮
+- **THEN** 弹出确认对话框询问"确定删除该商铺？"
 
-#### Scenario: Confirm deletion
-- **WHEN** user confirms the deletion
-- **THEN** the row is removed from the table
+#### Scenario: 确认删除
+- **WHEN** 用户确认删除操作
+- **THEN** 该行从表格中移除
 
-#### Scenario: Cancel deletion
-- **WHEN** user cancels the deletion
-- **THEN** the row remains in the table
+#### Scenario: 取消删除
+- **WHEN** 用户取消删除操作
+- **THEN** 该行保留在表格中
 
-### Requirement: At least one shop must remain
-The system SHALL prevent deletion of the last remaining shop row.
+### Requirement: 至少保留一个商铺
+系统 SHALL 禁止删除最后一个剩余的商铺行。
 
-#### Scenario: Try to delete last shop
-- **WHEN** user tries to delete the only remaining shop row
-- **THEN** the delete button is disabled or a warning is shown
+#### Scenario: 尝试删除最后一个商铺
+- **WHEN** 用户尝试删除仅剩的唯一商铺行
+- **THEN** 删除按钮被禁用或显示警告提示
 
-### Requirement: Shop numbers are reordered on save
-The system SHALL automatically renumber shop `no` fields sequentially on save.
+### Requirement: 保存时自动重排序号
+系统 SHALL 在保存时自动对商铺序号进行连续重排。
 
-#### Scenario: Save after deletion
-- **WHEN** user saves after deleting a shop
-- **THEN** remaining shops have sequential `no` values starting from 1
+#### Scenario: 删除后保存
+- **WHEN** 用户删除商铺后点击保存
+- **THEN** 剩余商铺的 `no` 字段从 1 开始连续编号
 
-### Requirement: Basic validation on save
-The system SHALL validate required fields before saving shop changes.
+### Requirement: 保存时基础校验
+系统 SHALL 在保存商铺变更前校验必填字段。
 
-#### Scenario: Empty shop name
-- **WHEN** user tries to save with an empty shop name
-- **THEN** a warning is shown and save is blocked
+#### Scenario: 商铺铺号为空
+- **WHEN** 用户尝试保存但某行铺号为空
+- **THEN** 显示警告并阻止保存
 
-#### Scenario: Valid data
-- **WHEN** user saves with all required fields filled
-- **THEN** data is saved successfully
-
+#### Scenario: 数据有效
+- **WHEN** 用户保存时所有必填字段已填写
+- **THEN** 数据成功保存

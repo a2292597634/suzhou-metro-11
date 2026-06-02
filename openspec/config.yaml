@@ -1,0 +1,93 @@
+schema: spec-driven
+
+# Project context - AI reads this when creating artifacts
+context: |
+  Project: 苏州地铁11号线商业开发作战图（21:9 超宽比例，适合打印海报）
+  Tech stack: 前端原生 HTML5/CSS3/JavaScript (ES Modules) + 后端 Node.js/Express 5 + Prisma ORM + PostgreSQL
+  Auth: 无认证（内部工具，无登录系统）
+  Database: PostgreSQL（Prisma ORM 管理）
+  ORM: Prisma
+  Frontend: 原生 HTML + CSS + Vanilla JS，无构建工具，无框架
+  Backend: Express 5
+  Testing: TDD 硬性要求，先写测试再写实现，测试未通过不算完成
+
+  Directory Conventions (目录约定):
+    index.html          — 主页面
+    css/style.css       — 全局样式
+    js/                 — 前端代码
+      xlsx.full.min.js   — SheetJS Excel 库
+      modules/           — 模块化前端代码
+        main.js          — 应用入口，全局状态初始化，事件绑定
+        state.js         — 共享状态（所有模块的中心数据源）
+        data.js          — 数据管理（CRUD、导入导出、默认数据）
+        render.js        — 渲染引擎（SVG 线路、站点卡片、统计面板）
+        interaction.js   — 用户交互（编辑、弹窗、提示、事件监听）
+        viewport.js      — 缩放、平移、触摸控制
+        utils.js         — 纯工具函数（边界处理、计算、防重叠）
+    server.js           — Express 后端入口，REST API
+    prisma/             — Prisma schema、迁移、seed
+      schema.prisma     — 数据模型定义
+      seed.js           — 初始数据填充
+      migrations/       — 迁移文件
+    data/               — 数据文件（legacy SQLite）
+    assets/             — 静态资源（背景图等）
+    tools/              — 工具脚本（高清导出、隧道工具）
+    openspec/           — 规范文档，禁止放代码
+    .env                — 环境变量（数据库连接字符串）
+
+  Coding Conventions (编码约定):
+    - JavaScript 代码注释使用中文
+    - UI 文案使用中文
+    - 变量/函数名使用 camelCase
+    - CSS 类名使用 kebab-case
+    - 模块间通过 state.js 共享状态
+    - 状态变更后走 calcGlobalStats → renderAll → bindEventsAfterRender → saveData 流程
+    - API 端点：GET /api/data, POST /api/data, GET /api/ip
+    - 数据加载优先级：服务器 API → localStorage → 硬编码默认值
+    - CSS 使用自定义属性（CSS Variables）定义主题色
+    - TDD 流程：先写失败测试 (Red) → 再写实现使其通过 (Green) → 最后重构 (Refactor)。实现代码必须由测试驱动，禁止先写实现后补测试
+
+# Per-artifact rules
+rules:
+  # 全局规则（适用于所有 artifact）
+  global:
+    - 语言规范：所有文档、代码注释、commit 信息、Markdown 文件必须使用中文，仅保留必要的英文（专有名词、代码标识符、API 路径、技术关键字）
+    - Git 确认：每次 git commit 前必须向用户报告变更内容和 commit 信息，经确认后方可提交
+
+  # 探索阶段规则
+  explore:
+    - 遵循小步迭代原则，每次探索聚焦一个明确的功能点或问题
+    - 进行垂直切割（每个变更独立可交付、可验证），禁止水平切割（禁止一次性大范围修改）
+    - 输出清晰的需求和方向，为后续 propose 提供依据
+
+  # 提案阶段规则
+  proposal:
+    - change 命名：格式 YYYY-MM-DD-<动词>-<目标>，动词限定 add/refactor/fix/improve/remove，目标 kebab-case
+    - 必须包含成功标准 (Success Criteria)：列出可验证的完成条件
+    - Impact 必须列出具体的文件/目录变更，不使用模糊描述
+    - proposal 声明的 capability 必须与 specs/ 目录一一对应
+
+  # 设计阶段规则
+  design:
+    - 必须包含目录树 (Directory Layout)，展示关键文件和目录结构
+    - 每个技术决策必须在对应的 spec 中有 Requirement 覆盖
+    - 所有 artifact 中的示例值必须一致（如端口号、路径、变量名）
+    - Open Questions 不允许写"无"——至少列出 2 个待确认的假设或风险
+
+  # 规范阶段规则
+  specs:
+    - SHALL 语句必须具体可验证：包含具体的值、路径、格式
+    - 禁止使用"或类似工具"等模糊表述，必须指定具体技术
+    - 所有 artifact 中的示例值必须一致
+    - 每个 Scenario 必须可自动化验证或可通过明确步骤手动验证
+    - spec 中的每个 Requirement 必须有至少一个 task 实现它
+
+  # 任务阶段规则
+  tasks:
+    - TDD 执行：每个功能点必须先拆出测试任务（写失败测试），再拆实现任务（使测试通过），最后可拆重构任务。测试未通过不算完成
+    - 任务粒度控制在单个会话可完成
+    - 必须声明任务间依赖（当任务 A 依赖任务 B 的产出时）
+    - 每个 task group 必须可独立验证完成
+    - 所有 spec Requirement 必须有对应 task 覆盖（正向追溯）
+    - 安装依赖必须作为显式 task，不允许隐含在其他 task 中
+    - 新增测试基础设施（测试框架、测试库、配置等）必须作为显式 task，不可隐含在其他 task 中

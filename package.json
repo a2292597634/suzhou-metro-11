@@ -15,6 +15,7 @@
   },
   "main": "screenshot-resize.js",
   "dependencies": {
+    "@prisma/client": "^6.6.0",
     "agent-base": "^7.1.4",
     "ansi-regex": "^5.0.1",
     "ansi-styles": "^4.3.0",
@@ -78,6 +79,7 @@
     "parse-json": "^5.2.0",
     "pend": "^1.2.0",
     "picocolors": "^1.1.1",
+    "prisma": "^6.6.0",
     "progress": "^2.0.3",
     "proxy-agent": "^6.5.0",
     "proxy-from-env": "^1.1.0",

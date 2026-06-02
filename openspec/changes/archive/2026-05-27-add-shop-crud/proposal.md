@@ -1,8 +1,8 @@
-## Why
+## 为什么做这个变更
 
 当前站点编辑器只能修改已有商铺的信息，无法新增或删除商铺。实际运营中，商铺状态是动态变化的：新商铺出租需要录入、退租商铺需要移除、大商铺拆分成小商铺等。没有增删功能，用户只能通过直接修改 Excel 后导入来实现，流程繁琐且容易出错。
 
-## What Changes
+## 变更内容
 
 - **在站点编辑模态框中新增"添加商铺"按钮**，点击后在商铺表格末尾新增一行空白输入
 - **在每行商铺右侧添加"删除"按钮**，点击后确认删除该行商铺
@@ -10,18 +10,18 @@
 - **保存时基础校验**，铺号和名称不能为空
 - **更新全局统计计算**，增删商铺后统计自动更新
 
-## Capabilities
+## 能力项
 
-### New Capabilities
+### 新增能力
 - `shop-create`: 在站点编辑器中新增商铺行
 - `shop-delete`: 在站点编辑器中删除商铺行
 - `shop-validate`: 保存前的数据校验（非空、序号连续）
 
-### Modified Capabilities
+### 修改的能力
 - `module-interaction`: 站点编辑器的商铺表格渲染逻辑需要支持动态增删行
 - `module-data`: `calcGlobalStats` 需要正确响应商铺数量的变化
 
-## Impact
+## 影响范围
 
 - `js/modules/interaction.js` — `openStationEditor()` 和 `saveStationEdit()` 需要大幅修改
 - `index.html` — 模态框内商铺表格区域可能需要调整布局以容纳删除按钮

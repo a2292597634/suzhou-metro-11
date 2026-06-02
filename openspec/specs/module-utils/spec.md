@@ -1,7 +1,7 @@
 # module-utils Specification
 
-## Purpose
-TBD - created by archiving change refactor-appjs-modular. Update Purpose after archive.
+## 用途
+通用工具函数模块规范（避让算法、出租率计算、HTML 转义）。
 ## Requirements
 ### Requirement: 工具模块提供卡片重叠避让
 工具模块须实现检测和解决站点卡片重叠的算法。

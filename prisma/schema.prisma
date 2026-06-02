@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Station {
+  id           String   @id
+  name         String
+  grade        String
+  x            Int
+  y            Int
+  pos          String
+  transfer     Boolean  @default(false)
+  transferLine String?
+  shops        Shop[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Shop {
+  id        String   @id @default(uuid())
+  no        Int
+  shortNo   String
+  name      String
+  type      String
+  area      Float
+  tenant    String?
+  contact   String?
+  openDate  String?
+  status    String
+  remark    String?
+  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  stationId String
+}
+
+model GlobalStats {
+  id           Int      @id @default(1)
+  statsDate    String
+  totalShops   Int
+  rentedShops  Int
+  vacantShops  Int
+  rentRate     String
+  updatedAt    DateTime @updatedAt
+}
+
+model GradeInfo {
+  id     String @id
+  name   String
+  desc   String?
+  color  String
+}

@@ -2,3 +2,7 @@ node_modules/
 output/
 *.log
 *.zip
+.env
+data/
+
+/generated/prisma

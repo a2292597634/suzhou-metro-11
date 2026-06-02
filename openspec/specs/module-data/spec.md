@@ -1,7 +1,7 @@
 # module-data Specification
 
-## Purpose
-TBD - created by archiving change refactor-appjs-modular. Update Purpose after archive.
+## 用途
+站点数据与全局统计的集中管理模块规范。
 ## Requirements
 ### Requirement: 数据模块管理所有站点和统计状态
 数据模块是所有应用状态的唯一数据源，包括站点数据、全局统计和商业价值分级信息。
