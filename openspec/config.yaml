@@ -9,7 +9,7 @@ context: |
   ORM: Prisma
   Frontend: 原生 HTML + CSS + Vanilla JS，无构建工具，无框架
   Backend: Express 5
-  Testing: TDD 硬性要求，先写测试再写实现，测试未通过不算完成
+  Testing: TDD 硬性要求，先写测试再写实现，测试未通过不算完成。详细规范见 openspec/testing-strategy.md
 
   Directory Conventions (目录约定):
     index.html          — 主页面
@@ -33,6 +33,9 @@ context: |
     assets/             — 静态资源（背景图等）
     tools/              — 工具脚本（高清导出、隧道工具）
     openspec/           — 规范文档，禁止放代码
+      testing-strategy.md — 测试策略规范（所有 change 必须遵守）
+      templates/          — 可复用模板
+        testing-checklist.md — 测试检查清单（嵌入每个 tasks.md）
     .env                — 环境变量（数据库连接字符串）
 
   Coding Conventions (编码约定):
@@ -53,6 +56,8 @@ rules:
   global:
     - 语言规范：所有文档、代码注释、commit 信息、Markdown 文件必须使用中文，仅保留必要的英文（专有名词、代码标识符、API 路径、技术关键字）
     - Git 确认：每次 git commit 前必须向用户报告变更内容和 commit 信息，经确认后方可提交
+    - 设计规范：每次进行界面设计或前端开发时，必须使用 frontend-design skill，并严格遵循项目根目录 DESIGN.md 中定义的设计系统（颜色、字体、间距、阴影、圆角、材质、动效）
+    - 测试规范：每个 change 必须遵守 openspec/testing-strategy.md 定义的三层测试金字塔。不得跳过测试任务，不得先写实现后补测试
 
   # 探索阶段规则
   explore:
@@ -66,6 +71,7 @@ rules:
     - 必须包含成功标准 (Success Criteria)：列出可验证的完成条件
     - Impact 必须列出具体的文件/目录变更，不使用模糊描述
     - proposal 声明的 capability 必须与 specs/ 目录一一对应
+    - 必须包含测试策略段落：说明本 change 需要哪一层测试（单元/集成/E2E），依据 openspec/testing-strategy.md 的变更类型映射表
 
   # 设计阶段规则
   design:
@@ -73,6 +79,7 @@ rules:
     - 每个技术决策必须在对应的 spec 中有 Requirement 覆盖
     - 所有 artifact 中的示例值必须一致（如端口号、路径、变量名）
     - Open Questions 不允许写"无"——至少列出 2 个待确认的假设或风险
+    - 必须包含测试架构设计段落：说明测试分层策略、测试文件位置、需要 mock 的外部依赖
 
   # 规范阶段规则
   specs:
@@ -81,13 +88,28 @@ rules:
     - 所有 artifact 中的示例值必须一致
     - 每个 Scenario 必须可自动化验证或可通过明确步骤手动验证
     - spec 中的每个 Requirement 必须有至少一个 task 实现它
+    - 每个 spec 文件末尾必须包含 Testing Notes：说明该 spec 对应的测试策略和预期测试覆盖点
 
   # 任务阶段规则
   tasks:
-    - TDD 执行：每个功能点必须先拆出测试任务（写失败测试），再拆实现任务（使测试通过），最后可拆重构任务。测试未通过不算完成
+    - TDD 执行：每个功能点必须严格执行 Red → Green → Refactor 三步，测试未通过不算完成
+    - 先写失败测试（Red）→ 再写最小实现（Green）→ 最后重构（Refactor），顺序不可颠倒
+    - 每个功能模块任务组必须有对应的测试任务组（如「2.1 实现 xxx」对应「2.T 测试 xxx」）
     - 任务粒度控制在单个会话可完成
     - 必须声明任务间依赖（当任务 A 依赖任务 B 的产出时）
     - 每个 task group 必须可独立验证完成
     - 所有 spec Requirement 必须有对应 task 覆盖（正向追溯）
     - 安装依赖必须作为显式 task，不允许隐含在其他 task 中
     - 新增测试基础设施（测试框架、测试库、配置等）必须作为显式 task，不可隐含在其他 task 中
+    - tasks.md 末尾必须嵌入 openspec/templates/testing-checklist.md 作为验收清单
+
+  # 测试阶段规则
+  testing:
+    - 单元测试底线：每个新增/修改的 js/modules/*.js 必须有 tests/<模块名>.test.js
+    - 测试文件命名：tests/<模块名>.test.js（单元）、tests/integration/<场景>.test.js（集成）、tests/e2e/<场景>.test.js（E2E）
+    - 每个测试文件至少包含 3 个测试用例（describe/it）
+    - 测试描述必须使用中文，读起来像完整断言（如「应该从无文件名路径解析首页」）
+    - 禁止 mock 掉核心业务逻辑来伪造测试通过
+    - 变更涉及 2+ 模块联动时必须编写集成测试
+    - 新增/重构页面或核心流程时必须编写 E2E 测试
+    - 最终完成前必须运行 node scripts/check-test-coverage.js 确认通过
