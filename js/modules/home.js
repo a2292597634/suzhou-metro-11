@@ -10,7 +10,7 @@ import { state } from './state.js';
 // 数据计算
 // ============================================
 
-function calcHomeStats() {
+export function calcHomeStats() {
   const stations = state.stations;
   let totalShops = 0, rented = 0, vacant = 0, renovating = 0;
   let totalArea = 0, rentedArea = 0;

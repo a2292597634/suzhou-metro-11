@@ -6,7 +6,7 @@ import { state } from './state.js';
 import { config } from './utils.js';
 
 /** 获取 #app 实际尺寸（兼容顶部导航栏占用空间的情况） */
-function getAppSize() {
+export function getAppSize() {
   const app = document.getElementById('app');
   if (app) {
     const rect = app.getBoundingClientRect();
