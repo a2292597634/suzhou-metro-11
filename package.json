@@ -4,6 +4,8 @@
   "description": "苏州地铁11号线商业开发作战图",
   "scripts": {
     "start": "node server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "export-hd": "node tools/export-hd.js",
     "export-2k": "node tools/export-hd.js 2K",
     "export-4k": "node tools/export-hd.js 4K",
@@ -11,7 +13,10 @@
     "export-8k": "node tools/export-hd.js 8K"
   },
   "devDependencies": {
-    "puppeteer": "^24.0.0"
+    "@testing-library/dom": "^10.4.1",
+    "jsdom": "^29.1.1",
+    "puppeteer": "^24.0.0",
+    "vitest": "^4.1.8"
   },
   "main": "screenshot-resize.js",
   "dependencies": {

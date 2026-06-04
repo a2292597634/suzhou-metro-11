@@ -5,6 +5,26 @@
 import { state } from './state.js';
 import { config } from './utils.js';
 
+/** 获取 #app 实际尺寸（兼容顶部导航栏占用空间的情况） */
+function getAppSize() {
+  const app = document.getElementById('app');
+  if (app) {
+    const rect = app.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+      cx: rect.left + rect.width / 2,
+      cy: rect.top + rect.height / 2
+    };
+  }
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    cx: window.innerWidth / 2,
+    cy: window.innerHeight / 2
+  };
+}
+
 export function applyTransform() {
   const map = document.querySelector('.battle-map');
   if (map) {
@@ -16,8 +36,9 @@ export function zoom(delta, screenX, screenY) {
   const factor = delta < 0 ? 1.1 : 0.9;
   const newScale = Math.max(state.viewport.minScale, Math.min(state.viewport.maxScale, state.viewport.scale * factor));
 
-  const relX = screenX - window.innerWidth / 2 - state.viewport.x;
-  const relY = screenY - window.innerHeight / 2 - state.viewport.y;
+  const appSize = getAppSize();
+  const relX = screenX - appSize.cx - state.viewport.x;
+  const relY = screenY - appSize.cy - state.viewport.y;
 
   state.viewport.x += relX * (1 - newScale / state.viewport.scale);
   state.viewport.y += relY * (1 - newScale / state.viewport.scale);
@@ -27,8 +48,9 @@ export function zoom(delta, screenX, screenY) {
 }
 
 export function fitToScreen() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  const appSize = getAppSize();
+  const vw = appSize.width;
+  const vh = appSize.height;
   const padding = 40;
   const scaleX = (vw - padding) / config.width;
   const scaleY = (vh - padding) / config.height;
@@ -47,8 +69,9 @@ export function fitToScreen() {
 }
 
 export function resetViewport() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  const appSize = getAppSize();
+  const vw = appSize.width;
+  const vh = appSize.height;
   const padding = 40;
   const scaleX = (vw - padding) / config.width;
   const scaleY = (vh - padding) / config.height;
@@ -59,8 +82,9 @@ export function resetViewport() {
 }
 
 export function initViewport() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  const appSize = getAppSize();
+  const vw = appSize.width;
+  const vh = appSize.height;
   const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const padding = isMobile ? 10 : 60;
   const scaleX = (vw - padding) / config.width;
@@ -198,13 +222,15 @@ export function addViewportControls() {
 }
 
 export function zoomIn() {
-  const cx = window.innerWidth / 2 + state.viewport.x;
-  const cy = window.innerHeight / 2 + state.viewport.y;
+  const appSize = getAppSize();
+  const cx = appSize.cx + state.viewport.x;
+  const cy = appSize.cy + state.viewport.y;
   zoom(-1, cx, cy);
 }
 
 export function zoomOut() {
-  const cx = window.innerWidth / 2 + state.viewport.x;
-  const cy = window.innerHeight / 2 + state.viewport.y;
+  const appSize = getAppSize();
+  const cx = appSize.cx + state.viewport.x;
+  const cy = appSize.cy + state.viewport.y;
   zoom(1, cx, cy);
 }

@@ -153,6 +153,16 @@ function bindEventsAfterRender() {
 
 // 初始化
 async function init() {
+  // 初始化导航和路由（如可用，兼容旧页面）
+  try {
+    const { initNav } = await import('./nav.js');
+    const { initRouter } = await import('./router.js');
+    initNav('battle');
+    initRouter();
+  } catch (e) {
+    console.log('导航模块未加载');
+  }
+
   await data.loadData();
   data.calcGlobalStats();
   render.renderAll();
@@ -174,7 +184,9 @@ async function init() {
   viewport.initViewport();
 }
 
-// 启动
-document.addEventListener('DOMContentLoaded', () => {
+// 启动（module script 默认 deferred，DOM 已 ready；但为安全起见做判断）
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
   init();
-});
+}

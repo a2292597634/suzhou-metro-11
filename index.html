@@ -1,193 +1,1241 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>苏州地铁11号线商业开发作战图</title>
-    <link rel="stylesheet" href="css/style.css?v=3">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>首页 - 苏州地铁11号线商业信息综合平台</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css">
+<link rel="stylesheet" href="css/platform.css?v=18">
+<style>
+/* ============================================
+   首页看板 — Dub 风格
+   ============================================ */
+
+.home-page {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--spacing-32) var(--spacing-24) calc(var(--spacing-80) + var(--bottom-nav-height));
+}
+
+/* —— 通用层 —— */
+.home-layer {
+  margin-bottom: var(--section-gap);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
+}
+
+.home-layer.layer-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.layer-header {
+  margin-bottom: var(--spacing-24);
+}
+
+.layer-title {
+  font-family: var(--font-satoshi);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-heading-sm);
+}
+
+.layer-subtitle {
+  font-family: var(--font-inter);
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-4);
+}
+
+/* —— 第一层：综合数据概览 —— */
+.summary-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-24) var(--spacing-32);
+  box-shadow: var(--shadow-subtle);
+  opacity: 0;
+  transform: translateY(12px);
+  animation: cardEnter 400ms var(--ease-out) forwards;
+}
+
+@keyframes cardEnter {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-20);
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+
+.summary-title {
+  font-family: var(--font-satoshi);
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.summary-date {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+/* 核心指标行 */
+.summary-core {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-32);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-20);
+}
+
+.core-rate {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  flex-shrink: 0;
+}
+
+.core-rate-value {
+  font-family: var(--font-satoshi);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.core-rate-bar-wrap {
+  width: 200px;
+  height: 8px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.core-rate-bar {
+  height: 100%;
+  background: var(--color-jet-black);
+  border-radius: var(--radius-full);
+  transition: width 1s var(--ease-out);
+}
+
+.core-rate-label {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+/* 分割线 */
+.summary-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border-default);
+  flex-shrink: 0;
+}
+
+/* 指标组 */
+.core-metrics {
+  display: flex;
+  gap: var(--spacing-24);
+  flex-wrap: wrap;
+}
+
+.core-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 56px;
+}
+
+.core-metric-value {
+  font-family: var(--font-geistmono);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.core-metric-label {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.core-metric-value.rented { color: var(--color-fresh-green); }
+.core-metric-value.vacant { color: var(--color-warm-orange); }
+.core-metric-value.renovating { color: #ca8a04; }
+
+/* 底部分级 */
+.summary-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--border-default);
+  flex-wrap: wrap;
+}
+
+.summary-footer-label {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.grade-dots {
+  display: flex;
+  gap: var(--spacing-12);
+  flex-wrap: wrap;
+}
+
+.grade-dot-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.grade-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.grade-dot.S { background: #d4380d; }
+.grade-dot.A { background: #fa8c16; }
+.grade-dot.B { background: #52c41a; }
+.grade-dot.C { background: #737373; }
+
+/* —— 第二层：站点总览表格 —— */
+.table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: var(--shadow-subtle);
+  transition: box-shadow 300ms;
+}
+
+.table-wrap:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.station-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-inter);
+  font-size: var(--text-body);
+}
+
+.station-table thead th {
+  padding: var(--spacing-12) var(--spacing-16);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border-default);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.station-table tbody tr.station-row {
+  cursor: pointer;
+  transition: background-color 150ms var(--ease-out);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.station-table tbody tr.station-row:nth-child(4n+1) {
+  background: rgba(0,0,0,0.01);
+}
+
+.station-table tbody tr.station-row:hover {
+  background: var(--bg-muted);
+}
+
+.station-table tbody tr.station-row.expanded {
+  background: var(--bg-muted);
+  border-bottom: none;
+}
+
+.station-table td {
+  padding: var(--spacing-12) var(--spacing-16);
+  vertical-align: middle;
+}
+
+.station-num {
+  font-family: var(--font-geistmono);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+}
+
+.station-name {
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-wrap: wrap;
+}
+
+.grade-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-canvas-white);
+  flex-shrink: 0;
+}
+
+.grade-badge.grade-S { background: #d4380d; }
+.grade-badge.grade-A { background: #fa8c16; }
+.grade-badge.grade-B { background: #52c41a; }
+.grade-badge.grade-C { background: #737373; }
+
+.transfer-tag {
+  font-size: var(--text-caption);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-family: var(--font-inter);
+}
+
+.station-count,
+.station-rented,
+.station-vacant,
+.station-area {
+  font-family: var(--font-geistmono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.station-rate {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+
+.rate-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.rate-bar-fill {
+  height: 100%;
+  background: var(--color-jet-black);
+  border-radius: var(--radius-full);
+  transition: width 800ms var(--ease-out);
+}
+
+.rate-text {
+  font-family: var(--font-geistmono);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+.rate-high { color: var(--color-fresh-green); }
+.rate-mid  { color: var(--text-secondary); }
+.rate-low  { color: var(--color-warm-orange); }
+
+.btn-expand {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background-color 150ms, transform 200ms;
+}
+
+.btn-expand:hover {
+  background: var(--bg-muted);
+}
+
+.station-row.expanded .btn-expand {
+  transform: rotate(180deg);
+}
+
+.expand-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 展开行 */
+.expand-row {
+  display: none;
+  background: var(--bg-muted);
+}
+
+.expand-row.expanded {
+  display: table-row;
+  animation: expandIn 300ms var(--ease-out);
+}
+
+@keyframes expandIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.expand-content {
+  padding: var(--spacing-20) var(--spacing-24) var(--spacing-20) calc(var(--spacing-24) + 48px);
+}
+
+.expand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-16);
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+}
+
+.expand-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  font-family: var(--font-inter);
+}
+
+.expand-meta {
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-family: var(--font-inter);
+}
+
+/* 商铺明细表 */
+.shop-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-caption);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+}
+
+.shop-table th,
+.shop-table td {
+  padding: var(--spacing-8) var(--spacing-12);
+  text-align: left;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.shop-table th {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  font-family: var(--font-inter);
+}
+
+.shop-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.shop-no {
+  font-family: var(--font-geistmono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.shop-name {
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-family: var(--font-inter);
+}
+
+.shop-type {
+  font-size: var(--text-caption);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-family: var(--font-inter);
+}
+
+.shop-area {
+  font-family: var(--font-geistmono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shop-tenant {
+  color: var(--text-secondary);
+  font-family: var(--font-inter);
+}
+
+.text-muted {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.shop-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-family: var(--font-inter);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.status-rented { background: var(--color-fresh-green); }
+.status-dot.status-renovating { background: #ca8a04; }
+.status-dot.status-vacant { background: var(--color-warm-orange); }
+
+/* —— 第二层：线路站点速览 —— */
+.line-preview-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-24) var(--spacing-32);
+  box-shadow: var(--shadow-subtle);
+  position: relative;
+}
+
+.line-scroll-wrap {
+  overflow: hidden;
+  position: relative;
+  width: 800px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-20) 0 var(--spacing-32);
+  mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+}
+
+.line-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 48px 0 24px;
+  will-change: transform;
+}
+
+.line-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 5px;
+  border-radius: var(--radius-full);
+  margin-top: -2.5px;
+  z-index: 0;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--color-accent-blue) 0%, var(--color-deep-violet) 100%);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.line-track::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: trackFlow 4s linear infinite;
+  border-radius: var(--radius-full);
+}
+
+@keyframes trackFlow {
+  0% { left: -40%; }
+  100% { left: 140%; }
+}
+
+.line-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 80px;
+}
+
+.station-dot-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.station-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg-surface);
+  box-shadow: 0 0 0 1.5px var(--border-default), 0 2px 5px rgba(0,0,0,0.12);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  position: relative;
+}
+
+.station-dot.high { background: var(--color-fresh-green); }
+.station-dot.mid  { background: var(--color-warm-orange); }
+.station-dot.low  { background: #ef4444; }
+.station-dot.transfer { background: var(--color-accent-blue); }
+
+.line-station:hover .station-dot {
+  transform: scale(1.5);
+  box-shadow: 0 0 0 3px var(--bg-surface), 0 0 0 4px var(--border-muted), 0 6px 16px rgba(0,0,0,0.18);
+}
+
+.station-dot-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent-blue);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+  pointer-events: none;
+}
+
+.line-station:hover .station-dot-ring {
+  opacity: 1;
+}
+
+.station-name-below {
+  font-family: var(--font-inter);
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-align: center;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  transition: color 150ms;
+}
+
+.line-station:hover .station-name-below {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Tooltip */
+.station-tooltip {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  transition: left 350ms var(--ease-out), top 350ms var(--ease-out), opacity 200ms var(--ease-out);
+}
+
+.station-tooltip.is-hidden {
+  opacity: 0;
+}
+
+.tooltip-body {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-16);
+  box-shadow: var(--shadow-md);
+  min-width: 260px;
+  max-width: 340px;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+  transform: rotate(45deg);
+  transition: left 350ms var(--ease-out), bottom 200ms, top 200ms, transform 200ms;
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-12);
+}
+
+.tooltip-grade {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-canvas-white);
+  flex-shrink: 0;
+}
+
+.tooltip-grade.grade-S { background: #d4380d; }
+.tooltip-grade.grade-A { background: #fa8c16; }
+.tooltip-grade.grade-B { background: #52c41a; }
+.tooltip-grade.grade-C { background: #737373; }
+
+.tooltip-name {
+  font-family: var(--font-satoshi);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.tooltip-transfer {
+  font-size: var(--text-caption);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: #dbeafe;
+  color: var(--color-accent-blue);
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-medium);
+  display: none;
+}
+
+.tooltip-transfer.visible {
+  display: inline-block;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: var(--border-default);
+  margin: var(--spacing-12) 0;
+}
+
+.tooltip-stats {
+  display: flex;
+  gap: var(--spacing-16);
+}
+
+.tooltip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltip-value {
+  font-family: var(--font-geistmono);
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip-label {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+/* 商铺列表 */
+.tooltip-shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tooltip-shop-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  padding: 3px 0;
+}
+
+.tooltip-shop-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltip-shop-dot.rented { background: var(--color-fresh-green); }
+.tooltip-shop-dot.renovating { background: #ca8a04; }
+.tooltip-shop-dot.vacant { background: var(--color-warm-orange); }
+
+.tooltip-shop-no {
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  min-width: 80px;
+  max-width: 120px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltip-shop-tenant {
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.tooltip-shop-tenant.empty {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.tooltip-shop-more {
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  padding-top: 4px;
+  font-family: var(--font-inter);
+}
+
+/* Legend */
+.line-legend {
+  display: flex;
+  gap: var(--spacing-20);
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: var(--spacing-16);
+  border-top: 1px solid var(--border-default);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-inter);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--border-default);
+}
+
+.legend-dot.high { background: var(--color-fresh-green); }
+.legend-dot.mid  { background: var(--color-warm-orange); }
+.legend-dot.low  { background: #ef4444; }
+.legend-dot.transfer { background: var(--color-accent-blue); }
+
+/* —— 第三层：排名统计 —— */
+.rankings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-24);
+}
+
+.rank-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-24);
+  box-shadow: var(--shadow-subtle);
+  transition: box-shadow 300ms;
+}
+
+.rank-panel:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.rank-panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-16);
+  padding-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--border-default);
+  font-family: var(--font-inter);
+}
+
+.rank-panel-title svg {
+  color: var(--color-fresh-green);
+}
+
+.rank-panel-title--bottom svg {
+  color: var(--color-warm-orange);
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.rank-item {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px 1fr 56px;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-8) 0;
+  opacity: 0;
+  transform: translateX(-8px);
+  animation: rankEnter 400ms var(--ease-out) forwards;
+}
+
+@keyframes rankEnter {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.rank-num {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+  font-family: var(--font-geistmono);
+}
+
+.rank-num.rank-top {
+  background: var(--color-jet-black);
+  color: var(--color-canvas-white);
+}
+
+.rank-num.rank-bottom {
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.rank-name {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-inter);
+}
+
+.rank-grade {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-canvas-white);
+  flex-shrink: 0;
+}
+
+.rank-grade.grade-S { background: #d4380d; }
+.rank-grade.grade-A { background: #fa8c16; }
+.rank-grade.grade-B { background: #52c41a; }
+.rank-grade.grade-C { background: #737373; }
+
+.rank-bar-wrap {
+  height: 6px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  min-width: 40px;
+}
+
+.rank-bar {
+  height: 100%;
+  background: var(--color-jet-black);
+  border-radius: var(--radius-full);
+  transition: width 800ms var(--ease-out);
+}
+
+.rank-bar.rank-bar-low {
+  background: var(--color-warm-orange);
+  opacity: 0.6;
+}
+
+.rank-rate {
+  font-family: var(--font-geistmono);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* —— 响应式 —— */
+@media (max-width: 900px) {
+  .summary-core {
+    gap: var(--spacing-24);
+  }
+
+  .core-rate-value {
+    font-size: var(--text-heading-lg);
+  }
+
+  .core-rate-bar-wrap {
+    width: 160px;
+  }
+
+  .summary-divider {
+    display: none;
+  }
+
+  .core-metrics {
+    gap: var(--spacing-16);
+  }
+
+  .rankings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .station-rate {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+  }
+
+  .rate-bar-bg {
+    width: 100%;
+  }
+
+  .expand-content {
+    padding-left: var(--spacing-16);
+  }
+
+  /* 平板端隐藏部分列 */
+  .station-table thead th:nth-child(4),
+  .station-table thead th:nth-child(5),
+  .station-table thead th:nth-child(6),
+  .station-table thead th:nth-child(8),
+  .station-table tbody td:nth-child(4),
+  .station-table tbody td:nth-child(5),
+  .station-table tbody td:nth-child(6),
+  .station-table tbody td:nth-child(8) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page {
+    padding: var(--spacing-16) var(--spacing-12) calc(var(--spacing-48) + var(--bottom-nav-height));
+  }
+
+  .summary-panel {
+    padding: var(--spacing-16);
+  }
+
+  .summary-header {
+    margin-bottom: var(--spacing-12);
+  }
+
+  .summary-title {
+    font-size: var(--text-body);
+  }
+
+  .core-rate {
+    width: 100%;
+  }
+
+  .core-rate-value {
+    font-size: var(--text-heading);
+  }
+
+  .core-rate-bar-wrap {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .core-metrics {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--spacing-12);
+  }
+
+  .core-metric-value {
+    font-size: var(--text-subheading);
+  }
+
+  .line-preview-card {
+    padding: var(--spacing-16);
+  }
+
+  .line-legend {
+    gap: var(--spacing-12);
+  }
+
+  .tooltip-body {
+    min-width: 180px;
+    padding: var(--spacing-12);
+  }
+
+  .station-table th,
+  .station-table td {
+    padding: var(--spacing-8) var(--spacing-12);
+  }
+
+  .station-name {
+    font-size: var(--text-caption);
+  }
+
+  .expand-content {
+    padding: var(--spacing-12);
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-core {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-12);
+  }
+
+  .core-rate-bar-wrap {
+    width: 100%;
+  }
+
+  /* 手机端只保留：序号、名称、商铺、出租率、操作 */
+  .station-table thead th:nth-child(7),
+  .station-table thead th:nth-child(9),
+  .station-table tbody td:nth-child(7),
+  .station-table tbody td:nth-child(9) {
+    display: none;
+  }
+
+  .rank-bar-wrap {
+    display: none;
+  }
+
+  .rank-item {
+    grid-template-columns: 24px 1fr 24px 48px;
+  }
+}
+</style>
 </head>
 <body>
-    <div id="app">
-        <!-- 21:9 作战图画布 -->
-        <div class="battle-map" id="battleMap">
-            <!-- 地图背景纹理 -->
-            <div class="map-bg"></div>
-            
-            <!-- 顶部标题栏 -->
-            <header class="header">
-                <div class="header-content">
-                    <h1 class="main-title">
-                        <span class="title-highlight">苏州地铁11号线</span>
-                        <span class="title-normal">商业开发作战图</span>
-                    </h1>
-                    <p class="sub-title">SUZHOU METRO LINE 11 COMMERCIAL DEVELOPMENT BATTLE MAP</p>
-                </div>
-                <!-- 顶部操作栏 -->
-                <div class="top-actions">
-                    <button class="btn btn-print" onclick="app.printMap()">🖨️ 打印作战图</button>
-                    <button class="btn btn-export" onclick="app.showHDExportHelp()" title="导出高清PNG海报">🖼️ 导出高清海报</button>
-                    <button class="btn btn-export" onclick="app.exportExcel()">📥 导出Excel</button>
-                    <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 导入Excel</button>
-                    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="app.importExcel(this)">
-                    <button class="btn btn-reset" onclick="app.resetData()">🔄 恢复默认</button>
-                    <button class="btn btn-save" onclick="app.saveNow()">💾 立即保存</button>
-                </div>
-            </header>
 
-            <!-- 全局统计面板 -->
-            <section class="stats-panel">
-                <div class="stats-title">
-                    <span class="stats-label">全线商业概况</span>
-                </div>
-                <div class="stats-grid">
-                    <!-- 由 JS 动态生成 -->
-                </div>
-            </section>
+<div class="home-page">
 
-            <!-- 图例说明 -->
-            <div class="legend-panel">
-                <h3>图例说明</h3>
-                <div class="legend-section">
-                    <div class="legend-item"><span class="legend-line line-m11"></span> <span>11号线</span></div>
-                    <div class="legend-item"><span class="legend-line line-other"></span> <span>其他线路</span></div>
-                </div>
-                <div class="legend-section">
-                    <h4>商铺状态说明</h4>
-                    <div class="legend-item"><span class="status-icon status-rented"></span> <span>已出租</span></div>
-                    <div class="legend-item"><span class="status-icon status-renovating"></span> <span>装修中</span></div>
-                    <div class="legend-item"><span class="status-icon status-vacant"></span> <span>空置</span></div>
-                </div>
-            </div>
+  <!-- 第一层：综合数据概览 -->
+  <section class="home-layer layer-visible" id="layer-overview">
+    <!-- 由 JS 渲染 -->
+  </section>
 
-            <!-- 商业价值分级 -->
-            <div class="grade-panel">
-                <h3>商业价值分级</h3>
-                <p class="grade-subtitle">（综合客流、区位、周边商圈）</p>
-                <div class="grade-list" id="gradeList">
-                    <!-- 由 JS 动态生成 -->
-                </div>
-            </div>
-
-            <!-- SVG 地铁线路层 -->
-            <svg class="metro-lines" id="metroLines" viewBox="0 0 2520 1080" preserveAspectRatio="xMidYMid meet">
-                <!-- 由 JS 动态生成 -->
-            </svg>
-
-            <!-- 站点卡片层 -->
-            <div class="stations-layer" id="stationsLayer">
-                <!-- 由 JS 动态生成 -->
-            </div>
-
-            <!-- 底部备注 -->
-            <footer class="footer">
-                <span>*出租率 = 已出租商铺 / 商铺总数</span>
-            </footer>
-        </div>
-    </div>
-
-    <!-- 站点编辑模态框 -->
-    <div class="modal" id="stationModal">
-      <div class="modal-title">编辑站点数据</div>
-      <div class="modal-body">
-        <div class="editor-form" id="stationForm">
-          <div class="editor-field full-width">
-            <label>站点名称</label>
-            <input type="text" id="editName" />
-          </div>
-          <div class="editor-field">
-            <label>商业价值等级</label>
-            <select id="editGrade">
-              <option value="S">S级（核心商圈/换乘）</option>
-              <option value="A">A级（重点发展站）</option>
-              <option value="B">B级（潜力提升站）</option>
-              <option value="C">C级（培育优化站）</option>
-            </select>
-          </div>
-          <div class="editor-field">
-            <label>坐标 X</label>
-            <input type="number" id="editX" min="0" />
-          </div>
-          <div class="editor-field">
-            <label>坐标 Y</label>
-            <input type="number" id="editY" min="0" />
-          </div>
-          <div class="editor-field">
-            <label>卡片位置</label>
-            <select id="editPos">
-              <option value="top">上方</option>
-              <option value="bottom">下方</option>
-              <option value="left">左侧</option>
-              <option value="right">右侧</option>
-            </select>
-          </div>
-          <div class="editor-field">
-            <label>换乘站</label>
-            <select id="editTransfer">
-              <option value="false">否</option>
-              <option value="true">是</option>
-            </select>
-          </div>
-          <div class="editor-field full-width">
-            <label>商铺列表</label>
-            <div id="editShops" class="shops-edit-table"></div>
-          </div>
+  <!-- 第二层：线路站点速览 -->
+  <section class="home-layer" id="layer-line-preview">
+    <div class="line-preview-card">
+      <div class="layer-header">
+        <h2 class="layer-title">线路站点速览</h2>
+        <div class="layer-subtitle">全线 28 站 · 鼠标悬停站点圆点查看商业详情</div>
+      </div>
+      <div class="line-scroll-wrap">
+        <div class="line-container" id="lineContainer">
+          <div class="line-track"></div>
+          <!-- 站点由 JS 渲染 -->
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-reset" onclick="app.closeModal()">取消</button>
-        <button class="btn btn-save" onclick="app.saveStationEdit()">保存</button>
+      <div class="line-legend">
+        <div class="legend-item"><span class="legend-dot high"></span>出租率 ≥80%</div>
+        <div class="legend-item"><span class="legend-dot mid"></span>出租率 50-80%</div>
+        <div class="legend-item"><span class="legend-dot low"></span>出租率 <50%</div>
+        <div class="legend-item"><span class="legend-dot transfer"></span>换乘站</div>
       </div>
     </div>
-
-    <!-- 高清导出说明弹窗 -->
-    <div class="modal" id="hdExportModal">
-      <div class="modal-title">🖼️ 高清海报导出指南</div>
-      <div class="modal-body" style="max-width:520px;">
-        <p style="margin-bottom:12px;color:#666;">本工具支持导出 2K~8K 高清 PNG，可直接用于海报印刷上墙。</p>
-        
-        <table class="hd-table">
-          <thead>
-            <tr><th>规格</th><th>分辨率</th><th>建议打印尺寸</th><th>用途</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><strong>2K</strong></td><td>2520×1080</td><td>42×18 cm @150dpi</td><td>PPT/网页展示</td></tr>
-            <tr><td><strong>4K</strong></td><td>5040×2160</td><td>85×36 cm @150dpi</td><td>A1海报上墙</td></tr>
-            <tr><td><strong>6K</strong></td><td>7560×3240</td><td>128×54 cm @150dpi</td><td>A0大幅海报</td></tr>
-            <tr><td><strong>8K</strong></td><td>10080×4320</td><td>85×36 cm @300dpi</td><td>专业印刷</td></tr>
-          </tbody>
-        </table>
-        
-        <div class="hd-steps">
-          <h4>📋 导出步骤</h4>
-          <ol>
-            <li>确保本地服务器已启动（<code>python -m http.server 8080</code>）</li>
-            <li>在项目目录打开命令行（终端/PowerShell）</li>
-            <li>运行导出命令（已安装依赖）：<br><code>node tools/export-hd.js</code></li>
-            <li>导出的 PNG 文件保存在 <code>output/</code> 文件夹</li>
-          </ol>
+    <!-- Tooltip 浮层 -->
+    <div class="station-tooltip" id="stationTooltip">
+      <div class="tooltip-arrow"></div>
+      <div class="tooltip-body">
+        <div class="tooltip-header">
+          <span class="tooltip-grade" id="ttGrade">S</span>
+          <span class="tooltip-name" id="ttName">站点名称</span>
+          <span class="tooltip-transfer" id="ttTransfer">换乘</span>
         </div>
-        
-        <div class="hd-tips">
-          <h4>💡 快速命令</h4>
-          <pre><code># 导出全部规格
-npm run export-hd
-
-# 仅导出 4K（推荐，A1海报）
-npm run export-4k
-
-# 仅导出 8K（最高清）
-npm run export-8k</code></pre>
+        <div class="tooltip-divider"></div>
+        <div class="tooltip-stats">
+          <div class="tooltip-stat"><span class="tooltip-value" id="ttShops">0</span><span class="tooltip-label">商铺</span></div>
+          <div class="tooltip-stat"><span class="tooltip-value" id="ttMulti">0</span><span class="tooltip-label">多经</span></div>
+          <div class="tooltip-stat"><span class="tooltip-value" id="ttRate">0%</span><span class="tooltip-label">出租率</span></div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-reset" onclick="app.closeHDExportModal()">关闭</button>
+        <div class="tooltip-divider"></div>
+        <div class="tooltip-shop-list" id="ttShopList">
+          <!-- 商铺列表由 JS 填充 -->
+        </div>
       </div>
     </div>
+  </section>
 
-    <!-- 遮罩层 -->
-    <div class="overlay" id="overlay" onclick="app.closeModal(); app.closeHDExportModal();"></div>
+  <!-- 第三层：站点总览 -->
+  <section class="home-layer" id="layer-stations">
+    <!-- 由 JS 渲染 -->
+  </section>
 
-    <script src="js/xlsx.full.min.js"></script>
-    <script type="module" src="js/modules/main.js"></script>
+  <!-- 第三层：排名统计 -->
+  <section class="home-layer" id="layer-rankings">
+    <!-- 由 JS 渲染 -->
+  </section>
+
+</div>
+
+<script type="module">
+import { initNav } from './js/modules/nav.js?v=15';
+import { initRouter } from './js/modules/router.js?v=15';
+import { initHome } from './js/modules/home.js?v=15';
+
+initNav('home');
+initRouter();
+initHome();
+</script>
+
 </body>
 </html>
