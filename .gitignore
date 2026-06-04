@@ -4,5 +4,6 @@ output/
 *.zip
 .env
 data/
+.claude/settings.local.json
 
 /generated/prisma
