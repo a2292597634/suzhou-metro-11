@@ -31,7 +31,7 @@ When ready to implement, run /opsx:apply
 
    From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
 
-   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+   **IMPORTANT**: Do NOT proceed without understanding what they want to build.
 
 2. **Create the change directory**
    ```bash
@@ -79,7 +79,49 @@ When ready to implement, run /opsx:apply
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-5. **Show final status**
+5. **Inject testing requirements into artifacts** (MANDATORY - cannot skip)
+
+   After all artifacts are created, read `openspec/testing-strategy.md` and modify each artifact to embed testing:
+
+   a. **proposal.md**: Add a "测试策略" section before "成功标准", containing:
+      - Which test layers are needed (unit/integration/E2E) based on change type
+      - Reference to openspec/testing-strategy.md change-type mapping table
+      - Estimated test file names (e.g., `tests/module-name.test.js`)
+
+   b. **design.md**: Add a "测试架构设计" section containing:
+      - Test file directory layout
+      - Which modules need unit tests
+      - Which cross-module interactions need integration tests
+      - Which user flows need E2E tests
+      - External dependencies to mock
+
+   c. **tasks.md**: Apply the following transformations:
+      - For every functional task group (e.g., "2. 修改交互模块"), insert a corresponding testing task group immediately after it
+      - Testing task naming convention: append `.T` to the group number (e.g., "2.T 交互模块测试")
+      - Testing tasks must follow TDD order: Red (write failing test) → Green (min implementation) → Refactor
+      - At the END of tasks.md, append the full content of `openspec/templates/testing-checklist.md`
+      - Example transformation:
+        ```
+        ## 2. 修改交互模块
+        - [ ] 2.1 修改 openStationEditor()
+        - [ ] 2.2 添加 addShopRow()
+        - [ ] 2.3 添加 deleteShopRow()
+        
+        ## 2.T 交互模块测试
+        - [ ] 2.T.1 编写 openStationEditor() 的测试用例（Red）
+        - [ ] 2.T.2 编写 addShopRow() 的测试用例（Red）
+        - [ ] 2.T.3 编写 deleteShopRow() 的测试用例（Red）
+        - [ ] 2.T.4 运行测试确认全部失败（Red 验证）
+        - [ ] 2.T.5 实现使测试通过（Green）
+        - [ ] 2.T.6 重构代码（Refactor）
+        ```
+
+   d. **specs/*.md**: Add "Testing Notes" at the end of each spec file:
+      - Which test layer covers this spec
+      - Expected test cases (bullet list)
+      - Any special mocking requirements
+
+6. **Show final status**
    ```bash
    openspec status --change "<name>"
    ```
@@ -89,6 +131,7 @@ When ready to implement, run /opsx:apply
 After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
+- Testing tasks injected: which modules have tests, how many test tasks
 - What's ready: "All artifacts created! Ready for implementation."
 - Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
 
@@ -96,7 +139,7 @@ After completing all artifacts, summarize:
 
 - Follow the `instruction` field from `openspec instructions` for each artifact type
 - The schema defines what each artifact should contain - follow it
-- Read dependency artifacts for context before creating new ones
+- Read dependency artifacts before creating new ones
 - Use `template` as the structure for your output file - fill in its sections
 - **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
   - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
@@ -108,3 +151,5 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+- **NEVER skip testing injection** - if a change involves any logic (not pure CSS/config), testing tasks MUST be created
+- **Testing tasks are not optional** - they are part of the artifact, not an afterthought

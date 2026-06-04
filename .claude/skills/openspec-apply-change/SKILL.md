@@ -64,26 +64,70 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-6. **Implement tasks (loop until done or blocked)**
+6. **Verify testing infrastructure before implementation**
+
+   Before starting the first task, run a quick check:
+   - Run `npm test` to confirm current test suite passes
+   - If tests fail, report and ask whether to fix first or continue
+   - This establishes a Green baseline before making changes
+
+7. **Implement tasks (loop until done or blocked)**
 
    For each pending task:
    - Show which task is being worked on
+   - **Detect task type**:
+     - If task is a **test task** (contains "测试" or "test" or ends with `.T`): execute TDD workflow (see below)
+     - If task is an **implementation task**: execute normally, but after completion run related tests
+     - If task is a **refactor task**: run all tests first, refactor, run tests again
    - Make the code changes required
    - Keep changes minimal and focused
    - Mark task complete in the tasks file: `- [ ]` → `- [x]`
    - Continue to next task
+
+   **TDD Workflow for test tasks (MANDATORY):**
+   
+   When encountering a test task (e.g., "2.T.1 编写 xxx 的测试用例"), follow this exact order:
+   
+   1. **Red Phase**: Write the test case that describes expected behavior
+      - The test MUST fail when first run (this proves it's testing new behavior)
+      - If the test passes immediately, the test is wrong - rewrite it
+      - Show the failing output to confirm Red state
+   
+   2. **Green Phase**: Write the minimum code to make the test pass
+      - Do NOT write "extra" code beyond what's needed for the test
+      - Run the test, confirm it passes
+      - Show the passing output to confirm Green state
+   
+   3. **Refactor Phase** (if applicable): Clean up the code
+      - Only after test is Green
+      - Run tests after each refactor step
+      - Stop if tests break
+   
+   **After every implementation task:**
+   - Run `npm test` to ensure no regressions
+   - If tests fail, fix before marking the task complete
 
    **Pause if:**
    - Task is unclear → ask for clarification
    - Implementation reveals a design issue → suggest updating artifacts
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
+   - Tests fail and cannot be fixed within the task scope → report and wait
 
-7. **On completion or pause, show status**
+8. **Final verification before completion**
+
+   After all tasks are marked complete:
+   - Run `npm test` one final time → must show all passing
+   - Run `node scripts/check-test-coverage.js` → must pass
+   - Review `tasks.md` testing checklist at the bottom → all boxes must be checked
+   - If any check fails, do NOT claim the change is complete
+
+9. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
+   - Test results: "X tests passed, 0 failed"
    - If all done: suggest archive
    - If paused: explain why and wait for guidance
 
@@ -92,13 +136,19 @@ Implement tasks from an OpenSpec change.
 ```
 ## Implementing: <change-name> (schema: <schema-name>)
 
+Green baseline: ✓ 27 tests passed
+
 Working on task 3/7: <task description>
 [...implementation happening...]
-✓ Task complete
+✓ Task complete | Tests: 28 passed, 0 failed
 
-Working on task 4/7: <task description>
-[...implementation happening...]
-✓ Task complete
+Working on task 4/7: 3.T.1 编写 xxx 的测试用例（Red）
+Writing test... Running test...
+✓ Red confirmed: test fails as expected
+
+Working on task 5/7: 3.T.5 实现使测试通过（Green）
+Writing minimum implementation... Running test...
+✓ Green confirmed: test passes
 ```
 
 **Output On Completion**
@@ -109,6 +159,8 @@ Working on task 4/7: <task description>
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Progress:** 7/7 tasks complete ✓
+**Tests:** 31 passed, 0 failed ✓
+**Coverage:** All modules covered ✓
 
 ### Completed This Session
 - [x] Task 1
@@ -126,13 +178,14 @@ All tasks complete! Ready to archive this change.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Progress:** 4/7 tasks complete
+**Tests:** 5 failed, 2 passed ⚠️
 
 ### Issue Encountered
 <description of the issue>
 
 **Options:**
-1. <option 1>
-2. <option 2>
+1. Fix the failing tests before continuing
+2. Update the test expectations (if the spec changed)
 3. Other approach
 
 What would you like to do?
@@ -147,6 +200,10 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
+- **NEVER skip a test task** - testing tasks are mandatory, not optional
+- **NEVER mark a task complete if tests fail** - the Red state must be resolved
+- **NEVER write implementation before its corresponding test** - TDD order is enforced
+- **After EVERY task completion, run tests** - this catches regressions immediately
 
 **Fluid Workflow Integration**
 
