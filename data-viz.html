@@ -646,6 +646,41 @@
   color: var(--text-secondary);
 }
 
+/* ===== 图表行 ===== */
+.charts-row {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-24) var(--spacing-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  opacity: 0;
+  transition: opacity 500ms var(--ease-out);
+}
+
+.charts-row.visible {
+  opacity: 1;
+}
+
+.chart-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-16);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.chart-container svg {
+  max-width: 100%;
+  height: auto;
+  min-width: 600px;
+}
+
+
 /* 响应式 */
 @media (max-width: 1200px) {
   .cards-grid { grid-template-columns: repeat(2, 1fr); }
@@ -658,6 +693,8 @@
   .overview-stats { gap: var(--spacing-12); }
   .shop-table .col-tenant,
   .shop-table .col-type { display: none; }
+  .chart-container { padding: var(--spacing-8); }
+  .chart-container svg { min-width: 400px; }
 }
 </style>
 </head>
@@ -669,6 +706,12 @@
   <div class="page-header">
     <h1 class="page-title">商业数据可视化</h1>
     <p class="page-desc">各站点商业运营数据一览，支持按等级筛选与排序，点击卡片展开详情编辑</p>
+  </div>
+
+  <!-- 图表概览行 -->
+  <div class="charts-row" id="chartsRow">
+    <div class="chart-container" id="barChart"></div>
+    <div class="chart-container" id="statusChart"></div>
   </div>
 
   <!-- 筛选工具栏 -->
@@ -701,441 +744,35 @@
 </section>
 
 <script type="module">
-import { initNav } from './js/modules/nav.js?v=15';
-import { initRouter } from './js/modules/router.js?v=15';
+import { initNav } from './js/modules/nav.js';
+import { initRouter } from './js/modules/router.js';
+import { initViz, bindToolbar } from './js/modules/viz.js';
+import { renderBarChart, renderStatusChart } from './js/modules/charts.js';
 
+// 初始化导航和路由
 initNav('data');
 initRouter();
 
-/* ===== 数据可视化页逻辑 ===== */
-const GRADE_CONFIG = {
-  S: { color: '#d4380d', label: 'S级' },
-  A: { color: '#fa8c16', label: 'A级' },
-  B: { color: '#facc14', label: 'B级' },
-  C: { color: '#52c41a', label: 'C级' }
-};
+// 图表更新回调 — 在每次筛选/排序/保存后同步更新三个图表
+function updateCharts(stations) {
+  const barEl = document.getElementById('barChart');
+  const statusEl = document.getElementById('statusChart');
+  const chartsRow = document.getElementById('chartsRow');
 
-const STATUS_MAP = {
-  '营业中': { dot: 'status-rented', badge: 'rented', label: '已租' },
-  '未出租': { dot: 'status-vacant', badge: 'vacant', label: '空置' },
-  '装修中': { dot: 'status-renovating', badge: 'renovating', label: '装修' }
-};
-
-let allStations = [];
-let currentFilter = 'all';
-let currentSort = 'default';
-let expandedId = null;
-
-/** 计算站点统计 */
-function calcStationStats(station) {
-  const shops = station.shops || [];
-  const shopList = shops.filter(s => s.type !== '多经点位');
-  const multiList = shops.filter(s => s.type === '多经点位');
-  const total = shopList.length;
-  const rented = shopList.filter(s => s.status === '营业中').length;
-  const vacant = shopList.filter(s => s.status === '未出租').length;
-  const renovating = shopList.filter(s => s.status === '装修中').length;
-  const rate = total > 0 ? Math.round((rented / total) * 100) : 0;
-  return { total, rented, vacant, renovating, rate, multiCount: multiList.length, area: shopList.reduce((sum, s) => sum + (s.area || 0), 0) };
-}
-
-/** 状态样式 */
-function getStatusStyle(status) {
-  return STATUS_MAP[status] || { dot: 'status-default', badge: '', label: status };
-}
-
-/** 渲染单张卡片（概览） */
-function renderCard(station, idx) {
-  const stats = calcStationStats(station);
-  const grade = station.grade || 'C';
-  const gc = GRADE_CONFIG[grade] || GRADE_CONFIG.C;
-  const rateClass = stats.rate >= 70 ? 'high' : stats.rate >= 40 ? 'mid' : 'low';
-  const isExpanded = expandedId === station.id;
-  const shops = station.shops || [];
-  const shopList = shops.filter(s => s.type !== '多经点位');
-  const previewShops = shopList.slice(0, 3);
-  const hasMore = shopList.length > 3;
-
-  return `
-    <div class="card station-card ${isExpanded ? 'expanded' : ''}" data-id="${station.id}" data-grade="${grade}" data-rate="${stats.rate}" data-shops="${stats.total}">
-      <div class="card-header">
-        <div class="card-grade grade-${grade.toLowerCase()}" style="background:${gc.color};">${grade}</div>
-        <div class="card-name">${station.name}</div>
-        ${station.transfer ? '<span class="card-transfer">换乘</span>' : ''}
-        <div class="card-actions">
-          <button class="icon-btn" data-action="edit" title="编辑站点">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="card-overview">
-        <div class="rate-big">${stats.rate}<span class="unit">%</span></div>
-        <div class="overview-stats">
-          <div class="overview-stat"><div class="val">${stats.total}</div><div class="lbl">总商铺</div></div>
-          <div class="overview-stat"><div class="val green">${stats.rented}</div><div class="lbl">已出租</div></div>
-          <div class="overview-stat"><div class="val red">${stats.vacant}</div><div class="lbl">空置</div></div>
-          <div class="overview-stat"><div class="val">${stats.area.toFixed(1)}</div><div class="lbl">总面积(㎡)</div></div>
-        </div>
-      </div>
-      <div class="rate-bar-wrap">
-        <div class="rate-bar"><div class="rate-fill ${rateClass}" style="width:${stats.rate}%"></div></div>
-      </div>
-      ${previewShops.length > 0 ? `
-      <div class="shop-preview">
-        ${previewShops.map(s => {
-          const st = getStatusStyle(s.status);
-          return `<div class="preview-row">
-            <span class="status-dot ${st.dot}"></span>
-            <span class="shop-name">${s.name}</span>
-            <span class="shop-tenant">${s.tenant || '—'}</span>
-          </div>`;
-        }).join('')}
-      </div>` : ''}
-      ${hasMore ? `<div class="preview-more">+ ${shopList.length - 3} 个商铺</div>` : ''}
-      <button class="expand-btn" data-action="expand">
-        <span>${isExpanded ? '收起详情' : `查看全部 ${shopList.length} 个商铺`}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      ${isExpanded ? renderDetail(station, idx) : ''}
-    </div>
-  `;
-}
-
-/** 渲染详情区域 */
-function renderDetail(station, idx) {
-  const shops = station.shops || [];
-  return `
-    <div class="card-detail">
-      <!-- 站点信息 -->
-      <div class="detail-section">
-        <div class="detail-title">站点信息</div>
-        <div class="info-grid">
-          <div class="info-field">
-            <label>站点名称</label>
-            <input type="text" data-field="name" value="${station.name || ''}" placeholder="输入站点名称">
-          </div>
-          <div class="info-field">
-            <label>商业价值等级</label>
-            <select data-field="grade">
-              <option value="S" ${station.grade === 'S' ? 'selected' : ''}>S级（核心商圈/换乘）</option>
-              <option value="A" ${station.grade === 'A' ? 'selected' : ''}>A级（重点发展站）</option>
-              <option value="B" ${station.grade === 'B' ? 'selected' : ''}>B级（潜力提升站）</option>
-              <option value="C" ${station.grade === 'C' ? 'selected' : ''}>C级（培育优化站）</option>
-            </select>
-          </div>
-          <div class="info-field">
-            <label>换乘站</label>
-            <select data-field="transfer">
-              <option value="false" ${!station.transfer ? 'selected' : ''}>否</option>
-              <option value="true" ${station.transfer ? 'selected' : ''}>是</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <!-- 商铺列表 -->
-      <div class="detail-section">
-        <div class="detail-title">商铺列表（${shops.length}个）</div>
-        <div style="overflow-x:auto;">
-          <table class="shop-table">
-            <thead>
-              <tr>
-                <th class="col-status"></th>
-                <th class="col-no">序号</th>
-                <th class="col-name">铺号</th>
-                <th class="col-type">属性</th>
-                <th class="col-area">面积(㎡)</th>
-                <th class="col-tenant">商户</th>
-                <th class="col-status">状态</th>
-                <th class="col-action"></th>
-              </tr>
-            </thead>
-            <tbody data-shop-list>
-              ${shops.map((shop, sIdx) => {
-                const st = getStatusStyle(shop.status);
-                return `<tr data-shop-idx="${sIdx}">
-                  <td class="col-status"><span class="status-dot ${st.dot}"></span></td>
-                  <td class="col-no">${shop.no || sIdx + 1}</td>
-                  <td class="col-name"><input type="text" data-shop-field="name" value="${shop.name || ''}"></td>
-                  <td class="col-type">
-                    <select data-shop-field="type">
-                      <option value="商铺" ${shop.type === '商铺' ? 'selected' : ''}>商铺</option>
-                      <option value="多经点位" ${shop.type === '多经点位' ? 'selected' : ''}>多经点位</option>
-                    </select>
-                  </td>
-                  <td class="col-area"><input type="number" step="0.01" data-shop-field="area" value="${shop.area || 0}"></td>
-                  <td class="col-tenant"><input type="text" data-shop-field="tenant" value="${shop.tenant || ''}"></td>
-                  <td class="col-status">
-                    <select data-shop-field="status">
-                      <option value="营业中" ${shop.status === '营业中' ? 'selected' : ''}>营业中</option>
-                      <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
-                      <option value="装修中" ${shop.status === '装修中' ? 'selected' : ''}>装修中</option>
-                    </select>
-                  </td>
-                  <td class="col-action">
-                    <button class="delete-btn" data-shop-delete title="删除">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  </td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-        <button class="add-shop-btn" data-add-shop>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          添加商铺
-        </button>
-      </div>
-      <div class="detail-actions">
-        <button class="btn btn-ghost" data-action="cancel">取消</button>
-        <button class="btn btn-primary" data-action="save">保存修改</button>
-      </div>
-    </div>
-  `;
-}
-
-/** 渲染网格 */
-function renderGrid() {
-  const grid = document.getElementById('cardsGrid');
-  if (!allStations.length) {
-    grid.innerHTML = '<div class="empty-state">暂无数据</div>';
-    return;
+  if (barEl) barEl.innerHTML = renderBarChart(stations);
+  if (statusEl) {
+    const isMobile = window.innerWidth <= 768;
+    statusEl.innerHTML = renderStatusChart(stations, { maxStations: isMobile ? 10 : 28 });
   }
-  let stations = [...allStations];
-  if (currentFilter !== 'all') stations = stations.filter(s => s.grade === currentFilter);
-  switch (currentSort) {
-    case 'rate-desc': stations.sort((a, b) => calcStationStats(b).rate - calcStationStats(a).rate); break;
-    case 'rate-asc': stations.sort((a, b) => calcStationStats(a).rate - calcStationStats(b).rate); break;
-    case 'shops-desc': stations.sort((a, b) => calcStationStats(b).total - calcStationStats(a).total); break;
-    default: stations.sort((a, b) => (a.x || 0) - (b.x || 0));
-  }
-  if (!stations.length) {
-    grid.innerHTML = '<div class="empty-state">该等级下暂无站点</div>';
-    return;
-  }
-  grid.innerHTML = stations.map((s, i) => renderCard(s, i)).join('');
-  bindCardEvents();
-  // 动画进度条
-  requestAnimationFrame(() => {
-    grid.querySelectorAll('.rate-fill').forEach((bar, i) => {
-      const target = bar.style.width;
-      bar.style.width = '0%';
-      setTimeout(() => { bar.style.width = target; }, i * 20);
-    });
-  });
-}
-
-/** 绑定卡片内事件 */
-function bindCardEvents() {
-  const grid = document.getElementById('cardsGrid');
-
-  // 展开/收起
-  grid.querySelectorAll('[data-action="expand"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const card = btn.closest('.station-card');
-      const id = card.dataset.id;
-      expandedId = expandedId === id ? null : id;
-      renderGrid();
-      if (expandedId) {
-        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-      }
-    });
-  });
-
-  // 编辑按钮：直接展开
-  grid.querySelectorAll('[data-action="edit"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const card = btn.closest('.station-card');
-      const id = card.dataset.id;
-      expandedId = expandedId === id ? null : id;
-      renderGrid();
-      if (expandedId) {
-        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-      }
-    });
-  });
-
-  // 保存
-  grid.querySelectorAll('[data-action="save"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const card = btn.closest('.station-card');
-      saveCard(card);
-    });
-  });
-
-  // 取消
-  grid.querySelectorAll('[data-action="cancel"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      expandedId = null;
-      renderGrid();
-    });
-  });
-
-  // 删除商铺
-  grid.querySelectorAll('[data-shop-delete]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const row = btn.closest('tr');
-      const tbody = row.closest('tbody');
-      const card = btn.closest('.station-card');
-      const station = allStations.find(s => s.id === card.dataset.id);
-      if (!station) return;
-      const sIdx = parseInt(row.dataset.shopIdx);
-      if (confirm(`确定删除「${station.shops[sIdx]?.name || '该商铺'}」？`)) {
-        station.shops.splice(sIdx, 1);
-        // 重新渲染当前卡片详情，保持展开
-        const detail = card.querySelector('.card-detail');
-        const idx = allStations.indexOf(station);
-        if (detail) {
-          detail.outerHTML = renderDetail(station, idx);
-          bindCardEvents();
-        }
-        // 更新概览部分
-        renderGrid();
-        expandedId = station.id;
-      }
-    });
-  });
-
-  // 添加商铺
-  grid.querySelectorAll('[data-add-shop]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const card = btn.closest('.station-card');
-      const station = allStations.find(s => s.id === card.dataset.id);
-      if (!station) return;
-      const newShop = {
-        no: (station.shops?.length || 0) + 1,
-        shortNo: '待定',
-        name: '新商铺',
-        type: '商铺',
-        area: 0,
-        tenant: '',
-        contact: '',
-        openDate: '',
-        status: '未出租',
-        remark: ''
-      };
-      station.shops = station.shops || [];
-      station.shops.push(newShop);
-      // 重新渲染当前卡片
-      const idx = allStations.indexOf(station);
-      card.querySelector('.card-detail').outerHTML = renderDetail(station, idx);
-      bindCardEvents();
-      renderGrid();
-      expandedId = station.id;
-    });
-  });
-}
-
-/** 保存单张卡片 */
-function saveCard(card) {
-  const station = allStations.find(s => s.id === card.dataset.id);
-  if (!station) return;
-
-  // 站点信息
-  card.querySelectorAll('[data-field]').forEach(input => {
-    const field = input.dataset.field;
-    if (field === 'transfer') {
-      station[field] = input.value === 'true';
-    } else {
-      station[field] = input.value;
-    }
-  });
-
-  // 商铺信息
-  const rows = card.querySelectorAll('[data-shop-idx]');
-  rows.forEach(row => {
-    const sIdx = parseInt(row.dataset.shopIdx);
-    if (!station.shops[sIdx]) return;
-    row.querySelectorAll('[data-shop-field]').forEach(input => {
-      const field = input.dataset.shopField;
-      if (field === 'area') {
-        station.shops[sIdx][field] = parseFloat(input.value) || 0;
-      } else {
-        station.shops[sIdx][field] = input.value;
-      }
-    });
-  });
-
-  saveAll();
-  showToast('✅ 数据已保存');
-  renderGrid();
-  expandedId = station.id;
-}
-
-/** 保存全部数据 */
-async function saveAll() {
-  const payload = { data: { stations: allStations, savedAt: new Date().toISOString() } };
-  try {
-    await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch (e) {
-    localStorage.setItem('suzhou_m11_viz_data', JSON.stringify(payload));
+  // 图表入场动画
+  if (chartsRow) {
+    chartsRow.classList.add('visible');
   }
 }
 
-/** 提示 */
-function showToast(msg) {
-  const toast = document.getElementById('saveToast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
-}
-
-/** 加载数据 */
-async function loadData() {
-  try {
-    const res = await fetch('/api/data');
-    const json = await res.json();
-    allStations = json.data?.stations || [];
-    console.log('✅ 已从服务器加载数据');
-  } catch (err) {
-    console.warn('API 不可用，回退到默认数据:', err);
-    try {
-      const { getDefaultStations } = await import('./js/modules/data.js?v=15');
-      allStations = getDefaultStations();
-      console.log('✅ 已加载默认数据');
-    } catch (e) {
-      console.error('加载默认数据失败:', e);
-      allStations = [];
-    }
-  }
-  renderGrid();
-}
-
-/** 绑定筛选/排序 */
-function bindToolbar() {
-  document.querySelectorAll('[data-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
-      expandedId = null;
-      renderGrid();
-    });
-  });
-  document.querySelectorAll('[data-sort]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentSort = btn.dataset.sort;
-      expandedId = null;
-      renderGrid();
-    });
-  });
-}
-
-// 启动
+// 初始化数据可视化
+initViz({ onRender: updateCharts });
 bindToolbar();
-loadData();
 </script>
 
 </body>

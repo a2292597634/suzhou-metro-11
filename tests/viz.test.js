@@ -1,0 +1,307 @@
+/**
+ * 数据可视化模块测试 —— js/modules/viz.js
+ */
+import { describe, it, expect, beforeEach } from 'vitest';
+
+// 注意：viz.js 还不存在，测试先写后实现（Red → Green → Refactor）
+// 以下 import 当前会失败，这正是 Red 阶段的目的
+
+describe('数据可视化模块', () => {
+  // ============================================
+  // calcStationStats — 站点统计计算
+  // ============================================
+  describe('calcStationStats', () => {
+    it('应该正确计算站点商铺统计数据（正向）', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = {
+        shops: [
+          { type: '商铺', area: 20, status: '营业中' },
+          { type: '商铺', area: 15, status: '未出租' },
+          { type: '商铺', area: 10, status: '装修中' },
+          { type: '多经点位', area: 5, status: '营业中' }
+        ]
+      };
+      const stats = calcStationStats(station);
+      expect(stats.total).toBe(3);    // 多经点位不计入
+      expect(stats.rented).toBe(1);   // 仅营业中
+      expect(stats.vacant).toBe(1);   // 未出租
+      expect(stats.renovating).toBe(1); // 装修中
+      expect(stats.multiCount).toBe(1);
+      expect(stats.area).toBe(45);    // 20+15+10，不含多经点位
+      expect(stats.rate).toBe(33);    // Math.round(1/3*100) = 33
+    });
+
+    it('空商铺数组应该返回全零统计', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = { shops: [] };
+      const stats = calcStationStats(station);
+      expect(stats.total).toBe(0);
+      expect(stats.rented).toBe(0);
+      expect(stats.vacant).toBe(0);
+      expect(stats.rate).toBe(0);
+      expect(stats.area).toBe(0);
+    });
+
+    it('shops 为 undefined 时不应报错', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = {};
+      const stats = calcStationStats(station);
+      expect(stats.total).toBe(0);
+      expect(stats.rented).toBe(0);
+      expect(stats.rate).toBe(0);
+    });
+
+    it('全部商铺为多经点位时应返回零统计', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = {
+        shops: [
+          { type: '多经点位', area: 10, status: '营业中' },
+          { type: '多经点位', area: 15, status: '未出租' }
+        ]
+      };
+      const stats = calcStationStats(station);
+      expect(stats.total).toBe(0);
+      expect(stats.multiCount).toBe(2);
+      expect(stats.area).toBe(0); // 多经点位面积不计入
+    });
+
+    it('出租率 100% 时应返回 100', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = {
+        shops: [
+          { type: '商铺', area: 20, status: '营业中' },
+          { type: '商铺', area: 15, status: '营业中' }
+        ]
+      };
+      const stats = calcStationStats(station);
+      expect(stats.rented).toBe(2);
+      expect(stats.vacant).toBe(0);
+      expect(stats.rate).toBe(100);
+    });
+
+    it('出租率 0% 时应返回 0', async () => {
+      const { calcStationStats } = await import('../js/modules/viz.js');
+      const station = {
+        shops: [
+          { type: '商铺', area: 20, status: '未出租' }
+        ]
+      };
+      const stats = calcStationStats(station);
+      expect(stats.rented).toBe(0);
+      expect(stats.rate).toBe(0);
+    });
+  });
+
+  // ============================================
+  // filterStations — 等级筛选
+  // ============================================
+  describe('filterStations', () => {
+    const stations = [
+      { id: 's1', grade: 'S', name: 'S站' },
+      { id: 'a1', grade: 'A', name: 'A站1' },
+      { id: 'a2', grade: 'A', name: 'A站2' },
+      { id: 'b1', grade: 'B', name: 'B站' },
+      { id: 'c1', grade: 'C', name: 'C站' }
+    ];
+
+    it('筛选 "A" 级应仅返回 A 级站点', async () => {
+      const { filterStations } = await import('../js/modules/viz.js');
+      const result = filterStations(stations, 'A');
+      expect(result).toHaveLength(2);
+      expect(result.every(s => s.grade === 'A')).toBe(true);
+    });
+
+    it('筛选 "all" 应返回全部站点', async () => {
+      const { filterStations } = await import('../js/modules/viz.js');
+      const result = filterStations(stations, 'all');
+      expect(result).toHaveLength(5);
+    });
+
+    it('筛选无匹配等级应返回空数组', async () => {
+      const { filterStations } = await import('../js/modules/viz.js');
+      const result = filterStations(stations, 'X');
+      expect(result).toHaveLength(0);
+    });
+
+    it('空站点数组筛选应返回空数组', async () => {
+      const { filterStations } = await import('../js/modules/viz.js');
+      const result = filterStations([], 'A');
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  // ============================================
+  // sortStations — 排序
+  // ============================================
+  describe('sortStations', () => {
+    // 构造带商铺数据的站点用于排序测试
+    function makeStation(id, grade, x, shops) {
+      return { id, grade, x, shops: shops || [] };
+    }
+
+    // 辅助：给站点附加 calcStationStats 所需的数据
+    const highRate = makeStation('high', 'A', 100, [
+      { type: '商铺', area: 10, status: '营业中' },
+      { type: '商铺', area: 10, status: '营业中' },
+      { type: '商铺', area: 10, status: '未出租' }
+    ]); // 2 rented, 3 total, rate=67
+
+    const midRate = makeStation('mid', 'A', 200, [
+      { type: '商铺', area: 10, status: '营业中' },
+      { type: '商铺', area: 10, status: '未出租' }
+    ]); // 1 rented, 2 total, rate=50
+
+    const lowRate = makeStation('low', 'A', 300, [
+      { type: '商铺', area: 10, status: '未出租' }
+    ]); // 0 rented, 1 total, rate=0
+
+    const stations = [midRate, lowRate, highRate]; // 刻意乱序
+
+    it('按出租率降序排列（rate-desc）', async () => {
+      const { sortStations } = await import('../js/modules/viz.js');
+      const sorted = sortStations([...stations], 'rate-desc');
+      // high(67) > mid(50) > low(0)
+      expect(sorted[0].id).toBe('high');
+      expect(sorted[1].id).toBe('mid');
+      expect(sorted[2].id).toBe('low');
+    });
+
+    it('按出租率升序排列（rate-asc）', async () => {
+      const { sortStations } = await import('../js/modules/viz.js');
+      const sorted = sortStations([...stations], 'rate-asc');
+      // low(0) < mid(50) < high(67)
+      expect(sorted[0].id).toBe('low');
+      expect(sorted[1].id).toBe('mid');
+      expect(sorted[2].id).toBe('high');
+    });
+
+    it('按商铺数降序排列（shops-desc）', async () => {
+      const { sortStations } = await import('../js/modules/viz.js');
+      const sorted = sortStations([...stations], 'shops-desc');
+      // high(3 shops) > mid(2 shops) > low(1 shop)
+      expect(sorted[0].id).toBe('high');
+      expect(sorted[1].id).toBe('mid');
+      expect(sorted[2].id).toBe('low');
+    });
+
+    it('默认排序按 x 坐标升序', async () => {
+      const { sortStations } = await import('../js/modules/viz.js');
+      const sorted = sortStations([...stations], 'default');
+      expect(sorted[0].x).toBe(100);
+      expect(sorted[1].x).toBe(200);
+      expect(sorted[2].x).toBe(300);
+    });
+
+    it('未知排序方式应回退到默认排序', async () => {
+      const { sortStations } = await import('../js/modules/viz.js');
+      const sorted = sortStations([...stations], 'unknown');
+      // 应按 x 坐标升序（默认行为）
+      expect(sorted[0].x).toBeLessThanOrEqual(sorted[1].x);
+      expect(sorted[1].x).toBeLessThanOrEqual(sorted[2].x);
+    });
+  });
+
+  // ============================================
+  // getStatusStyle — 状态样式映射
+  // ============================================
+  describe('getStatusStyle', () => {
+    it('营业中应返回对应样式', async () => {
+      const { getStatusStyle } = await import('../js/modules/viz.js');
+      const style = getStatusStyle('营业中');
+      expect(style.dot).toBe('status-rented');
+      expect(style.badge).toBe('rented');
+    });
+
+    it('未出租应返回对应样式', async () => {
+      const { getStatusStyle } = await import('../js/modules/viz.js');
+      const style = getStatusStyle('未出租');
+      expect(style.dot).toBe('status-vacant');
+      expect(style.badge).toBe('vacant');
+    });
+
+    it('装修中应返回对应样式', async () => {
+      const { getStatusStyle } = await import('../js/modules/viz.js');
+      const style = getStatusStyle('装修中');
+      expect(style.dot).toBe('status-renovating');
+      expect(style.badge).toBe('renovating');
+    });
+
+    it('未知状态应返回默认样式', async () => {
+      const { getStatusStyle } = await import('../js/modules/viz.js');
+      const style = getStatusStyle('未知状态');
+      expect(style.dot).toBe('status-default');
+    });
+  });
+
+  // ============================================
+  // renderCards — 卡片网格渲染
+  // ============================================
+  describe('renderCards', () => {
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="cardsGrid"></div>';
+    });
+
+    it('应该为每个站点渲染一张卡片', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        { id: 's1', name: '测试站1', grade: 'A', shops: [], transfer: false },
+        { id: 's2', name: '测试站2', grade: 'B', shops: [], transfer: false }
+      ];
+      renderCards(stations, null, 'all', 'default');
+      const grid = document.getElementById('cardsGrid');
+      const cards = grid.querySelectorAll('.station-card');
+      expect(cards.length).toBe(2);
+    });
+
+    it('换乘站卡片应包含换乘标签', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        { id: 't1', name: '换乘站', grade: 'S', shops: [], transfer: true }
+      ];
+      renderCards(stations, null, 'all', 'default');
+      const cardTransfer = document.querySelector('.card-transfer');
+      expect(cardTransfer).not.toBeNull();
+      expect(cardTransfer.textContent).toBe('换乘');
+    });
+
+    it('空站点数组应显示空态提示', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      renderCards([], null, 'all', 'default');
+      const grid = document.getElementById('cardsGrid');
+      expect(grid.textContent).toContain('暂无数据');
+    });
+
+    it('筛选后无匹配站点应显示空态提示', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        { id: 'a1', name: 'A站', grade: 'A', shops: [], transfer: false }
+      ];
+      // 筛选 B 级，但只有 A 级站点
+      renderCards(stations, null, 'B', 'default');
+      const grid = document.getElementById('cardsGrid');
+      expect(grid.textContent).toContain('暂无站点');
+    });
+
+    it('所有卡片应包含等级徽章和站点名称', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        { id: 's1', name: '唯亭站', grade: 'C', shops: [], transfer: false }
+      ];
+      renderCards(stations, null, 'all', 'default');
+      const card = document.querySelector('.station-card');
+      expect(card.querySelector('.card-grade').textContent).toBe('C');
+      expect(card.querySelector('.card-name').textContent).toBe('唯亭站');
+    });
+
+    it('展开卡片应包含详情区域', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        { id: 's1', name: '测试站', grade: 'A', shops: [], transfer: false }
+      ];
+      renderCards(stations, 's1', 'all', 'default');
+      const card = document.querySelector('.station-card');
+      expect(card.classList.contains('expanded')).toBe(true);
+      expect(card.querySelector('.card-detail')).not.toBeNull();
+    });
+  });
+});

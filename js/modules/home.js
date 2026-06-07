@@ -130,7 +130,7 @@ function renderOverview(stats) {
     <div class="summary-panel">
       <div class="summary-header">
         <div class="summary-title">综合数据概览</div>
-        <div class="summary-date">截至 ${state.globalStats.statsDate || '今日'}</div>
+        <!-- 日期行已移除 -->
       </div>
 
       <div class="summary-core">
