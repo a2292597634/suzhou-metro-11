@@ -59,6 +59,7 @@ rules:
     - 设计规范：每次进行界面设计或前端开发时，必须使用 frontend-design skill，并严格遵循项目根目录 DESIGN.md 中定义的设计系统（颜色、字体、间距、阴影、圆角、材质、动效）
     - 测试规范：每个 change 必须遵守 openspec/testing-strategy.md 定义的三层测试金字塔。不得跳过测试任务，不得先写实现后补测试
     - 回归测试：每次 change apply 完成后必须运行 npx vitest run 完整回归测试，确认所有已有测试仍然通过，有失败先修复再报告完成
+    - 自动推送：每次 git commit 成功后必须紧接着执行 git push，不需要等用户提醒。如果 push 失败（如网络问题），主动告知用户原因
 
   # 探索阶段规则
   explore:
