@@ -113,6 +113,13 @@ function createTopNav(activePage) {
   });
   actions.appendChild(refreshBtn);
 
+  // 数据来源指示器
+  const sourceIndicator = document.createElement('span');
+  sourceIndicator.id = 'datasource-indicator';
+  sourceIndicator.className = 'datasource-badge';
+  sourceIndicator.textContent = '检测中…';
+  actions.appendChild(sourceIndicator);
+
   inner.appendChild(brand);
   inner.appendChild(links);
   inner.appendChild(actions);
@@ -181,6 +188,13 @@ export function initNav(activePage) {
   const bottomNav = createBottomNav(currentPage);
   document.body.appendChild(bottomNav);
 
+  // 监听数据来源变更事件，自动更新指示器
+  window.addEventListener('datasource:change', (e) => {
+    if (e.detail && e.detail.source) {
+      updateDataSourceIndicator(e.detail.source);
+    }
+  });
+
   // 监听窗口大小变化，确保导航栏显示状态正确（CSS media query 已处理，此处为增强兼容性）
   // 若页面使用了 SPA 路由，可通过事件通知 nav 模块更新高亮状态
   document.addEventListener('nav:update', (e) => {
@@ -201,6 +215,26 @@ export function initNav(activePage) {
       ticking = true;
     }
   }, { passive: true });
+}
+
+/**
+ * 数据来源显示配置
+ */
+const SOURCE_LABELS = {
+  server: { dot: '🟢', text: '服务器数据' },
+  local:  { dot: '🟡', text: '本地缓存' },
+  default:{ dot: '⚪', text: '演示数据' }
+};
+
+/**
+ * 更新数据来源指示器
+ * @param {string} source 数据来源：'server' | 'local' | 'default'
+ */
+function updateDataSourceIndicator(source) {
+  const indicator = document.getElementById('datasource-indicator');
+  if (!indicator) return;
+  const info = SOURCE_LABELS[source] || SOURCE_LABELS.default;
+  indicator.textContent = `${info.dot} ${info.text}`;
 }
 
 /**

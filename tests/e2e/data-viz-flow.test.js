@@ -28,7 +28,7 @@ describe('data-viz 页面 E2E', () => {
   });
 
   it('页面应正常加载并显示图表', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
     // 等待卡片渲染
     await page.waitForSelector('.station-card', { timeout: 10000 });
@@ -49,7 +49,7 @@ describe('data-viz 页面 E2E', () => {
   }, 20000);
 
   it('筛选 A 级后图表和卡片应同步更新', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForSelector('.station-card', { timeout: 10000 });
 
     // 点击"A级"筛选按钮
@@ -68,7 +68,7 @@ describe('data-viz 页面 E2E', () => {
   }, 20000);
 
   it('展开卡片后可编辑站点信息并保存', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForSelector('.station-card', { timeout: 10000 });
 
     // 点击第一张卡片的展开按钮
@@ -89,7 +89,7 @@ describe('data-viz 页面 E2E', () => {
   }, 20000);
 
   it('添加新商铺后应出现在表格中', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForSelector('.station-card', { timeout: 10000 });
 
     // 展开卡片
@@ -111,7 +111,7 @@ describe('data-viz 页面 E2E', () => {
   }, 20000);
 
   it('取消编辑应关闭详情区域', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForSelector('.station-card', { timeout: 10000 });
 
     // 展开卡片
@@ -127,7 +127,7 @@ describe('data-viz 页面 E2E', () => {
   }, 20000);
 
   it('切换排序后图表应更新', async () => {
-    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`${BASE}/data-viz.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForSelector('.station-card', { timeout: 10000 });
 
     // 点击排序按钮

@@ -25,8 +25,8 @@ export const state = {
   // 全局统计
   globalStats: {},
 
-  // API 基础地址
-  apiBase: '',
+  // API 基础地址（优先从 HTML data-api-base 属性读取）
+  apiBase: (typeof document !== 'undefined' && document.documentElement?.dataset?.apiBase) || '',
 
   // 视口状态
   viewport: {

@@ -158,6 +158,13 @@ export function calcGlobalStats() {
   state.globalStats.vacantShops = vacant;
 }
 
+// 派发数据来源变更事件
+function notifySource(source) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('datasource:change', { detail: { source } }));
+  }
+}
+
 // 加载数据（后端API > localStorage > 默认）
 export async function loadData() {
   // 先尝试从后端 API 加载
@@ -170,7 +177,8 @@ export async function loadData() {
         state.globalStats = result.data.globalStats || getDefaultGlobalStats();
         if (result.data.gradeInfo) state.gradeInfo = result.data.gradeInfo;
         console.log('✅ 已从服务器加载数据');
-        return;
+        notifySource('server');
+        return { source: 'server' };
       }
     }
   } catch (e) {
@@ -186,7 +194,8 @@ export async function loadData() {
       state.globalStats = data.globalStats || getDefaultGlobalStats();
       if (data.gradeInfo) state.gradeInfo = data.gradeInfo;
       console.log('✅ 已从本地存储加载数据');
-      return;
+      notifySource('local');
+      return { source: 'local' };
     }
   } catch (e) {
     console.warn('加载保存数据失败，使用默认数据', e);
@@ -195,6 +204,8 @@ export async function loadData() {
   // 使用默认数据
   state.stations = getDefaultStations();
   state.globalStats = getDefaultGlobalStats();
+  notifySource('default');
+  return { source: 'default' };
 }
 
 // 保存到后端 API
@@ -214,6 +225,7 @@ export async function saveData() {
     });
     if (res.ok) {
       saveToLocal(data);
+      notifySource('server');
       return { success: true, source: 'server' };
     }
   } catch (e) {
@@ -222,6 +234,7 @@ export async function saveData() {
 
   // 回退到 localStorage
   saveToLocal(data);
+  notifySource('local');
   return { success: true, source: 'local' };
 }
 

@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { state } from '../js/modules/state.js';
-import { getDefaultStations, getDefaultGlobalStats, calcGlobalStats, saveToLocal } from '../js/modules/data.js';
+import { getDefaultStations, getDefaultGlobalStats, calcGlobalStats, saveToLocal, loadData, saveData } from '../js/modules/data.js';
 
 describe('数据管理', () => {
   beforeEach(() => {
@@ -109,6 +109,67 @@ describe('数据管理', () => {
       const data = { stations: [], globalStats: {} };
       saveToLocal(data);
       expect(localStorage.setItem).toHaveBeenCalled();
+    });
+  });
+
+  describe('loadData 返回值', () => {
+    it('从服务器加载成功时应返回 { source: "server" }', async () => {
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: {} } }) })
+      ));
+      const result = await loadData();
+      expect(result).toEqual({ source: 'server' });
+    });
+
+    it('回退到 localStorage 时应返回 { source: "local" }', async () => {
+      vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('网络错误'))));
+      localStorage.getItem = vi.fn(() => JSON.stringify({ stations: [], globalStats: {} }));
+      const result = await loadData();
+      expect(result).toEqual({ source: 'local' });
+    });
+
+    it('使用默认数据时应返回 { source: "default" }', async () => {
+      vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('网络错误'))));
+      localStorage.getItem = vi.fn(() => null);
+      const result = await loadData();
+      expect(result).toEqual({ source: 'default' });
+    });
+  });
+
+  describe('dispatch datasource:change 事件', () => {
+    it('loadData 成功时应 dispatch 事件', async () => {
+      const handler = vi.fn();
+      window.addEventListener('datasource:change', handler);
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: {} } }) })
+      ));
+      await loadData();
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls[0][0].detail).toEqual({ source: 'server' });
+      window.removeEventListener('datasource:change', handler);
+    });
+
+    it('saveData 成功时应 dispatch 事件', async () => {
+      const handler = vi.fn();
+      window.addEventListener('datasource:change', handler);
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true })));
+      state.stations = [];
+      await saveData();
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls[0][0].detail).toEqual({ source: 'server' });
+      window.removeEventListener('datasource:change', handler);
+    });
+
+    it('saveData 回退到 localStorage 时应 dispatch 事件', async () => {
+      const handler = vi.fn();
+      window.addEventListener('datasource:change', handler);
+      vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('保存失败'))));
+      state.stations = [];
+      const result = await saveData();
+      expect(result.source).toBe('local');
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls[0][0].detail).toEqual({ source: 'local' });
+      window.removeEventListener('datasource:change', handler);
     });
   });
 });

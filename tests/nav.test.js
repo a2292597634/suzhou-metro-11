@@ -116,4 +116,44 @@ describe('导航模块', () => {
       expect(activeLink.dataset.page).toBe('battle');
     });
   });
+
+  describe('数据来源指示器', () => {
+    it('initNav 应注入 #datasource-indicator 元素', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+      const indicator = document.getElementById('datasource-indicator');
+      expect(indicator).not.toBeNull();
+    });
+
+    it('初始状态应显示"检测中…"', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+      const indicator = document.getElementById('datasource-indicator');
+      expect(indicator.textContent).toContain('检测中');
+    });
+
+    it('收到 datasource:change server 事件后应显示"服务器数据"', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+      window.dispatchEvent(new CustomEvent('datasource:change', { detail: { source: 'server' } }));
+      const indicator = document.getElementById('datasource-indicator');
+      expect(indicator.textContent).toContain('服务器数据');
+    });
+
+    it('收到 datasource:change local 事件后应显示"本地缓存"', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+      window.dispatchEvent(new CustomEvent('datasource:change', { detail: { source: 'local' } }));
+      const indicator = document.getElementById('datasource-indicator');
+      expect(indicator.textContent).toContain('本地缓存');
+    });
+
+    it('收到 datasource:change default 事件后应显示"演示数据"', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+      window.dispatchEvent(new CustomEvent('datasource:change', { detail: { source: 'default' } }));
+      const indicator = document.getElementById('datasource-indicator');
+      expect(indicator.textContent).toContain('演示数据');
+    });
+  });
 });
