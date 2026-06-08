@@ -61,6 +61,7 @@ rules:
     - 回归测试：每次 change apply 完成后必须运行 npx vitest run 完整回归测试，确认所有已有测试仍然通过，有失败先修复再报告完成
     - 自动推送：每次 git commit 成功后必须紧接着执行 git push，不需要等用户提醒。如果 push 失败（如网络问题），主动告知用户原因
     - 一致性检查：每次 git commit 前必须重读 change 目录下 proposal.md / design.md / specs/*.md / tasks.md 四个 artifact，对比实际实现内容，发现不一致立即修正后再 commit
+    - 归档流程：先执行 archive（移动目录 + 同步 specs），再一次性 commit 全部变更（实现代码 + OpenSpec 文档 + 归档），一个 change 只产生一个 commit
 
   # 探索阶段规则
   explore:
