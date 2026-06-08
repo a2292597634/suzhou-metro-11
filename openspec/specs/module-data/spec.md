@@ -44,6 +44,11 @@
 - **WHEN** 调用 saveData() 但后端不可用时
 - **THEN** 数据保存到 localStorage 并通知用户
 
+#### Scenario: 数据来源事件通知
+- **WHEN** loadData() 或 saveData() 完成时
+- **THEN** dispatch `datasource:change` 自定义事件，detail.source 为 `'server'` / `'local'` / `'default'`
+- **AND** 返回 `{ source }` 对象供调用方使用
+
 ### Requirement: 数据模块支持恢复默认值
 数据模块须提供将所有数据恢复为出厂默认值的功能。
 
