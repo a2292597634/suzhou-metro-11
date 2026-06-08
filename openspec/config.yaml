@@ -55,11 +55,17 @@ rules:
   # 全局规则（适用于所有 artifact）
   global:
     - 语言规范：所有文档、代码注释、commit 信息、Markdown 文件必须使用中文，仅保留必要的英文（专有名词、代码标识符、API 路径、技术关键字）
-    - Git 确认：每次 git commit 前必须向用户报告变更内容和 commit 信息，经确认后方可提交
+
+    # ━━━━━ 【红线】严禁自主执行的操作 ━━━━━
+    # 以下三个操作必须获得用户明确确认后才能执行，严禁以"顺手下去了""流程就该这么走"为由跳过确认步骤。
+    # 用户说"commit吧""archive吧"只代表确认了当前这一个操作，不代表确认了后续的其他操作。
+    - 禁止自主 commit：必须先展示变更文件列表和 commit message，等用户回复"可以""commit吧""提交"等明确指令后才能执行 git commit
+    - 禁止自主 archive：必须先告知用户即将归档，等用户回复确认后才能执行 archive（移动目录 + 同步 specs）
+    - 禁止自主 push：git commit 成功后自动执行 push（用户已确认过 commit，push 是对 commit 的自动跟进）。但如果 push 失败必须告知用户
+
     - 设计规范：每次进行界面设计或前端开发时，必须使用 frontend-design skill，并严格遵循项目根目录 DESIGN.md 中定义的设计系统（颜色、字体、间距、阴影、圆角、材质、动效）
     - 测试规范：每个 change 必须遵守 openspec/testing-strategy.md 定义的三层测试金字塔。不得跳过测试任务，不得先写实现后补测试
     - 回归测试：每次 change apply 完成后必须运行 npx vitest run 完整回归测试，确认所有已有测试仍然通过，有失败先修复再报告完成
-    - 自动推送：每次 git commit 成功后必须紧接着执行 git push，不需要等用户提醒。如果 push 失败（如网络问题），主动告知用户原因
     - 一致性检查：每次 git commit 前必须重读 change 目录下 proposal.md / design.md / specs/*.md / tasks.md 四个 artifact，对比实际实现内容，发现不一致立即修正后再 commit
     - 归档流程：先执行 archive（移动目录 + 同步 specs），再一次性 commit 全部变更（实现代码 + OpenSpec 文档 + 归档），一个 change 只产生一个 commit
 
