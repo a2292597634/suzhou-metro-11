@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { state } from '../js/modules/state.js';
-import { calcHomeStats, initHome } from '../js/modules/home.js';
+import { calcHomeStats, initHome, renderStationTable, updateTooltipContent } from '../js/modules/home.js';
 
 describe('首页数据看板', () => {
   beforeEach(() => {
@@ -100,9 +100,60 @@ describe('首页数据看板', () => {
     });
   });
 
-  describe('initHome', () => {
-    it('应该是一个异步函数', () => {
-      expect(typeof initHome).toBe('function');
+  describe('XSS 防护', () => {
+    it('renderStationTable 应该转义商铺名称中的脚本标签', () => {
+      document.body.innerHTML = '<div id="layer-stations"></div>';
+      const stationStats = [{
+        name: '测试站',
+        grade: 'A',
+        transfer: false,
+        shops: [{
+          shortNo: 'S11-1',
+          name: '<img src=x onerror=alert(1)>',
+          type: '商铺',
+          area: 20,
+          tenant: '<script>alert(1)</script>',
+          status: '未出租'
+        }],
+        shopCount: 1,
+        multiSpot: 0,
+        totalArea: '20.0',
+        rentedArea: '0.0',
+        rented: 0,
+        vacant: 1,
+        renovating: 0,
+        rate: 0,
+        rateStr: '0.0%'
+      }];
+
+      renderStationTable(stationStats);
+      const container = document.getElementById('layer-stations');
+      expect(container.innerHTML).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(container.innerHTML).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+      expect(container.innerHTML).not.toContain('<img src=x onerror=alert(1)>');
+    });
+
+    it('updateTooltipContent 应该转义商铺名称和租户名', () => {
+      document.body.innerHTML = '<div id="ttGrade"></div><div id="ttName"></div><div id="ttTransfer"></div><div id="ttShops"></div><div id="ttMulti"></div><div id="ttRate"></div><div id="ttShopList"></div>';
+      const station = {
+        name: '测试站',
+        grade: 'A',
+        transfer: false,
+        shopCount: 1,
+        multiSpot: 0,
+        rateStr: '0.0%',
+        shops: [{
+          name: '<img src=x onerror=alert(1)>',
+          tenant: '<script>alert(1)</script>',
+          type: '商铺',
+          status: '未出租'
+        }]
+      };
+
+      updateTooltipContent(station);
+      const listEl = document.getElementById('ttShopList');
+      expect(listEl.innerHTML).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(listEl.innerHTML).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     });
   });
 });

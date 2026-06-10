@@ -49,9 +49,24 @@ describe('工具函数', () => {
       expect(escapeHtml('"test"')).toBe('"test"');
     });
 
-    it('非字符串输入应该转为字符串', () => {
+    it('null 应该返回空字符串', () => {
+      expect(escapeHtml(null)).toBe('');
+    });
+
+    it('undefined 应该返回空字符串', () => {
+      expect(escapeHtml(undefined)).toBe('');
+    });
+
+    it('数字应该转为字符串', () => {
       expect(escapeHtml(123)).toBe('123');
-      expect(escapeHtml(null)).toBe('null');
+    });
+
+    it('空字符串应该返回空字符串', () => {
+      expect(escapeHtml('')).toBe('');
+    });
+
+    it('应该转义所有 HTML 特殊字符', () => {
+      expect(escapeHtml('A & B < C > D "E"')).toBe('A &amp; B &lt; C &gt; D "E"');
     });
   });
 

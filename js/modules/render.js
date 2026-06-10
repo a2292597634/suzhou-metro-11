@@ -256,15 +256,27 @@ export function renderGradePanel() {
   const list = document.getElementById('gradeList');
   if (!list) return;
   const showText = (text) => (text && text.trim() !== '') ? text : '      ';
-  list.innerHTML = Object.entries(state.gradeInfo).map(([key, info]) => `
-    <div class="grade-item grade-${key.toLowerCase()}">
+  list.innerHTML = '';
+  Object.entries(state.gradeInfo).forEach(([key, info]) => {
+    const safeName = escapeHtml(info.name || '');
+    const safeDesc = escapeHtml(info.desc || '');
+
+    const item = document.createElement('div');
+    item.className = `grade-item grade-${key.toLowerCase()}`;
+    item.innerHTML = `
       <div class="grade-badge">${key}</div>
       <div class="grade-text">
-        <div class="grade-name editable-grade" data-grade="${key}" data-field="name" data-raw="${info.name}">${showText(info.name)}</div>
-        <div class="grade-stations editable-grade" data-grade="${key}" data-field="desc" data-raw="${info.desc}">${showText(info.desc)}</div>
+        <div class="grade-name editable-grade" data-grade="${key}" data-field="name">${showText(safeName)}</div>
+        <div class="grade-stations editable-grade" data-grade="${key}" data-field="desc">${showText(safeDesc)}</div>
       </div>
-    </div>
-  `).join('');
+    `;
+
+    // 使用 DOM API 安全设置 data-raw（避免 innerHTML 属性注入）
+    item.querySelector('.grade-name').dataset.raw = info.name || '';
+    item.querySelector('.grade-stations').dataset.raw = info.desc || '';
+
+    list.appendChild(item);
+  });
 }
 
 // 渲染底部

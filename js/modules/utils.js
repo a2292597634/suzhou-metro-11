@@ -22,7 +22,8 @@ export function calcRate(total, rented) {
 
 // HTML 转义（防止 XSS）
 export function escapeHtml(text) {
-  if (typeof text !== 'string') return String(text);
+  if (text === null || text === undefined) return '';
+  if (typeof text !== 'string') text = String(text);
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;

@@ -134,4 +134,25 @@ describe('渲染引擎', () => {
       expect(document.querySelector('.stats-grid').children.length).toBeGreaterThan(0);
     });
   });
+
+  describe('XSS 防护', () => {
+    it('renderGradePanel 应该转义分级名称和描述中的脚本标签', () => {
+      state.gradeInfo = {
+        S: { name: '<img src=x onerror=alert(1)>', desc: '<script>alert(1)</script>', color: '#d4380d' }
+      };
+
+      document.body.innerHTML = '<div id="gradeList"></div>';
+
+      renderGradePanel();
+
+      const gradeName = document.querySelector('.grade-name');
+      const gradeDesc = document.querySelector('.grade-stations');
+      // textContent 应该显示为纯文本（浏览器解析 HTML 实体后的结果）
+      expect(gradeName.textContent).toBe('<img src=x onerror=alert(1)>');
+      expect(gradeDesc.textContent).toBe('<script>alert(1)</script>');
+      // 元素的 innerHTML 应该包含转义后的实体（而非原始标签）
+      expect(gradeName.innerHTML).toContain('&lt;img');
+      expect(gradeDesc.innerHTML).toContain('&lt;script&gt;');
+    });
+  });
 });

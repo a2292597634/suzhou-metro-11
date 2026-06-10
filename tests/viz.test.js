@@ -304,4 +304,40 @@ describe('数据可视化模块', () => {
       expect(card.querySelector('.card-detail')).not.toBeNull();
     });
   });
+
+  describe('XSS 防护', () => {
+    it('renderCard 应该转义站点名称中的脚本标签', async () => {
+      const { renderCard } = await import('../js/modules/viz.js');
+      const station = {
+        id: 'xss1',
+        name: '<img src=x onerror=alert(1)>',
+        grade: 'A',
+        shops: [
+          { type: '商铺', name: '<script>alert(1)</script>', tenant: '<script>alert(1)</script>', status: '未出租' }
+        ],
+        transfer: false
+      };
+      const html = renderCard(station, 0, null);
+      expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+      expect(html).not.toContain('<img src=x onerror=alert(1)>');
+    });
+
+    it('renderCard 应该转义 input value 属性中的恶意内容', async () => {
+      const { renderCard } = await import('../js/modules/viz.js');
+      const station = {
+        id: 'xss2',
+        name: '测试站',
+        grade: 'A',
+        shops: [
+          { no: 1, name: '<script>alert(1)</script>', type: '商铺', area: 20, tenant: '<script>alert(1)</script>', status: '未出租' }
+        ],
+        transfer: false
+      };
+      const html = renderCard(station, 0, 'xss2');
+      // input value 中的脚本标签应该被转义
+      expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+      expect(html).not.toContain('value="<script>');
+    });
+  });
 });

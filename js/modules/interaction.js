@@ -3,6 +3,7 @@
  */
 
 import { state } from './state.js';
+import { escapeHtml } from './utils.js';
 
 // 显示提示
 export function showToast(msg, type = 'success') {
@@ -65,12 +66,12 @@ export function makeEditable(el, onSave, isNumber = true, allowEmpty = false) {
 function renderShopTable(shops) {
   const rows = (shops || []).map((shop, si) => `
     <tr data-row-idx="${si}">
-      <td class="col-name"><input type="text" data-field="name" value="${shop.name || ''}" /></td>
-      <td class="col-type"><input type="text" data-field="type" value="${shop.type || '商铺'}" /></td>
+      <td class="col-name"><input type="text" data-field="name" value="${escapeHtml(shop.name || '')}" /></td>
+      <td class="col-type"><input type="text" data-field="type" value="${escapeHtml(shop.type || '商铺')}" /></td>
       <td class="col-area"><input type="number" data-field="area" value="${shop.area || 0}" step="0.01" /></td>
-      <td class="col-tenant"><input type="text" data-field="tenant" value="${shop.tenant || ''}" /></td>
-      <td class="col-contact"><input type="text" data-field="contact" value="${shop.contact || ''}" /></td>
-      <td class="col-date"><input type="text" data-field="openDate" value="${shop.openDate || ''}" /></td>
+      <td class="col-tenant"><input type="text" data-field="tenant" value="${escapeHtml(shop.tenant || '')}" /></td>
+      <td class="col-contact"><input type="text" data-field="contact" value="${escapeHtml(shop.contact || '')}" /></td>
+      <td class="col-date"><input type="text" data-field="openDate" value="${escapeHtml(shop.openDate || '')}" /></td>
       <td class="col-status">
         <select data-field="status">
           <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
@@ -78,7 +79,7 @@ function renderShopTable(shops) {
           <option value="营业中" ${shop.status === '营业中' ? 'selected' : ''}>营业中</option>
         </select>
       </td>
-      <td class="col-remark"><input type="text" data-field="remark" value="${shop.remark || ''}" /></td>
+      <td class="col-remark"><input type="text" data-field="remark" value="${escapeHtml(shop.remark || '')}" /></td>
       <td class="col-delete">
         <button type="button" class="btn-delete-shop" onclick="app.deleteShopRow(this)" title="删除"
           ${(shops || []).length <= 1 ? 'disabled' : ''}>×</button>
@@ -304,3 +305,6 @@ export function setupEventListeners(onImportFileChange) {
     });
   }
 }
+
+// 导出内部函数供测试使用
+export { renderShopTable };

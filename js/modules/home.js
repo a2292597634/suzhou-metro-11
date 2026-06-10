@@ -5,6 +5,7 @@
 
 import { loadData, calcGlobalStats } from './data.js';
 import { state } from './state.js';
+import { escapeHtml } from './utils.js';
 
 // ============================================
 // 数据计算
@@ -203,10 +204,10 @@ function renderStationTable(stationStats) {
       const typeBadge = shop.type === '多经点位' ? '<span class="shop-type">多经</span>' : '';
       return `
         <tr class="shop-row">
-          <td class="shop-no">${shop.shortNo}</td>
-          <td class="shop-name">${shop.name}${typeBadge}</td>
+          <td class="shop-no">${escapeHtml(shop.shortNo)}</td>
+          <td class="shop-name">${escapeHtml(shop.name)}${typeBadge}</td>
           <td class="shop-area">${shop.area}㎡</td>
-          <td class="shop-tenant">${shop.tenant || '<span class="text-muted">—</span>'}</td>
+          <td class="shop-tenant">${shop.tenant ? escapeHtml(shop.tenant) : '<span class="text-muted">—</span>'}</td>
           <td class="shop-status"><span class="status-dot ${statusClass}"></span>${shop.status}</td>
         </tr>
       `;
@@ -217,7 +218,7 @@ function renderStationTable(stationStats) {
         <td class="station-num">${String(idx + 1).padStart(2, '0')}</td>
         <td class="station-name">
           <span class="grade-badge grade-${s.grade}">${s.grade}</span>
-          ${s.name}
+          ${escapeHtml(s.name)}
           ${s.transfer ? '<span class="transfer-tag">换乘</span>' : ''}
         </td>
         <td class="station-count">${s.shopCount}</td>
@@ -406,8 +407,8 @@ function updateTooltipContent(station) {
     return `
       <div class="tooltip-shop-item">
         <span class="tooltip-shop-dot ${dotClass}"></span>
-        <span class="tooltip-shop-no">${shop.name}</span>
-        <span class="tooltip-shop-tenant ${tenant ? '' : 'empty'}">${tenant || '空置'}</span>
+        <span class="tooltip-shop-no">${escapeHtml(shop.name)}</span>
+        <span class="tooltip-shop-tenant ${tenant ? '' : 'empty'}">${tenant ? escapeHtml(tenant) : '空置'}</span>
       </div>
     `;
   }).join('');
@@ -551,3 +552,6 @@ export async function initHome() {
   renderRankings(stats);
   initEntranceAnimation();
 }
+
+// 导出内部函数供测试使用
+export { renderStationTable, updateTooltipContent };

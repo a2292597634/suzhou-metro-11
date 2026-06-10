@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { state } from '../js/modules/state.js';
-import { showToast, printMap, closeModal, makeEditable } from '../js/modules/interaction.js';
+import { showToast, printMap, closeModal, makeEditable, renderShopTable } from '../js/modules/interaction.js';
 
 describe('交互处理', () => {
   beforeEach(() => {
@@ -66,6 +66,26 @@ describe('交互处理', () => {
       makeEditable(el, (val) => { el.textContent = val; }, true);
 
       expect(el.querySelector('input')).not.toBeNull();
+    });
+  });
+
+  describe('XSS 防护', () => {
+    it('renderShopTable 应该转义 input value 中的脚本标签', () => {
+      const shops = [{
+        name: '<img src=x onerror=alert(1)>',
+        type: '<script>alert(1)</script>',
+        area: 20,
+        tenant: '<script>alert(1)</script>',
+        contact: '<script>alert(1)</script>',
+        openDate: '<script>alert(1)</script>',
+        status: '未出租',
+        remark: '<script>alert(1)</script>'
+      }];
+      const html = renderShopTable(shops);
+      expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+      expect(html).not.toContain('value="<script>');
+      expect(html).not.toContain('value="<img');
     });
   });
 });

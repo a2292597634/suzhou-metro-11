@@ -5,6 +5,7 @@
 
 import { state } from './state.js';
 import { loadData, saveData } from './data.js';
+import { escapeHtml } from './utils.js';
 
 // ============================================
 // 常量
@@ -171,7 +172,7 @@ export function renderCard(station, idx, expandedId) {
     <div class="card station-card ${isExpanded ? 'expanded' : ''}" data-id="${station.id}" data-grade="${grade}" data-rate="${stats.rate}" data-shops="${stats.total}">
       <div class="card-header">
         <div class="card-grade grade-${grade.toLowerCase()}" style="background:${gc.color};">${grade}</div>
-        <div class="card-name">${station.name}</div>
+        <div class="card-name">${escapeHtml(station.name)}</div>
         ${station.transfer ? '<span class="card-transfer">换乘</span>' : ''}
         <div class="card-actions">
           <button class="icon-btn" data-action="edit" title="编辑站点">
@@ -197,8 +198,8 @@ export function renderCard(station, idx, expandedId) {
           const st = getStatusStyle(s.status);
           return `<div class="preview-row">
             <span class="status-dot ${st.dot}"></span>
-            <span class="shop-name">${s.name}</span>
-            <span class="shop-tenant">${s.tenant || '—'}</span>
+            <span class="shop-name">${escapeHtml(s.name)}</span>
+            <span class="shop-tenant">${s.tenant ? escapeHtml(s.tenant) : '—'}</span>
           </div>`;
         }).join('')}
       </div>` : ''}
@@ -227,7 +228,7 @@ function renderDetail(station, idx) {
         <div class="info-grid">
           <div class="info-field">
             <label>站点名称</label>
-            <input type="text" data-field="name" value="${station.name || ''}" placeholder="输入站点名称">
+            <input type="text" data-field="name" value="${escapeHtml(station.name || '')}" placeholder="输入站点名称">
           </div>
           <div class="info-field">
             <label>商业价值等级</label>
@@ -269,7 +270,7 @@ function renderDetail(station, idx) {
                 return `<tr data-shop-idx="${sIdx}">
                   <td class="col-status"><span class="status-dot ${st.dot}"></span></td>
                   <td class="col-no">${shop.no || sIdx + 1}</td>
-                  <td class="col-name"><input type="text" data-shop-field="name" value="${shop.name || ''}"></td>
+                  <td class="col-name"><input type="text" data-shop-field="name" value="${escapeHtml(shop.name || '')}"></td>
                   <td class="col-type">
                     <select data-shop-field="type">
                       <option value="商铺" ${shop.type === '商铺' ? 'selected' : ''}>商铺</option>
@@ -277,7 +278,7 @@ function renderDetail(station, idx) {
                     </select>
                   </td>
                   <td class="col-area"><input type="number" step="0.01" data-shop-field="area" value="${shop.area || 0}"></td>
-                  <td class="col-tenant"><input type="text" data-shop-field="tenant" value="${shop.tenant || ''}"></td>
+                  <td class="col-tenant"><input type="text" data-shop-field="tenant" value="${escapeHtml(shop.tenant || '')}"></td>
                   <td class="col-status">
                     <select data-shop-field="status">
                       <option value="营业中" ${shop.status === '营业中' ? 'selected' : ''}>营业中</option>
