@@ -23,6 +23,7 @@ const VIEWPORTS = [
 ];
 
 const REPORT = [];
+let failCount = 0;
 
 async function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -59,6 +60,7 @@ async function verifyResponsive() {
       } catch (e) {
         console.log(`   ⚠️ ${vp.label}: 页面加载失败 (${e.message})`);
         REPORT.push(`- ${vp.label}: ⚠️ 页面加载失败`);
+        failCount++;
         await page.close();
         continue;
       }
@@ -150,6 +152,11 @@ async function verifyResponsive() {
   const reportPath = path.resolve(__dirname, '../screenshots/responsive/REPORT.md');
   fs.writeFileSync(reportPath, '# 响应式验证报告\n\n' + REPORT.join('\n') + '\n');
   console.log('📝 报告已保存: screenshots/responsive/REPORT.md');
+
+  if (failCount > 0) {
+    console.log(`\n❌ ${failCount} 个页面加载失败，验证未通过`);
+    process.exit(1);
+  }
 }
 
 verifyResponsive().catch(e => {

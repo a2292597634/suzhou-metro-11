@@ -10,6 +10,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: metro123
+          POSTGRES_DB: suzhou_metro
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -23,5 +38,33 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 运行测试（单元 + 集成）
-        run: npx vitest run --exclude='tests/e2e/**'
+      - name: 生成 Prisma Client
+        run: npx prisma generate
+
+      - name: 运行数据库迁移
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+
+      - name: 运行种子数据
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+
+      - name: 启动服务
+        run: |
+          node server.js &
+          echo "等待服务就绪..."
+          npx wait-on http://localhost:3000/api/data --timeout 30000
+        env:
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          AUTH_TOKEN: ci-test-token
+          ALLOWED_ORIGINS: http://localhost:3000
+
+      - name: 运行全量测试（含 E2E）
+        run: npm run test:all
+        env:
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          AUTH_TOKEN: ci-test-token
+          ALLOWED_ORIGINS: http://localhost:3000
+          PORT: 3000

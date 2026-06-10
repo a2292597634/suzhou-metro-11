@@ -4,7 +4,9 @@
   "description": "苏州地铁11号线商业开发作战图",
   "scripts": {
     "start": "node server.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude='tests/e2e/**'",
+    "test:e2e": "vitest run tests/e2e/",
+    "test:all": "vitest run",
     "test:watch": "vitest",
     "export-hd": "node tools/export-hd.js",
     "export-2k": "node tools/export-hd.js 2K",
