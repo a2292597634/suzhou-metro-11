@@ -142,3 +142,35 @@ describe('静态路由白名单', () => {
     expect(res.text).toContain('data-auth-token="test-secret-token"');
   });
 });
+
+describe('Zod 数据校验', () => {
+  const authHeader = 'Bearer test-secret-token';
+
+  it('缺少 name 字段应返回 400', async () => {
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({ data: { stations: [{ id: 's1', grade: 'A', x: 100, y: 100, pos: 'top' }] } });
+
+    expect(res.status).toBe(400);
+    expect(res.body.details).toBeDefined();
+  });
+
+  it('坐标超出范围应返回 400', async () => {
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({ data: { stations: [{ id: 's1', name: '测试', grade: 'A', x: 9999, y: 100, pos: 'top' }] } });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('非法等级值应返回 400', async () => {
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({ data: { stations: [{ id: 's1', name: '测试', grade: 'X', x: 100, y: 100, pos: 'top' }] } });
+
+    expect(res.status).toBe(400);
+  });
+});

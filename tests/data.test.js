@@ -110,6 +110,12 @@ describe('数据管理', () => {
       saveToLocal(data);
       expect(localStorage.setItem).toHaveBeenCalled();
     });
+
+    it('localStorage 写入失败时应抛出异常', () => {
+      localStorage.setItem = vi.fn(() => { throw new Error('QuotaExceededError'); });
+      const data = { stations: [], globalStats: {} };
+      expect(() => saveToLocal(data)).toThrow('QuotaExceededError');
+    });
   });
 
   describe('loadData 返回值', () => {
@@ -211,6 +217,16 @@ describe('数据管理', () => {
       state.stations = [];
       await saveData();
       expect(fetchMock).toHaveBeenCalled();
+    });
+
+    it('服务器和 localStorage 双失败时应返回 success: false', async () => {
+      const fetchMock = vi.fn(() => Promise.reject(new Error('网络错误')));
+      vi.stubGlobal('fetch', fetchMock);
+      localStorage.setItem = vi.fn(() => { throw new Error('QuotaExceededError'); });
+      state.stations = [];
+      const result = await saveData();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('QuotaExceededError');
     });
   });
 });

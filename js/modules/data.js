@@ -250,9 +250,15 @@ export async function saveData() {
   }
 
   // 回退到 localStorage
-  saveToLocal(data);
-  notifySource('local');
-  return { success: true, source: 'local' };
+  try {
+    saveToLocal(data);
+    notifySource('local');
+    return { success: true, source: 'local' };
+  } catch (e) {
+    console.error('本地保存也失败', e);
+    notifySource('local');
+    return { success: false, source: 'local', error: e.message };
+  }
 }
 
 // 保存到 localStorage
@@ -264,6 +270,7 @@ export function saveToLocal(data) {
     }));
   } catch (e) {
     console.error('本地保存失败', e);
+    throw e;
   }
 }
 

@@ -16,6 +16,7 @@ model Station {
   pos          String
   transfer     Boolean  @default(false)
   transferLine String?
+  version      Int      @default(1)
   shops        Shop[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
