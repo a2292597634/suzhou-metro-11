@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 3000
 
 # 启动：先执行迁移，再启动服务器
-CMD npx prisma migrate deploy && node server.js
+CMD npx prisma migrate deploy && npx prisma db seed && node server.js

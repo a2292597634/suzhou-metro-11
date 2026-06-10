@@ -173,9 +173,15 @@ export async function loadData() {
     if (res.ok) {
       const result = await res.json();
       if (result.data) {
-        state.stations = result.data.stations || getDefaultStations();
-        state.globalStats = result.data.globalStats || getDefaultGlobalStats();
-        if (result.data.gradeInfo) state.gradeInfo = result.data.gradeInfo;
+        const stations = result.data.stations;
+        state.stations = (Array.isArray(stations) && stations.length > 0) ? stations : getDefaultStations();
+
+        const globalStats = result.data.globalStats;
+        state.globalStats = (globalStats && Object.keys(globalStats).length > 0) ? globalStats : getDefaultGlobalStats();
+
+        const gradeInfo = result.data.gradeInfo;
+        if (gradeInfo && Object.keys(gradeInfo).length > 0) state.gradeInfo = gradeInfo;
+
         console.log('✅ 已从服务器加载数据');
         notifySource('server');
         return { source: 'server' };
@@ -190,9 +196,15 @@ export async function loadData() {
     const saved = localStorage.getItem(config.storageKey);
     if (saved) {
       const data = JSON.parse(saved);
-      state.stations = data.stations || getDefaultStations();
-      state.globalStats = data.globalStats || getDefaultGlobalStats();
-      if (data.gradeInfo) state.gradeInfo = data.gradeInfo;
+      const stations = data.stations;
+      state.stations = (Array.isArray(stations) && stations.length > 0) ? stations : getDefaultStations();
+
+      const globalStats = data.globalStats;
+      state.globalStats = (globalStats && Object.keys(globalStats).length > 0) ? globalStats : getDefaultGlobalStats();
+
+      const gradeInfo = data.gradeInfo;
+      if (gradeInfo && Object.keys(gradeInfo).length > 0) state.gradeInfo = gradeInfo;
+
       console.log('✅ 已从本地存储加载数据');
       notifySource('local');
       return { source: 'local' };

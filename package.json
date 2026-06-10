@@ -12,6 +12,9 @@
     "export-6k": "node tools/export-hd.js 6K",
     "export-8k": "node tools/export-hd.js 8K"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
     "jsdom": "^29.1.1",

@@ -147,8 +147,18 @@ async function main() {
 
   // 1. 导入站点和商铺
   for (const s of defaultStations) {
-    await prisma.station.create({
-      data: {
+    await prisma.station.upsert({
+      where: { id: s.id },
+      update: {
+        name: s.name,
+        grade: s.grade,
+        x: s.x,
+        y: s.y,
+        pos: s.pos,
+        transfer: s.transfer,
+        transferLine: s.transferLine || null
+      },
+      create: {
         id: s.id,
         name: s.name,
         grade: s.grade,
@@ -177,8 +187,16 @@ async function main() {
   console.log(`✅ 已导入 ${defaultStations.length} 个站点`);
 
   // 2. 导入全局统计
-  await prisma.globalStats.create({
-    data: {
+  await prisma.globalStats.upsert({
+    where: { id: 1 },
+    update: {
+      statsDate: defaultGlobalStats.statsDate,
+      totalShops: defaultGlobalStats.totalShops,
+      rentedShops: defaultGlobalStats.rentedShops,
+      vacantShops: defaultGlobalStats.vacantShops,
+      rentRate: defaultGlobalStats.rentRate
+    },
+    create: {
       id: 1,
       statsDate: defaultGlobalStats.statsDate,
       totalShops: defaultGlobalStats.totalShops,
@@ -191,8 +209,14 @@ async function main() {
 
   // 3. 导入分级信息
   for (const [key, info] of Object.entries(defaultGradeInfo)) {
-    await prisma.gradeInfo.create({
-      data: {
+    await prisma.gradeInfo.upsert({
+      where: { id: key },
+      update: {
+        name: info.name,
+        desc: info.desc,
+        color: info.color
+      },
+      create: {
         id: key,
         name: info.name,
         desc: info.desc,

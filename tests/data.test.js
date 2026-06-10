@@ -115,10 +115,19 @@ describe('数据管理', () => {
   describe('loadData 返回值', () => {
     it('从服务器加载成功时应返回 { source: "server" }', async () => {
       vi.stubGlobal('fetch', vi.fn(() =>
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: {} } }) })
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [{ name: '测试站' }], globalStats: {} } }) })
       ));
       const result = await loadData();
       expect(result).toEqual({ source: 'server' });
+    });
+
+    it('服务器返回空 stations 数组时应 fallback 到默认数据', async () => {
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: null } }) })
+      ));
+      await loadData();
+      expect(state.stations.length).toBeGreaterThan(0);
+      expect(state.stations[0].name).toBeDefined();
     });
 
     it('回退到 localStorage 时应返回 { source: "local" }', async () => {
