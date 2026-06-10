@@ -218,9 +218,14 @@ export async function saveData() {
 
   // 先尝试保存到后端
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (state.authToken) {
+      headers['Authorization'] = `Bearer ${state.authToken}`;
+    }
+
     const res = await fetch(`${state.apiBase}/api/data`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ data })
     });
     if (res.ok) {

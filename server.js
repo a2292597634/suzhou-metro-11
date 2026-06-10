@@ -4,10 +4,13 @@
  * 启动：node server.js
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 
 const prisma = new PrismaClient();
 const app = express();
@@ -16,16 +19,55 @@ const PORT = process.env.PORT || 3000;
 // 解析 JSON body
 app.use(express.json({ limit: '10mb' }));
 
-// 跨域支持
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+// 认证中间件 — 校验 Bearer Token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ error: '未授权，缺少认证信息' });
+  }
+
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ error: '未授权，Token 格式不正确' });
+  }
+
+  const token = parts[1];
+  const expectedToken = process.env.AUTH_TOKEN;
+
+  if (!expectedToken || token !== expectedToken) {
+    return res.status(401).json({ error: '未授权，Token 无效' });
+  }
+
+  next();
+}
+
+// CSP Header 中间件
+function setSecurityHeaders(req, res, next) {
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  next();
+}
+
+// CORS 白名单中间件
+function corsMiddleware(req, res, next) {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+  const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
-});
+}
+
+app.use(setSecurityHeaders);
+app.use(corsMiddleware);
 
 // ========== API 路由 ==========
 
@@ -86,8 +128,8 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// 保存数据
-app.post('/api/data', async (req, res) => {
+// 保存数据（需要认证）
+app.post('/api/data', authenticateToken, async (req, res) => {
   const { data } = req.body;
   if (!data) {
     return res.status(400).json({ error: '缺少 data 字段' });
@@ -209,37 +251,63 @@ app.get('/api/ip', (req, res) => {
   res.json({ ips, port: PORT });
 });
 
-// ========== 静态文件服务 ==========
+// ========== 静态文件服务（白名单）==========
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// 注入 data-auth-token 到 HTML
+function injectAuthToken(htmlPath, res) {
+  fs.readFile(htmlPath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(500).send('读取文件失败');
+    }
+    const token = process.env.AUTH_TOKEN || '';
+    const injected = data.replace(
+      '<html lang="zh-CN"',
+      `<html lang="zh-CN" data-auth-token="${token}"`
+    );
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(injected);
+  });
+}
 
-app.use(express.static(__dirname));
+// 显式白名单路由
+app.get('/', (req, res) => injectAuthToken(path.join(__dirname, 'index.html'), res));
+app.get('/index.html', (req, res) => injectAuthToken(path.join(__dirname, 'index.html'), res));
+app.get('/battle-map.html', (req, res) => injectAuthToken(path.join(__dirname, 'battle-map.html'), res));
+app.get('/data-viz.html', (req, res) => injectAuthToken(path.join(__dirname, 'data-viz.html'), res));
+
+// 允许的前端资源目录
+app.use('/css', express.static(path.join(__dirname, 'css')));
+app.use('/js', express.static(path.join(__dirname, 'js')));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+// 导出供测试使用
+module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, injectAuthToken };
 
 // 启动服务器
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('\n========================================');
-  console.log('  苏州地铁11号线商业作战图 服务器已启动');
-  console.log('========================================');
-  console.log(`\n本机访问: http://localhost:${PORT}`);
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n========================================');
+    console.log('  苏州地铁11号线商业作战图 服务器已启动');
+    console.log('========================================');
+    console.log(`\n本机访问: http://localhost:${PORT}`);
 
-  const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        console.log(`局域网访问: http://${iface.address}:${PORT}`);
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          console.log(`局域网访问: http://${iface.address}:${PORT}`);
+        }
       }
     }
-  }
-  console.log('\n按 Ctrl+C 停止服务器');
-  console.log('========================================\n');
-});
+    console.log('\n按 Ctrl+C 停止服务器');
+    console.log('========================================\n');
+  });
 
-// 优雅关闭
-process.on('SIGINT', async () => {
-  console.log('\n正在关闭数据库连接...');
-  await prisma.$disconnect();
-  console.log('数据库已安全关闭');
-  process.exit(0);
-});
+  // 优雅关闭
+  process.on('SIGINT', async () => {
+    console.log('\n正在关闭数据库连接...');
+    await prisma.$disconnect();
+    console.log('数据库已安全关闭');
+    process.exit(0);
+  });
+}

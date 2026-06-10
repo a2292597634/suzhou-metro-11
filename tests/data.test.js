@@ -172,4 +172,36 @@ describe('数据管理', () => {
       window.removeEventListener('datasource:change', handler);
     });
   });
+
+  describe('Authorization header', () => {
+    it('saveData 有 Token 时应在 headers 中携带 Authorization', async () => {
+      state.authToken = 'my-test-token';
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true }));
+      vi.stubGlobal('fetch', fetchMock);
+      state.stations = [];
+      await saveData();
+      const callArgs = fetchMock.mock.calls[0];
+      expect(callArgs[1].headers).toHaveProperty('Authorization', 'Bearer my-test-token');
+    });
+
+    it('loadData 不应携带 Authorization header', async () => {
+      state.authToken = 'my-test-token';
+      const fetchMock = vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: {} } }) })
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      await loadData();
+      const callArgs = fetchMock.mock.calls[0];
+      expect(callArgs[1]).toBeUndefined(); // fetch 只传了 url，没有 options
+    });
+
+    it('saveData Token 为空时仍应正常发送请求', async () => {
+      state.authToken = '';
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true }));
+      vi.stubGlobal('fetch', fetchMock);
+      state.stations = [];
+      await saveData();
+      expect(fetchMock).toHaveBeenCalled();
+    });
+  });
 });
