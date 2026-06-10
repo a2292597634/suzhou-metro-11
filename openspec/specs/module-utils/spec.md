@@ -30,9 +30,21 @@
 - **THEN** 结果为（已出租 / 总数）× 100，保留 1 位小数
 
 ### Requirement: 工具模块提供 HTML 转义
-工具模块须通过转义用户可编辑文本中的 HTML 来防止 XSS。
+工具模块须通过转义用户可编辑文本中的 HTML 来防止 XSS。转义函数 MUST 处理任意输入类型（null、undefined、数字、字符串）。
 
 #### Scenario: 转义 HTML 字符
 - **WHEN** 渲染包含 <、>、&、" 的文本时
 - **THEN** 文本在插入 DOM 前被安全转义
+
+#### Scenario: 转义函数处理 null 输入
+- **WHEN** 传入 null 到转义函数
+- **THEN** 返回空字符串
+
+#### Scenario: 转义函数处理 undefined 输入
+- **WHEN** 传入 undefined 到转义函数
+- **THEN** 返回空字符串
+
+#### Scenario: 转义函数处理数字输入
+- **WHEN** 传入数字到转义函数
+- **THEN** 返回对应的字符串表示
 
