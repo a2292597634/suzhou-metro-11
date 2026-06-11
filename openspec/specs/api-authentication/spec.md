@@ -1,60 +1,87 @@
-## ADDED Requirements
+## Requirements
 
-### Requirement: POST /api/data 必须携带有效的 Bearer Token
-`POST /api/data` 请求 MUST 在 HTTP header 中包含 `Authorization: Bearer <token>`。若 header 缺失、格式错误、或 Token 值与 `AUTH_TOKEN` 环境变量不匹配，服务端 MUST 返回 HTTP 401 Unauthorized 响应，且 MUST 不执行任何数据库操作。
+### Requirement: 认证使用 HttpOnly 签名 Cookie，不暴露到 HTML
+`authenticateToken` 中间件 MUST 同时接受两种认证方式：
+1. 签名 Cookie `auth_token`，值等于 `process.env.AUTH_TOKEN`
+2. HTTP header `Authorization: Bearer <token>`，token 等于 `process.env.AUTH_TOKEN`
 
-#### Scenario: 携带正确 Token 成功保存
-- **WHEN** 客户端发送 `POST /api/data` 且 header 包含 `Authorization: Bearer valid-token`
-- **AND** `AUTH_TOKEN` 环境变量值为 `valid-token`
-- **THEN** 服务端正常处理请求，返回 HTTP 200 和 `{ success: true }`
+若两种方式均未提供有效认证，MUST 返回 HTTP 401 `{ error: '未授权，请先登录' }`。
 
-#### Scenario: 未携带 Token 被拒绝
-- **WHEN** 客户端发送 `POST /api/data` 且无任何 `Authorization` header
-- **THEN** 服务端返回 HTTP 401，响应体为 `{ error: '未授权，缺少认证信息' }`
-- **AND** 数据库未被修改
+若 `AUTH_TOKEN` 环境变量未配置，MUST 返回 HTTP 500 `{ error: '服务端未配置 AUTH_TOKEN' }`。
 
-#### Scenario: Token 格式错误被拒绝
-- **WHEN** 客户端发送 `POST /api/data` 且 header 为 `Authorization: Basic dXNlcjpwYXNz`
-- **THEN** 服务端返回 HTTP 401，响应体为 `{ error: '未授权，Token 格式不正确' }`
-- **AND** 数据库未被修改
+服务端 MUST NOT 通过任何途径将 `AUTH_TOKEN` 写入 HTML 或 JS 源码。HTML 页面 MUST NOT 包含 `data-auth-token` 属性或任何形式的内联 Token。
 
-#### Scenario: Token 值不匹配被拒绝
-- **WHEN** 客户端发送 `POST /api/data` 且 header 为 `Authorization: Bearer wrong-token`
-- **AND** `AUTH_TOKEN` 环境变量值为 `valid-token`
-- **THEN** 服务端返回 HTTP 401，响应体为 `{ error: '未授权，Token 无效' }`
-- **AND** 数据库未被修改
+#### Scenario: 有效签名 Cookie 认证通过
+- **WHEN** 请求携带 `Cookie: auth_token=<signed-value>` 且签名后值等于 `AUTH_TOKEN`
+- **THEN** 认证通过，继续处理请求
 
-### Requirement: 前端请求自动携带认证 Token
-前端 `js/modules/data.js` 中的 `saveData()` 函数 MUST 在 `fetch` 请求的 `headers` 中附加 `Authorization: Bearer <token>`，其中 `<token>` 取自 `state.authToken`。`loadData()` 的 `GET /api/data` 请求 MUST 不携带认证 header（读取保持公开）。
+#### Scenario: 有效 Bearer Token 认证通过
+- **WHEN** 请求携带 `Authorization: Bearer <AUTH_TOKEN>`
+- **THEN** 认证通过，继续处理请求
 
-#### Scenario: saveData 自动携带 Token
-- **WHEN** `state.authToken` 值为 `"my-secret-token"`
-- **AND** 调用 `saveData()`
-- **THEN** `fetch` 请求的 headers 中包含 `Authorization: Bearer my-secret-token`
+#### Scenario: 无认证信息被拒绝
+- **WHEN** 请求既无 Cookie 也无 Authorization header
+- **THEN** 返回 HTTP 401 `{ error: '未授权，请先登录' }`
 
-#### Scenario: loadData 不携带 Token
-- **WHEN** `state.authToken` 值为 `"my-secret-token"`
-- **AND** 调用 `loadData()`
-- **THEN** `fetch` 请求不包含 `Authorization` header
+#### Scenario: HTML 不含明文 Token
+- **WHEN** 请求 `GET /` 或 `GET /index.html`
+- **THEN** 响应 HTML 中不包含 `data-auth-token` 属性
+- **AND** 响应 HTML 中不包含 `AUTH_TOKEN` 的值
 
-### Requirement: state.js 从 HTML 读取 Token
-`state.authToken` MUST 在初始化时从 `document.documentElement.dataset.authToken` 读取。若属性不存在或为空字符串，则值为空字符串。读取时 MUST 使用 `typeof document !== 'undefined'` 守卫防止 Node.js 环境报错。
+### Requirement: 登录端点设置 HttpOnly Cookie
+`POST /api/login` 端点 MUST 接收 `{ password }` JSON body。若 `password` 等于 `process.env.AUTH_TOKEN`，MUST 设置名为 `auth_token` 的签名 HttpOnly Cookie（`httpOnly: true, signed: true, sameSite: 'lax', maxAge: 86400000`）并返回 `{ success: true }`。若密码不匹配，MUST 返回 HTTP 401 `{ error: '密码错误' }`。登录端点 MUST 经过限流中间件。
 
-#### Scenario: HTML 配置了 Token
-- **WHEN** HTML 为 `<html data-auth-token="secret123">`
-- **THEN** `state.authToken` 值为 `"secret123"`
+#### Scenario: 正确密码登录成功
+- **WHEN** `POST /api/login` body 为 `{ password: "<AUTH_TOKEN>" }`
+- **THEN** 返回 HTTP 200 `{ success: true, message: '登录成功' }`
+- **AND** `Set-Cookie` 响应头包含 `auth_token=<signed>; HttpOnly`
 
-#### Scenario: HTML 未配置 Token
-- **WHEN** `<html>` 无 `data-auth-token` 属性
-- **THEN** `state.authToken` 值为 `""`
+#### Scenario: 错误密码登录失败
+- **WHEN** `POST /api/login` body 为 `{ password: "wrong" }`
+- **THEN** 返回 HTTP 401 `{ error: '密码错误' }`
 
-#### Scenario: Node.js 环境安全回退
-- **WHEN** `typeof document === 'undefined'`（纯 Node.js 测试环境）
-- **THEN** `state.authToken` 值为 `""`，不抛出 ReferenceError
+### Requirement: 登出端点清除 Cookie
+`POST /api/logout` 端点 MUST 清除 `auth_token` Cookie 并返回 `{ success: true }`。
+
+#### Scenario: 登出成功
+- **WHEN** `POST /api/logout`
+- **THEN** 返回 HTTP 200 `{ success: true, message: '已登出' }`
+- **AND** `Set-Cookie` 响应头清除 `auth_token`
+
+### Requirement: 认证状态检查端点
+`GET /api/auth-status` 端点 MUST 返回 `{ authenticated: true/false }`，基于当前请求是否携带有效的认证 Cookie。
+
+#### Scenario: 已认证用户
+- **WHEN** 请求携带有效 `auth_token` Cookie
+- **THEN** 返回 `{ authenticated: true }`
+
+#### Scenario: 未认证用户
+- **WHEN** 请求未携带或携带无效 Cookie
+- **THEN** 返回 `{ authenticated: false }`
+
+### Requirement: 前端使用 credentials 模式发送请求
+`js/modules/data.js` 的 `saveData()` 函数 MUST 在 `fetch` 调用中使用 `credentials: 'include'` 以自动携带 Cookie。MUST NOT 手动设置 `Authorization` header。
+
+`state.isAuthenticated` MUST 为布尔字段（取代旧 `authToken` 字符串字段），初始值为 `false`。`login(password)` 函数 MUST 调用 `POST /api/login`，成功后将 `state.isAuthenticated` 设为 `true`。`checkAuth()` 函数 MUST 调用 `GET /api/auth-status` 更新 `state.isAuthenticated`。
+
+#### Scenario: saveData 使用 credentials: 'include'
+- **WHEN** 调用 `saveData()`
+- **THEN** `fetch` 的 options 中包含 `credentials: 'include'`
+- **AND** `fetch` 的 headers 中不包含 `Authorization`
+
+#### Scenario: login 成功更新状态
+- **WHEN** `login(password)` 收到服务端 200
+- **THEN** `state.isAuthenticated` 变为 `true`
+- **AND** 返回 `{ success: true }`
+
+#### Scenario: login 失败不更新状态
+- **WHEN** `login(password)` 收到服务端 401
+- **THEN** `state.isAuthenticated` 保持 `false`
+- **AND** 返回 `{ success: false, error: '密码错误' }`
 
 ## Testing Notes
 
-- **单元测试** (`tests/auth-middleware.test.js`)：模拟 Express req/res 对象，验证认证中间件对四种场景的正确响应
-- **单元测试** (`tests/state.test.js`)：在 jsdom 中设置/移除 `data-auth-token`，验证 `state.authToken` 初始化
-- **集成测试** (`tests/integration/auth-data-flow.test.js`)：mock `fetch`，验证 `saveData()` 的请求头携带和 `loadData()` 的不携带
-- **E2E 测试** (`tests/e2e/auth-required.test.js`)：启动真实服务，Puppeteer 验证无 Token POST 返回 401、正确 Token 可保存
+- **单元测试** (`tests/server-security.test.js`)：验证 login/logout/auth-status 端点、Cookie 和 Bearer 两种认证方式、HTML 不含 Token
+- **单元测试** (`tests/state.test.js`)：验证 `state.isAuthenticated` 初始为 false
+- **单元测试** (`tests/data.test.js`)：验证 `saveData()` 使用 `credentials: 'include'`、`login()` 成功/失败、`checkAuth()`
+- **集成测试** (`tests/integration/auth-data-flow.test.js`)：完整 login → Cookie → POST /api/data 链路
