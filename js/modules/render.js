@@ -3,7 +3,7 @@
  */
 
 import { state } from './state.js';
-import { config, escapeHtml, resolveCardOverlaps, enforceLineBoundaries, calcRate } from './utils.js';
+import { config, escapeHtml, escapeAttr, resolveCardOverlaps, enforceLineBoundaries, calcRate } from './utils.js';
 
 // 主渲染函数
 export function renderAll() {
@@ -101,14 +101,14 @@ export function renderSVG() {
     }
 
     const labelY = s.pos === 'top' ? s.y - 22 : s.y + 18;
-    svgContent += `<text x="${s.x}" y="${labelY}" class="station-label-svg">${s.name.replace('站', '')}</text>`;
+    svgContent += `<text x="${s.x}" y="${labelY}" class="station-label-svg">${escapeHtml(s.name.replace('站', ''))}</text>`;
 
     if (s.transfer && s.transferLine) {
       const tagY = s.pos === 'top' ? s.y + 26 : s.y - 18;
       const tagX = s.x;
       const lineColor = '#1890ff';
       svgContent += `<rect x="${tagX - 28}" y="${tagY - 8}" width="56" height="16" rx="3" fill="white" stroke="${lineColor}" stroke-width="1.5" />`;
-      svgContent += `<text x="${tagX}" y="${tagY + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="${lineColor}">${s.transferLine}</text>`;
+      svgContent += `<text x="${tagX}" y="${tagY + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="${lineColor}">${escapeHtml(s.transferLine)}</text>`;
     }
   });
 
@@ -257,17 +257,21 @@ export function renderGradePanel() {
   if (!list) return;
   const showText = (text) => (text && text.trim() !== '') ? text : '      ';
   list.innerHTML = '';
+  const validGrades = ['S', 'A', 'B', 'C'];
   Object.entries(state.gradeInfo).forEach(([key, info]) => {
+    // 仅允许已知的等级 key，防止 CSS 注入
+    const safeKey = validGrades.includes(key) ? key : 'C';
     const safeName = escapeHtml(info.name || '');
     const safeDesc = escapeHtml(info.desc || '');
+    const safeKeyHtml = escapeHtml(key);
 
     const item = document.createElement('div');
-    item.className = `grade-item grade-${key.toLowerCase()}`;
+    item.className = `grade-item grade-${safeKey.toLowerCase()}`;
     item.innerHTML = `
-      <div class="grade-badge">${key}</div>
+      <div class="grade-badge">${safeKeyHtml}</div>
       <div class="grade-text">
-        <div class="grade-name editable-grade" data-grade="${key}" data-field="name">${showText(safeName)}</div>
-        <div class="grade-stations editable-grade" data-grade="${key}" data-field="desc">${showText(safeDesc)}</div>
+        <div class="grade-name editable-grade" data-grade="${escapeAttr(key)}" data-field="name">${showText(safeName)}</div>
+        <div class="grade-stations editable-grade" data-grade="${escapeAttr(key)}" data-field="desc">${showText(safeDesc)}</div>
       </div>
     `;
 

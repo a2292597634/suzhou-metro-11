@@ -5,7 +5,7 @@
 
 import { state } from './state.js';
 import { loadData, saveData } from './data.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, escapeAttr } from './utils.js';
 
 // ============================================
 // 常量
@@ -169,7 +169,7 @@ export function renderCard(station, idx, expandedId) {
   const hasMore = shopList.length > 3;
 
   return `
-    <div class="card station-card ${isExpanded ? 'expanded' : ''}" data-id="${station.id}" data-grade="${grade}" data-rate="${stats.rate}" data-shops="${stats.total}">
+    <div class="card station-card ${isExpanded ? 'expanded' : ''}" data-id="${escapeAttr(station.id)}" data-grade="${escapeAttr(grade)}" data-rate="${stats.rate}" data-shops="${stats.total}">
       <div class="card-header">
         <div class="card-grade grade-${grade.toLowerCase()}" style="background:${gc.color};">${grade}</div>
         <div class="card-name">${escapeHtml(station.name)}</div>

@@ -20,13 +20,25 @@ export function calcRate(total, rented) {
   return ((rentedNum / totalNum) * 100).toFixed(1);
 }
 
-// HTML 转义（防止 XSS）
+// HTML 转义（防止 XSS，用于文本内容上下文）
 export function escapeHtml(text) {
   if (text === null || text === undefined) return '';
   if (typeof text !== 'string') text = String(text);
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// HTML 属性转义（防止 XSS，用于 value="..." / data-*="..." 等属性上下文）
+// 额外转义双引号和单引号，防止属性注入
+export function escapeAttr(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // 动态避让：检测卡片重叠并微调位置

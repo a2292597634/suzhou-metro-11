@@ -3,7 +3,7 @@
  */
 
 import { state } from './state.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, escapeAttr } from './utils.js';
 
 // 显示提示
 export function showToast(msg, type = 'success') {
@@ -66,12 +66,12 @@ export function makeEditable(el, onSave, isNumber = true, allowEmpty = false) {
 function renderShopTable(shops) {
   const rows = (shops || []).map((shop, si) => `
     <tr data-row-idx="${si}">
-      <td class="col-name"><input type="text" data-field="name" value="${escapeHtml(shop.name || '')}" /></td>
-      <td class="col-type"><input type="text" data-field="type" value="${escapeHtml(shop.type || '商铺')}" /></td>
+      <td class="col-name"><input type="text" data-field="name" value="${escapeAttr(shop.name || '')}" /></td>
+      <td class="col-type"><input type="text" data-field="type" value="${escapeAttr(shop.type || '商铺')}" /></td>
       <td class="col-area"><input type="number" data-field="area" value="${shop.area || 0}" step="0.01" /></td>
-      <td class="col-tenant"><input type="text" data-field="tenant" value="${escapeHtml(shop.tenant || '')}" /></td>
-      <td class="col-contact"><input type="text" data-field="contact" value="${escapeHtml(shop.contact || '')}" /></td>
-      <td class="col-date"><input type="text" data-field="openDate" value="${escapeHtml(shop.openDate || '')}" /></td>
+      <td class="col-tenant"><input type="text" data-field="tenant" value="${escapeAttr(shop.tenant || '')}" /></td>
+      <td class="col-contact"><input type="text" data-field="contact" value="${escapeAttr(shop.contact || '')}" /></td>
+      <td class="col-date"><input type="text" data-field="openDate" value="${escapeAttr(shop.openDate || '')}" /></td>
       <td class="col-status">
         <select data-field="status">
           <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
@@ -79,9 +79,9 @@ function renderShopTable(shops) {
           <option value="营业中" ${shop.status === '营业中' ? 'selected' : ''}>营业中</option>
         </select>
       </td>
-      <td class="col-remark"><input type="text" data-field="remark" value="${escapeHtml(shop.remark || '')}" /></td>
+      <td class="col-remark"><input type="text" data-field="remark" value="${escapeAttr(shop.remark || '')}" /></td>
       <td class="col-delete">
-        <button type="button" class="btn-delete-shop" onclick="app.deleteShopRow(this)" title="删除"
+        <button type="button" class="btn-delete-shop" title="删除"
           ${(shops || []).length <= 1 ? 'disabled' : ''}>×</button>
       </td>
     </tr>
@@ -89,7 +89,7 @@ function renderShopTable(shops) {
 
   return `
     <div class="shop-table-toolbar">
-      <button type="button" class="btn-add-shop" onclick="app.addShopRow()">+ 添加商铺</button>
+      <button type="button" class="btn-add-shop">+ 添加商铺</button>
       <span class="shop-count">共 ${shops ? shops.length : 0} 个商铺</span>
     </div>
     <table class="shop-edit-table">
@@ -126,6 +126,15 @@ export function openStationEditor(idx) {
   const shopsContainer = document.getElementById('editShops');
   shopsContainer.innerHTML = renderShopTable(s.shops);
 
+  // 事件委托：删除商铺按钮
+  shopsContainer.querySelectorAll('.btn-delete-shop').forEach(btn => {
+    btn.addEventListener('click', () => deleteShopRow(btn));
+  });
+
+  // 添加商铺按钮
+  const addBtn = shopsContainer.querySelector('.btn-add-shop');
+  if (addBtn) addBtn.addEventListener('click', addShopRow);
+
   document.getElementById('stationModal').classList.add('active');
   document.getElementById('overlay').classList.add('active');
 }
@@ -152,10 +161,14 @@ export function addShopRow() {
     </td>
     <td class="col-remark"><input type="text" data-field="remark" value="" /></td>
     <td class="col-delete">
-      <button type="button" class="btn-delete-shop" onclick="app.deleteShopRow(this)" title="删除">×</button>
+      <button type="button" class="btn-delete-shop" title="删除">×</button>
     </td>
   `;
   tbody.appendChild(newRow);
+
+  // 绑定新行中删除按钮的事件
+  const delBtn = newRow.querySelector('.btn-delete-shop');
+  if (delBtn) delBtn.addEventListener('click', () => deleteShopRow(delBtn));
 
   // 更新计数和所有删除按钮状态
   updateDeleteButtons();

@@ -41,30 +41,39 @@ jobs:
       - name: 生成 Prisma Client
         run: npx prisma generate
 
-      - name: 运行数据库迁移
+      - name: 创建测试数据库
+        run: |
+          PGPASSWORD=metro123 psql -h localhost -U postgres -c "CREATE DATABASE suzhou_metro_test;" 2>/dev/null || echo "测试数据库已存在"
+          PGPASSWORD=metro123 psql -h localhost -U postgres -d suzhou_metro_test -c "SELECT 1;" || echo "测试数据库就绪"
+        env:
+          PGPASSWORD: metro123
+
+      - name: 运行数据库迁移（测试库）
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
 
-      - name: 运行种子数据
+      - name: 运行种子数据（测试库）
         run: npx prisma db seed
         env:
-          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
 
-      - name: 启动服务
+      - name: 启动服务（测试库）
         run: |
           node server.js &
           echo "等待服务就绪..."
           npx wait-on http://localhost:3000/api/data --timeout 30000
         env:
-          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
           AUTH_TOKEN: ci-test-token
           ALLOWED_ORIGINS: http://localhost:3000
+          SESSION_SECRET: ci-session-secret
 
       - name: 运行全量测试（含 E2E）
         run: npm run test:all
         env:
-          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public
+          DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
           AUTH_TOKEN: ci-test-token
           ALLOWED_ORIGINS: http://localhost:3000
+          SESSION_SECRET: ci-session-secret
           PORT: 3000

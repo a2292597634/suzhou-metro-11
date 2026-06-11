@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -16,35 +18,87 @@ const { z } = require('zod');
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me-in-production';
 
 // 解析 JSON body
 app.use(express.json({ limit: '10mb' }));
 
-// 认证中间件 — 校验 Bearer Token
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) {
-    return res.status(401).json({ error: '未授权，缺少认证信息' });
+// 解析 Cookie（使用 SESSION_SECRET 签名）
+app.use(cookieParser(SESSION_SECRET));
+
+// ========== 限流中间件 ==========
+
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60_000; // 1 分钟窗口
+const RATE_LIMIT_MAX = 30;        // 每 IP 每分钟最多 30 次写请求
+
+function rateLimiter(req, res, next) {
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return next();
   }
 
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return res.status(401).json({ error: '未授权，Token 格式不正确' });
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({ error: '请求过于频繁，请稍后再试' });
   }
-
-  const token = parts[1];
-  const expectedToken = process.env.AUTH_TOKEN;
-
-  if (!expectedToken || token !== expectedToken) {
-    return res.status(401).json({ error: '未授权，Token 无效' });
-  }
-
   next();
 }
 
-// CSP Header 中间件
+// 定期清理过期限流记录
+setInterval(() => {
+  const cutoff = Date.now() - RATE_LIMIT_WINDOW;
+  for (const [ip, entry] of rateLimitMap) {
+    if (entry.windowStart < cutoff) rateLimitMap.delete(ip);
+  }
+}, 120_000);
+
+// ========== 认证中间件 ==========
+
+// 认证中间件 — 校验签名 Cookie 或 Bearer Token
+function authenticateToken(req, res, next) {
+  const expectedToken = process.env.AUTH_TOKEN;
+
+  // 方式 1: 检查签名 Cookie
+  if (req.signedCookies?.auth_token && req.signedCookies.auth_token === expectedToken) {
+    return next();
+  }
+
+  // 方式 2: 检查 Bearer Token header
+  const authHeader = req.headers['authorization'];
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer' && parts[1] === expectedToken) {
+      return next();
+    }
+  }
+
+  if (!expectedToken) {
+    return res.status(500).json({ error: '服务端未配置 AUTH_TOKEN' });
+  }
+
+  return res.status(401).json({ error: '未授权，请先登录' });
+}
+
+// ========== CSP Nonce 生成 ==========
+
+function generateNonce() {
+  return crypto.randomBytes(16).toString('base64');
+}
+
+// CSP Header 中间件 — 使用 nonce 支持内联样式和脚本
 function setSecurityHeaders(req, res, next) {
-  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  const nonce = generateNonce();
+  res.locals.nonce = nonce;
+
+  res.setHeader(
+    'Content-Security-Policy',
+    `default-src 'self'; style-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net; script-src 'self' 'nonce-${nonce}'; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self'`
+  );
   next();
 }
 
@@ -61,6 +115,7 @@ function corsMiddleware(req, res, next) {
   }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -71,6 +126,45 @@ app.use(setSecurityHeaders);
 app.use(corsMiddleware);
 
 // ========== API 路由 ==========
+
+// 登录端点 — 验证密码后设置 HttpOnly 签名 Cookie（带限流）
+app.post('/api/login', rateLimiter, (req, res) => {
+  const { password } = req.body || {};
+  const expectedToken = process.env.AUTH_TOKEN;
+
+  if (!expectedToken) {
+    return res.status(500).json({ error: '服务端未配置 AUTH_TOKEN' });
+  }
+
+  if (!password || password !== expectedToken) {
+    return res.status(401).json({ error: '密码错误' });
+  }
+
+  res.cookie('auth_token', expectedToken, {
+    httpOnly: true,
+    signed: true,
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000  // 24 小时
+  });
+
+  res.json({ success: true, message: '登录成功' });
+});
+
+// 登出端点
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('auth_token');
+  res.json({ success: true, message: '已登出' });
+});
+
+// 检查登录状态
+app.get('/api/auth-status', (req, res) => {
+  const expectedToken = process.env.AUTH_TOKEN;
+  const isAuth =
+    (req.signedCookies?.auth_token && req.signedCookies.auth_token === expectedToken);
+
+  res.json({ authenticated: !!isAuth });
+});
 
 // 获取数据
 app.get('/api/data', async (req, res) => {
@@ -130,55 +224,62 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// Zod 校验 schemas
+// Zod 校验 schemas（增强版：添加长度限制和数组规模限制）
 const shopSchema = z.object({
   no: z.number().int().min(0),
-  shortNo: z.string().optional().default(''),
-  name: z.string().min(1),
-  type: z.string().optional().default('商铺'),
+  shortNo: z.string().max(50).optional().default(''),
+  name: z.string().min(1).max(200),
+  type: z.string().max(50).optional().default('商铺'),
   area: z.number().min(0).optional().default(0),
-  tenant: z.string().optional().default(''),
-  contact: z.string().optional().default(''),
-  openDate: z.string().optional().default(''),
+  tenant: z.string().max(100).optional().default(''),
+  contact: z.string().max(100).optional().default(''),
+  openDate: z.string().max(50).optional().default(''),
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
-  remark: z.string().optional().default('')
+  remark: z.string().max(500).optional().default('')
 });
 
 const stationSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
+  id: z.string().min(1).max(100),
+  name: z.string().min(1).max(100),
   grade: z.enum(['S', 'A', 'B', 'C']),
   x: z.number().int().min(0).max(3000),
   y: z.number().int().min(0).max(3000),
   pos: z.enum(['top', 'bottom', 'left', 'right']),
   transfer: z.boolean().optional().default(false),
-  transferLine: z.string().nullable().optional(),
-  shops: z.array(shopSchema).optional().default([]),
+  transferLine: z.string().max(100).nullable().optional(),
+  shops: z.array(shopSchema).max(200).optional().default([]),
   version: z.number().int().min(0).optional().default(0)
 });
 
 const globalStatsSchema = z.object({
-  statsDate: z.string().optional().default(''),
+  statsDate: z.string().max(100).optional().default(''),
   totalShops: z.number().int().min(0).optional().default(0),
   rentedShops: z.number().int().min(0).optional().default(0),
   vacantShops: z.number().int().min(0).optional().default(0),
-  rentRate: z.string().optional().default('')
+  rentRate: z.string().max(20).optional().default('')
 });
 
-const gradeInfoSchema = z.record(z.string(), z.object({
-  name: z.string().min(1),
-  desc: z.string().optional().default(''),
-  color: z.string().min(1)
+const gradeInfoSchema = z.record(z.string().max(10), z.object({
+  name: z.string().min(1).max(100),
+  desc: z.string().max(500).optional().default(''),
+  color: z.string().min(1).max(20)
 }));
 
+// 完整数据 schema 带重复 ID 检查
 const dataSchema = z.object({
-  stations: z.array(stationSchema).optional().default([]),
+  stations: z.array(stationSchema).max(100).optional().default([]),
   globalStats: globalStatsSchema.nullable().optional(),
   gradeInfo: gradeInfoSchema.optional().default({})
-});
+}).refine(
+  (data) => {
+    const ids = (data.stations || []).map(s => s.id);
+    return new Set(ids).size === ids.length;
+  },
+  { message: 'stations 数组包含重复的 ID', path: ['stations'] }
+);
 
-// 保存数据（需要认证）
-app.post('/api/data', authenticateToken, async (req, res) => {
+// 保存数据（需要认证 + 限流）
+app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
   // Zod 校验
   const result = dataSchema.safeParse(req.body.data);
   if (!result.success) {
@@ -187,6 +288,7 @@ app.post('/api/data', authenticateToken, async (req, res) => {
   }
 
   const data = result.data;
+  const updatedVersions = {};
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -201,41 +303,63 @@ app.post('/api/data', authenticateToken, async (req, res) => {
         await tx.station.deleteMany();
       }
 
-      // 2. 保存站点和商铺（带版本号校验）
+      // 2. 保存站点和商铺（原子乐观锁版本号校验）
       for (const s of data.stations) {
         const existing = await tx.station.findUnique({ where: { id: s.id } });
 
-        // 乐观锁校验
-        if (existing && s.version && existing.version !== s.version) {
-          throw new Error(`CONFLICT:${s.id}:期望版本 ${s.version}，实际版本 ${existing.version}`);
-        }
+        if (existing && s.version != null) {
+          // 原子乐观锁：在同一 SQL 中检查 id + version，避免竞态窗口
+          const result = await tx.station.updateMany({
+            where: { id: s.id, version: s.version },
+            data: {
+              name: s.name,
+              grade: s.grade,
+              x: s.x,
+              y: s.y,
+              pos: s.pos,
+              transfer: s.transfer,
+              transferLine: s.transferLine || null,
+              version: s.version + 1
+            }
+          });
 
-        const newVersion = (existing?.version || 0) + 1;
-
-        await tx.station.upsert({
-          where: { id: s.id },
-          update: {
-            name: s.name,
-            grade: s.grade,
-            x: s.x,
-            y: s.y,
-            pos: s.pos,
-            transfer: s.transfer,
-            transferLine: s.transferLine || null,
-            version: newVersion
-          },
-          create: {
-            id: s.id,
-            name: s.name,
-            grade: s.grade,
-            x: s.x,
-            y: s.y,
-            pos: s.pos,
-            transfer: s.transfer,
-            transferLine: s.transferLine || null,
-            version: 1
+          if (result.count === 0) {
+            // 版本不匹配——重新读取以获取实际版本
+            const current = await tx.station.findUnique({ where: { id: s.id } });
+            throw new Error(`CONFLICT:${s.id}:期望版本 ${s.version}，实际版本 ${current.version}`);
           }
-        });
+
+          updatedVersions[s.id] = s.version + 1;
+        } else {
+          // 新建站点或无版本信息——使用 upsert
+          const newVersion = (existing?.version || 0) + 1;
+          updatedVersions[s.id] = newVersion;
+
+          await tx.station.upsert({
+            where: { id: s.id },
+            update: {
+              name: s.name,
+              grade: s.grade,
+              x: s.x,
+              y: s.y,
+              pos: s.pos,
+              transfer: s.transfer,
+              transferLine: s.transferLine || null,
+              version: newVersion
+            },
+            create: {
+              id: s.id,
+              name: s.name,
+              grade: s.grade,
+              x: s.x,
+              y: s.y,
+              pos: s.pos,
+              transfer: s.transfer,
+              transferLine: s.transferLine || null,
+              version: 1
+            }
+          });
+        }
 
         // 删除该站点的旧商铺，插入新商铺
         await tx.shop.deleteMany({ where: { stationId: s.id } });
@@ -306,11 +430,19 @@ app.post('/api/data', authenticateToken, async (req, res) => {
     });
 
     console.log(`数据已保存 [${new Date().toLocaleString()}]`);
-    res.json({ success: true, updatedAt: new Date().toISOString() });
+    res.json({
+      success: true,
+      updatedAt: new Date().toISOString(),
+      versions: updatedVersions
+    });
   } catch (err) {
     if (err.message && err.message.startsWith('CONFLICT:')) {
       const parts = err.message.split(':');
-      return res.status(409).json({ error: '版本冲突', stationId: parts[1], detail: parts[2] });
+      return res.status(409).json({
+        error: '版本冲突',
+        stationId: parts[1],
+        detail: parts[2]
+      });
     }
     console.error('保存失败:', err.message);
     res.status(500).json({ error: '数据库保存失败' });
@@ -333,27 +465,31 @@ app.get('/api/ip', (req, res) => {
 
 // ========== 静态文件服务（白名单）==========
 
-// 注入 data-auth-token 到 HTML
-function injectAuthToken(htmlPath, res) {
+// HTML 服务 — 注入 nonce 以支持内联样式和脚本，不注入 Token
+function serveHtml(htmlPath, req, res) {
   fs.readFile(htmlPath, 'utf8', (err, data) => {
     if (err) {
       return res.status(500).send('读取文件失败');
     }
-    const token = process.env.AUTH_TOKEN || '';
-    const injected = data.replace(
-      '<html lang="zh-CN"',
-      `<html lang="zh-CN" data-auth-token="${token}"`
-    );
+
+    const nonce = res.locals.nonce || generateNonce();
+
+    // 注入 nonce 到所有 <style> 和 <script> 标签（无 src 属性的内联标签）
+    let result = data
+      .replace(/<style>/g, `<style nonce="${nonce}">`)
+      .replace(/<script type="module">/g, `<script type="module" nonce="${nonce}">`)
+      .replace(/<script>/g, `<script nonce="${nonce}">`);
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(injected);
+    res.send(result);
   });
 }
 
 // 显式白名单路由
-app.get('/', (req, res) => injectAuthToken(path.join(__dirname, 'index.html'), res));
-app.get('/index.html', (req, res) => injectAuthToken(path.join(__dirname, 'index.html'), res));
-app.get('/battle-map.html', (req, res) => injectAuthToken(path.join(__dirname, 'battle-map.html'), res));
-app.get('/data-viz.html', (req, res) => injectAuthToken(path.join(__dirname, 'data-viz.html'), res));
+app.get('/', (req, res) => serveHtml(path.join(__dirname, 'index.html'), req, res));
+app.get('/index.html', (req, res) => serveHtml(path.join(__dirname, 'index.html'), req, res));
+app.get('/battle-map.html', (req, res) => serveHtml(path.join(__dirname, 'battle-map.html'), req, res));
+app.get('/data-viz.html', (req, res) => serveHtml(path.join(__dirname, 'data-viz.html'), req, res));
 
 // 允许的前端资源目录
 app.use('/css', express.static(path.join(__dirname, 'css')));
@@ -361,10 +497,24 @@ app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // 导出供测试使用
-module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, injectAuthToken };
+module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, rateLimiter };
 
 // 启动服务器
 if (require.main === module) {
+  // 安全检查：默认凭证警告
+  if (SESSION_SECRET === 'change-me-in-production') {
+    console.warn('\n⚠️  ══════════════════════════════════════════');
+    console.warn('   警告: SESSION_SECRET 使用默认值！');
+    console.warn('   请在 .env 中设置 SESSION_SECRET 为随机字符串。');
+    console.warn('   ══════════════════════════════════════════\n');
+  }
+  if (process.env.AUTH_TOKEN === 'change-me-in-production') {
+    console.warn('\n⚠️  ══════════════════════════════════════════');
+    console.warn('   警告: AUTH_TOKEN 使用默认值！');
+    console.warn('   请在 .env 中设置 AUTH_TOKEN 为随机字符串。');
+    console.warn('   ══════════════════════════════════════════\n');
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log('\n========================================');
     console.log('  苏州地铁11号线商业作战图 服务器已启动');

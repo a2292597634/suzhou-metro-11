@@ -4,7 +4,7 @@ schema: spec-driven
 context: |
   Project: 苏州地铁11号线商业开发作战图（21:9 超宽比例，适合打印海报）
   Tech stack: 前端原生 HTML5/CSS3/JavaScript (ES Modules) + 后端 Node.js/Express 5 + Prisma ORM + PostgreSQL
-  Auth: 无认证（内部工具，无登录系统）
+  Auth: HttpOnly 签名 Cookie + 登录端点（POST /api/login），同时兼容 Bearer Token
   Database: PostgreSQL（Prisma ORM 管理）
   ORM: Prisma
   Frontend: 原生 HTML + CSS + Vanilla JS，无构建工具，无框架
@@ -45,7 +45,7 @@ context: |
     - CSS 类名使用 kebab-case
     - 模块间通过 state.js 共享状态
     - 状态变更后走 calcGlobalStats → renderAll → bindEventsAfterRender → saveData 流程
-    - API 端点：GET /api/data, POST /api/data, GET /api/ip
+    - API 端点：GET /api/data, POST /api/data, POST /api/login, POST /api/logout, GET /api/auth-status, GET /api/ip
     - 数据加载优先级：服务器 API → localStorage → 硬编码默认值
     - CSS 使用自定义属性（CSS Variables）定义主题色
     - TDD 流程：先写失败测试 (Red) → 再写实现使其通过 (Green) → 最后重构 (Refactor)。实现代码必须由测试驱动，禁止先写实现后补测试

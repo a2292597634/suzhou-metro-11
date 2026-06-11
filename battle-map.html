@@ -626,13 +626,13 @@
                 </div>
                 <!-- 顶部操作栏 -->
                 <div class="top-actions">
-                    <button class="btn btn-print" onclick="app.printMap()">🖨️ 打印作战图</button>
-                    <button class="btn btn-export" onclick="app.showHDExportHelp()" title="导出高清PNG海报">🖼️ 导出高清海报</button>
-                    <button class="btn btn-export" onclick="app.exportExcel()">📥 导出Excel</button>
-                    <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 导入Excel</button>
-                    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="app.importExcel(this)">
-                    <button class="btn btn-reset" onclick="app.resetData()">🔄 恢复默认</button>
-                    <button class="btn btn-save" onclick="app.saveNow()">💾 立即保存</button>
+                    <button id="btn-print" class="btn btn-print">🖨️ 打印作战图</button>
+                    <button id="btn-hd-export" class="btn btn-export" title="导出高清PNG海报">🖼️ 导出高清海报</button>
+                    <button id="btn-export-excel" class="btn btn-export">📥 导出Excel</button>
+                    <button id="btn-import-excel" class="btn btn-import">📤 导入Excel</button>
+                    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none">
+                    <button id="btn-reset" class="btn btn-reset">🔄 恢复默认</button>
+                    <button id="btn-save" class="btn btn-save">💾 立即保存</button>
                 </div>
             </header>
 
@@ -736,8 +736,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-reset" onclick="app.closeModal()">取消</button>
-        <button class="btn btn-save" onclick="app.saveStationEdit()">保存</button>
+        <button id="btn-modal-cancel" class="btn btn-reset">取消</button>
+        <button id="btn-modal-save" class="btn btn-save">保存</button>
       </div>
     </div>
 
@@ -782,12 +782,12 @@ npm run export-8k</code></pre>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-reset" onclick="app.closeHDExportModal()">关闭</button>
+        <button id="btn-hd-close" class="btn btn-reset">关闭</button>
       </div>
     </div>
 
     <!-- 遮罩层 -->
-    <div class="overlay" id="overlay" onclick="app.closeModal(); app.closeHDExportModal();"></div>
+    <div class="overlay" id="overlay"></div>
 
     <script src="js/xlsx.full.min.js"></script>
     <script type="module" src="js/modules/main.js?v=15"></script>

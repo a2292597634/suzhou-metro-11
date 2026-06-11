@@ -213,11 +213,28 @@ export function addViewportControls() {
 
   const controls = document.createElement('div');
   controls.className = 'viewport-controls';
-  controls.innerHTML = `
-    <button class="viewport-btn" onclick="app.zoomIn()" title="放大">+</button>
-    <button class="viewport-btn" onclick="app.zoomOut()" title="缩小">−</button>
-    <button class="viewport-btn" onclick="app.resetViewport()" title="重置视图">⟲</button>
-  `;
+
+  const zoomInBtn = document.createElement('button');
+  zoomInBtn.className = 'viewport-btn';
+  zoomInBtn.title = '放大';
+  zoomInBtn.textContent = '+';
+  zoomInBtn.addEventListener('click', zoomIn);
+
+  const zoomOutBtn = document.createElement('button');
+  zoomOutBtn.className = 'viewport-btn';
+  zoomOutBtn.title = '缩小';
+  zoomOutBtn.textContent = '−';
+  zoomOutBtn.addEventListener('click', zoomOut);
+
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'viewport-btn';
+  resetBtn.title = '重置视图';
+  resetBtn.textContent = '⟲';
+  resetBtn.addEventListener('click', resetViewport);
+
+  controls.appendChild(zoomInBtn);
+  controls.appendChild(zoomOutBtn);
+  controls.appendChild(resetBtn);
   document.body.appendChild(controls);
 }
 

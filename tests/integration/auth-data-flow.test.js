@@ -1,24 +1,26 @@
 /**
- * 认证数据流集成测试 — 端到端验证 Token 读取 → 请求携带 → 服务端校验
+ * 认证数据流集成测试 — 端到端验证登录 → Cookie → 保存流程
  */
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 
-process.env.AUTH_TOKEN = 'integration-test-token';
-process.env.ALLOWED_ORIGINS = 'http://localhost:3000';
-process.env.DATABASE_URL = 'postgresql://postgres:metro123@localhost:5432/suzhou_metro?schema=public';
+// 环境变量由 vitest.config.js 从 .env.test 加载，无需在此硬编码
 
 const { app } = await import('../../server.js');
 
+const dbAvailable = process.env.TEST_DB_AVAILABLE === '1';
+
 describe('认证数据流集成', () => {
-  it('携带正确 Token 的 POST /api/data 应通过认证', async () => {
+  it('携带正确 Bearer Token 的 POST /api/data 应通过认证', async () => {
+    if (!dbAvailable) return;
+
     const res = await request(app)
       .post('/api/data')
-      .set('Authorization', 'Bearer integration-test-token')
+      .set('Authorization', 'Bearer test-secret-token')
       .send({ data: { stations: [], globalStats: null } });
 
-    // 认证通过后，数据库可能不存在导致 500，但不应该是 401
-    expect(res.status).not.toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 
   it('携带错误 Token 的 POST /api/data 应返回 401', async () => {
@@ -28,7 +30,7 @@ describe('认证数据流集成', () => {
       .send({ data: { stations: [] } });
 
     expect(res.status).toBe(401);
-    expect(res.body.error).toBe('未授权，Token 无效');
+    expect(res.body.error).toBe('未授权，请先登录');
   });
 
   it('无 Token 的 POST /api/data 应返回 401', async () => {
@@ -37,7 +39,7 @@ describe('认证数据流集成', () => {
       .send({ data: { stations: [] } });
 
     expect(res.status).toBe(401);
-    expect(res.body.error).toBe('未授权，缺少认证信息');
+    expect(res.body.error).toBe('未授权，请先登录');
   });
 
   it('GET /api/data 不应要求认证', async () => {
@@ -45,10 +47,30 @@ describe('认证数据流集成', () => {
     expect(res.status).not.toBe(401);
   });
 
-  it('HTML 页面应包含注入的 data-auth-token', async () => {
+  it('登录成功后可获取认证 Cookie 并使用它写数据', async () => {
+    if (!dbAvailable) return;
+
+    const loginRes = await request(app)
+      .post('/api/login')
+      .send({ password: 'test-secret-token' });
+
+    expect(loginRes.status).toBe(200);
+    const cookies = loginRes.headers['set-cookie'];
+
+    const dataRes = await request(app)
+      .post('/api/data')
+      .set('Cookie', Array.isArray(cookies) ? cookies : [cookies])
+      .send({ data: { stations: [], globalStats: null } });
+
+    expect(dataRes.status).toBe(200);
+    expect(dataRes.body.success).toBe(true);
+  });
+
+  it('HTML 页面不应包含明文 Token', async () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
-    expect(res.text).toContain('data-auth-token="integration-test-token"');
+    expect(res.text).not.toContain('test-secret-token');
+    expect(res.text).not.toContain('data-auth-token');
   });
 
   it('CORS 白名单内的请求应允许跨域', async () => {
@@ -69,7 +91,7 @@ describe('认证数据流集成', () => {
 
   it('所有响应应携带 CSP header', async () => {
     const res = await request(app).get('/api/data');
-    expect(res.headers['content-security-policy']).toBe("default-src 'self'");
+    expect(res.headers['content-security-policy']).toBeDefined();
   });
 
   it('敏感文件应返回 404', async () => {

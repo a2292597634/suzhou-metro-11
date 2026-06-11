@@ -167,7 +167,7 @@ describe('数据管理', () => {
     it('saveData 成功时应 dispatch 事件', async () => {
       const handler = vi.fn();
       window.addEventListener('datasource:change', handler);
-      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true })));
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) })));
       state.stations = [];
       await saveData();
       expect(handler).toHaveBeenCalledTimes(1);
@@ -188,35 +188,71 @@ describe('数据管理', () => {
     });
   });
 
-  describe('Authorization header', () => {
-    it('saveData 有 Token 时应在 headers 中携带 Authorization', async () => {
-      state.authToken = 'my-test-token';
-      const fetchMock = vi.fn(() => Promise.resolve({ ok: true }));
+  describe('认证与保存', () => {
+    it('saveData 应使用 credentials: include 发送 Cookie', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) }));
       vi.stubGlobal('fetch', fetchMock);
       state.stations = [];
       await saveData();
       const callArgs = fetchMock.mock.calls[0];
-      expect(callArgs[1].headers).toHaveProperty('Authorization', 'Bearer my-test-token');
+      expect(callArgs[1].credentials).toBe('include');
+      // 不应携带明文 Authorization header
+      expect(callArgs[1].headers).not.toHaveProperty('Authorization');
     });
 
-    it('loadData 不应携带 Authorization header', async () => {
-      state.authToken = 'my-test-token';
-      const fetchMock = vi.fn(() =>
-        Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { stations: [], globalStats: {} } }) })
-      );
-      vi.stubGlobal('fetch', fetchMock);
-      await loadData();
-      const callArgs = fetchMock.mock.calls[0];
-      expect(callArgs[1]).toBeUndefined(); // fetch 只传了 url，没有 options
-    });
-
-    it('saveData Token 为空时仍应正常发送请求', async () => {
-      state.authToken = '';
-      const fetchMock = vi.fn(() => Promise.resolve({ ok: true }));
+    it('saveData 遇到 409 冲突时应返回 conflict: true', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({
+        ok: false,
+        status: 409,
+        json: () => Promise.resolve({ error: '版本冲突', stationId: 'test', detail: '期望版本 1，实际版本 2' })
+      }));
       vi.stubGlobal('fetch', fetchMock);
       state.stations = [];
-      await saveData();
-      expect(fetchMock).toHaveBeenCalled();
+      const result = await saveData();
+      expect(result.success).toBe(false);
+      expect(result.conflict).toBe(true);
+    });
+
+    it('saveData 遇到 401 时应返回 needLogin: true', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve({ error: '未授权，请先登录' })
+      }));
+      vi.stubGlobal('fetch', fetchMock);
+      state.stations = [];
+      const result = await saveData();
+      expect(result.success).toBe(false);
+      expect(result.needLogin).toBe(true);
+    });
+
+    it('登录成功应设置 isAuthenticated', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true }));
+      vi.stubGlobal('fetch', fetchMock);
+      state.isAuthenticated = false;
+      const { login } = await import('../js/modules/data.js');
+      const result = await login('test-token');
+      expect(result.success).toBe(true);
+      expect(state.isAuthenticated).toBe(true);
+    });
+
+    it('登录失败不改变 isAuthenticated', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: false, status: 401, json: () => Promise.resolve({ error: '密码错误' }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      state.isAuthenticated = false;
+      const { login } = await import('../js/modules/data.js');
+      const result = await login('wrong');
+      expect(result.success).toBe(false);
+      expect(state.isAuthenticated).toBe(false);
+    });
+
+    it('checkAuth 应调用 /api/auth-status', async () => {
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ authenticated: true }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      const { checkAuth } = await import('../js/modules/data.js');
+      const result = await checkAuth();
+      expect(result).toBe(true);
+      expect(state.isAuthenticated).toBe(true);
     });
 
     it('服务器和 localStorage 双失败时应返回 success: false', async () => {

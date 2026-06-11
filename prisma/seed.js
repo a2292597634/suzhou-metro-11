@@ -143,6 +143,24 @@ const defaultGradeInfo = {
 };
 
 async function main() {
+  // 检查是否强制覆盖（--force 参数）
+  const forceReset = process.argv.includes('--force');
+
+  if (!forceReset) {
+    const stationCount = await prisma.station.count();
+    if (stationCount > 0) {
+      console.log(`数据库已有 ${stationCount} 个站点，跳过种子导入。`);
+      console.log('如需强制覆盖，请使用: node prisma/seed.js --force');
+      return;
+    }
+  } else {
+    console.log('--force 模式：将覆盖已有数据');
+    await prisma.shop.deleteMany();
+    await prisma.station.deleteMany();
+    await prisma.globalStats.deleteMany();
+    await prisma.gradeInfo.deleteMany();
+  }
+
   console.log('开始导入默认数据...');
 
   // 1. 导入站点和商铺

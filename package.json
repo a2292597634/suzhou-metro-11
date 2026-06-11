@@ -22,11 +22,13 @@
     "jsdom": "^29.1.1",
     "puppeteer": "^24.0.0",
     "supertest": "^7.2.2",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "wait-on": "^9.0.10"
   },
   "main": "screenshot-resize.js",
   "dependencies": {
     "@prisma/client": "^6.6.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "prisma": "^6.6.0",

@@ -63,7 +63,7 @@ describe('viz ↔ data 集成', () => {
   describe('数据保存流程', () => {
     it('saveData 应将数据 POST 到 API', async () => {
       vi.stubGlobal('fetch', vi.fn(() =>
-        Promise.resolve({ ok: true })
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) })
       ));
 
       state.stations = [{ id: 's1', name: '保存测试', grade: 'A', shops: [], x: 100, y: 480, pos: 'top' }];

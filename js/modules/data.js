@@ -220,6 +220,41 @@ export async function loadData() {
   return { source: 'default' };
 }
 
+// 登录 — 向服务端提交密码获取 HttpOnly Cookie
+export async function login(password) {
+  try {
+    const res = await fetch(`${state.apiBase}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ password })
+    });
+    if (res.ok) {
+      state.isAuthenticated = true;
+      return { success: true };
+    }
+    const body = await res.json().catch(() => ({}));
+    return { success: false, error: body.error || '登录失败' };
+  } catch (e) {
+    return { success: false, error: '网络错误：无法连接到服务器' };
+  }
+}
+
+// 检查认证状态
+export async function checkAuth() {
+  try {
+    const res = await fetch(`${state.apiBase}/api/auth-status`, {
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const body = await res.json();
+      state.isAuthenticated = !!body.authenticated;
+      return body.authenticated;
+    }
+  } catch (e) { /* 忽略 */ }
+  return false;
+}
+
 // 保存到后端 API
 export async function saveData() {
   const data = {
@@ -230,26 +265,54 @@ export async function saveData() {
 
   // 先尝试保存到后端
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (state.authToken) {
-      headers['Authorization'] = `Bearer ${state.authToken}`;
-    }
-
     const res = await fetch(`${state.apiBase}/api/data`, {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ data })
     });
+
     if (res.ok) {
+      const result = await res.json();
+      // 更新前端各站点的版本号（乐观锁闭环）
+      if (result.versions) {
+        for (const [stationId, newVersion] of Object.entries(result.versions)) {
+          const station = state.stations.find(s => s.id === stationId);
+          if (station) {
+            station.version = newVersion;
+          }
+        }
+      }
       saveToLocal(data);
       notifySource('server');
       return { success: true, source: 'server' };
     }
+
+    // 409 版本冲突 — 不退回 localStorage，提示用户刷新
+    if (res.status === 409) {
+      const body = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        source: 'server',
+        conflict: true,
+        error: body.detail || '数据已被他人修改，请刷新页面后重试',
+        stationId: body.stationId
+      };
+    }
+
+    // 401 未认证 — 提示登录
+    if (res.status === 401) {
+      return { success: false, source: 'server', needLogin: true, error: '请先登录后再保存' };
+    }
+
+    // 其他服务端错误
+    const body = await res.json().catch(() => ({}));
+    return { success: false, source: 'server', error: body.error || '服务器保存失败' };
   } catch (e) {
     console.warn('服务器保存失败，回退到本地', e);
   }
 
-  // 回退到 localStorage
+  // 回退到 localStorage（仅在网络不可达时）
   try {
     saveToLocal(data);
     notifySource('local');

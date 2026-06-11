@@ -28,8 +28,8 @@ export const state = {
   // API 基础地址（优先从 HTML data-api-base 属性读取）
   apiBase: (typeof document !== 'undefined' && document.documentElement?.dataset?.apiBase) || '',
 
-  // 认证 Token（从 HTML data-auth-token 属性读取）
-  authToken: (typeof document !== 'undefined' && document.documentElement?.dataset?.authToken) || '',
+  // 认证状态（通过 /api/auth-status 检查，不再从 HTML 属性读取 Token）
+  isAuthenticated: false,
 
   // 视口状态
   viewport: {

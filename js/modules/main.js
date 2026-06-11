@@ -1,5 +1,5 @@
 /**
- * 主入口 — 模块组装、初始化、全局 app 对象
+ * 主入口 — 模块组装、初始化、全局事件绑定
  */
 
 import { state } from './state.js';
@@ -8,28 +8,53 @@ import * as render from './render.js';
 import * as viewport from './viewport.js';
 import * as interaction from './interaction.js';
 
-// 全局 app 对象（供 HTML onclick 调用）
-window.app = {
-  saveNow: async () => {
-    const result = await data.saveData();
-    if (result.source === 'server') {
-      interaction.showToast('💾 数据已保存到服务器');
-    } else {
-      interaction.showToast('💾 数据已保存到本地（服务器不可用）');
+// 统一的保存处理——检查 needLogin 和 conflict
+async function handleSave(context) {
+  const result = await data.saveData();
+  if (result.conflict) {
+    interaction.showToast('⚠️ ' + result.error, 'error');
+  } else if (result.needLogin) {
+    const password = prompt('请输入管理密码：');
+    if (password) {
+      const loginResult = await data.login(password);
+      if (loginResult.success) {
+        interaction.showToast('✅ 登录成功，重新保存...');
+        // 重试——不递归，直接调 saveData
+        const retry = await data.saveData();
+        if (retry.success) {
+          interaction.showToast('💾 数据已保存到服务器');
+        } else if (retry.conflict) {
+          interaction.showToast('⚠️ ' + retry.error, 'error');
+        } else {
+          interaction.showToast('💾 数据已保存到本地', 'error');
+        }
+      } else {
+        interaction.showToast('❌ ' + loginResult.error, 'error');
+      }
     }
-  },
+  } else if (result.source === 'server') {
+    interaction.showToast('💾 数据已保存到服务器');
+  } else {
+    interaction.showToast('💾 数据已保存到本地（服务器不可用）');
+  }
+}
+
+// 全局 app 对象
+window.app = {
+  saveNow: () => handleSave(),
 
   exportExcel: () => {
     data.exportExcel();
     interaction.showToast('📥 Excel 已导出');
   },
 
-  importExcel: (input) => {
+  importExcel: async (input) => {
     if (input.files && input.files[0]) {
-      data.importExcel(input, () => {
+      data.importExcel(input, async () => {
         data.calcGlobalStats();
         render.renderAll();
-        data.saveData();
+        bindEventsAfterRender();
+        await data.saveData();
         interaction.showToast('📤 Excel 导入成功');
       }, (msg) => {
         interaction.showToast(msg, 'error');
@@ -51,11 +76,11 @@ window.app = {
   closeModal: () => interaction.closeModal(),
 
   saveStationEdit: () => {
-    interaction.saveStationEdit(() => {
+    interaction.saveStationEdit(async () => {
       data.calcGlobalStats();
       render.renderAll();
       bindEventsAfterRender();
-      data.saveData();
+      await data.saveData();
       interaction.closeModal();
       interaction.showToast('✅ 站点数据已更新');
     });
@@ -87,7 +112,7 @@ function bindEventsAfterRender() {
       interaction.makeEditable(el, async (val) => {
         state.gradeInfo[gradeKey][field] = val;
         el.dataset.raw = val;
-        const displayVal = val.trim() !== '' ? val : '      ';
+        const displayVal = val.trim() !== '' ? val : '      ';
         el.textContent = displayVal;
         await data.saveData();
         interaction.showToast('✅ 分级信息已更新');
@@ -151,9 +176,35 @@ function bindEventsAfterRender() {
   }
 }
 
+// 初始化全局按钮事件绑定（替代 onclick 属性）
+function bindGlobalButtons() {
+  const bind = (id, event, handler) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(event, handler);
+  };
+
+  bind('btn-print', 'click', window.app.printMap);
+  bind('btn-hd-export', 'click', window.app.showHDExportHelp);
+  bind('btn-export-excel', 'click', window.app.exportExcel);
+  bind('btn-import-excel', 'click', () => document.getElementById('importFile').click());
+  bind('btn-reset', 'click', window.app.resetData);
+  bind('btn-save', 'click', window.app.saveNow);
+  bind('btn-modal-cancel', 'click', window.app.closeModal);
+  bind('btn-modal-save', 'click', window.app.saveStationEdit);
+  bind('btn-hd-close', 'click', window.app.closeHDExportModal);
+
+  const overlay = document.getElementById('overlay');
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      window.app.closeModal();
+      window.app.closeHDExportModal();
+    });
+  }
+}
+
 // 初始化
 async function init() {
-  // 初始化导航和路由（如可用，兼容旧页面）
+  // 初始化导航和路由
   try {
     const { initNav } = await import('./nav.js');
     const { initRouter } = await import('./router.js');
@@ -167,6 +218,7 @@ async function init() {
   data.calcGlobalStats();
   render.renderAll();
   bindEventsAfterRender();
+  bindGlobalButtons();
 
   // 设置全局事件监听
   interaction.setupEventListeners((input) => {
@@ -184,7 +236,7 @@ async function init() {
   viewport.initViewport();
 }
 
-// 启动（module script 默认 deferred，DOM 已 ready；但为安全起见做判断）
+// 启动
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

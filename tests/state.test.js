@@ -35,8 +35,8 @@ describe('共享状态', () => {
     expect(state.apiBase).toBe('');
   });
 
-  it('认证 Token 初始应为空字符串', () => {
-    expect(state.authToken).toBe('');
+  it('认证状态初始应为 false', () => {
+    expect(state.isAuthenticated).toBe(false);
   });
 
   it('视口状态应该有正确的默认值', () => {
