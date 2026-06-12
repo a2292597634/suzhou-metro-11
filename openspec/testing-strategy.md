@@ -123,6 +123,7 @@
 | Puppeteer | ✅ 已安装 | `package.json` devDependencies |
 | 配置文件 | ✅ 已创建 | `vitest.config.js` |
 | 测试目录 | ✅ 已创建 | `tests/` |
+| E2E 同源预览服务 | ✅ 已创建 | `tools/design-preview-server.js` |
 
 ### 4.2 测试目录规范
 
@@ -143,10 +144,21 @@ tests/
 ### 4.3 运行脚本
 
 ```bash
-npm test              # 运行所有测试（CI 用）
+npm test              # 运行单元与集成测试（排除 tests/e2e/**）
+npm run test:e2e      # 运行 E2E 测试（需先启动目标页面服务）
+npm run test:all      # 运行单元、集成与 E2E（需先启动目标页面服务）
 npm run test:watch    # 监听模式（开发用）
 node scripts/check-test-coverage.js  # 检查覆盖率
 ```
+
+首页 E2E 的本地同源预览可在两个 PowerShell 终端中运行：
+
+```powershell
+node tools/design-preview-server.js
+$env:PORT='4173'; npm run test:e2e
+```
+
+预览服务对正式页面返回 `Content-Security-Policy: default-src 'self'`，用于验证与生产一致的资源约束；E2E 不 mock 首页渲染、导航或交互。
 
 ---
 
