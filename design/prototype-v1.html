@@ -1,0 +1,1822 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>苏州地铁11号线商业信息综合平台 - 设计稿 V1</title>
+  <style>
+    :root {
+      --brand: #b01f35;
+      --brand-soft: #f9e9ec;
+      --ink: #17202a;
+      --muted: #66717e;
+      --line: #e5e8ec;
+      --canvas: #f3f5f7;
+      --surface: #fff;
+      --green: #138a5b;
+      --green-soft: #e7f6ef;
+      --orange: #d46b22;
+      --orange-soft: #fff1e6;
+      --blue: #2867b2;
+      --blue-soft: #eaf2fb;
+      --shadow: 0 16px 42px rgba(29, 38, 48, .09);
+      --shadow-card: 0 1px 2px rgba(23, 32, 42, .03), 0 8px 24px rgba(23, 32, 42, .045);
+      --shadow-card-hover: 0 2px 4px rgba(23, 32, 42, .04), 0 16px 36px rgba(23, 32, 42, .085);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #dfe3e8;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .prototype-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 48px;
+      padding: 8px 24px;
+      color: #fff;
+      background: #20262d;
+    }
+
+    .prototype-bar strong { font-size: 14px; }
+    .prototype-bar span { color: #b8c0c8; font-size: 12px; }
+
+    .screen {
+      width: min(1440px, calc(100% - 32px));
+      min-height: 900px;
+      margin: 24px auto 56px;
+      overflow: hidden;
+      background: var(--canvas);
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(23, 32, 42, .22);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 360px 1fr 320px;
+      align-items: center;
+      height: 76px;
+      padding: 0 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .brand-mark img {
+      display: block;
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+    }
+
+    .brand-copy {
+      min-width: 0;
+      padding-left: 14px;
+      border-left: 1px solid #e5e5e5;
+    }
+
+    .brand-kicker {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 4px;
+      color: var(--brand);
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .brand-kicker::before {
+      width: 14px;
+      height: 2px;
+      background: var(--brand);
+      border-radius: 99px;
+      content: "";
+    }
+
+    .brand-name {
+      overflow: hidden;
+      color: #171717;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-name strong {
+      margin-right: 5px;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-weight: 700;
+    }
+
+    .brand-sub {
+      margin-top: 3px;
+      color: #737373;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .03em;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .nav button {
+      padding: 9px 15px;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .nav button.active {
+      color: var(--ink);
+      background: #f0f2f4;
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sync {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+
+    .sync::before {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .avatar {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      color: #fff;
+      background: #34404c;
+      border-radius: 50%;
+      font-weight: 700;
+    }
+
+    .content { padding: 32px 36px 48px; }
+
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      min-height: 178px;
+      margin-bottom: 18px;
+      padding: 28px 30px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.9) 42%, rgba(255,255,255,.22) 100%),
+        url("../assets/design/commercial-overview-bg-v1.png") center right / cover no-repeat;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(29, 38, 48, .06);
+    }
+
+    .eyebrow {
+      margin-bottom: 8px;
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -.04em;
+    }
+
+    .page-desc {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .primary-btn {
+      padding: 10px 16px;
+      color: #fff;
+      background: var(--brand);
+      border: 0;
+      border-radius: 8px;
+      box-shadow: 0 8px 18px rgba(176, 31, 53, .18);
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .secondary-btn {
+      padding: 10px 14px;
+      color: var(--ink);
+      background: rgba(255,255,255,.82);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1.25fr repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid rgba(215, 220, 225, .9);
+      border-radius: 14px;
+      box-shadow: var(--shadow-card);
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+
+    .card:hover {
+      border-color: #d5dade;
+      box-shadow: var(--shadow-card-hover);
+    }
+
+    .kpi {
+      min-height: 142px;
+      padding: 18px 19px 17px;
+      overflow: hidden;
+    }
+
+    .kpi::after {
+      position: absolute;
+      right: -28px;
+      bottom: -42px;
+      width: 104px;
+      height: 104px;
+      background: radial-gradient(circle, rgba(23,32,42,.055), transparent 67%);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .kpi:not(.kpi-main):hover {
+      transform: translateY(-2px);
+    }
+
+    .kpi-main {
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(255,255,255,.13), transparent 28%),
+        linear-gradient(145deg, #202a33 0%, #141b21 100%);
+      border-color: #202a33;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-main::before {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: 84px;
+      height: 32px;
+      opacity: .38;
+      background:
+        linear-gradient(135deg, transparent 0 12%, #c64a5e 13% 16%, transparent 17% 29%, #c64a5e 30% 33%, transparent 34% 46%, #c64a5e 47% 50%, transparent 51%);
+      content: "";
+    }
+
+    .kpi-green {
+      background: linear-gradient(145deg, #fff 35%, #f2faf6 100%);
+    }
+
+    .kpi-orange {
+      background: linear-gradient(145deg, #fff 35%, #fff8f1 100%);
+    }
+
+    .kpi-blue {
+      background: linear-gradient(145deg, #fff 35%, #f3f7fc 100%);
+    }
+
+    .kpi-red {
+      background: linear-gradient(145deg, #fff 35%, #fcf3f5 100%);
+    }
+
+    .kpi-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #58636f;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+
+    .kpi-main .kpi-label { color: #c7cdd3; }
+    .kpi-value {
+      margin-top: 20px;
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 36px;
+      font-weight: 750;
+      line-height: .95;
+      letter-spacing: -.045em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-value small {
+      margin-left: 2px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .kpi-note {
+      margin-top: 12px;
+      color: #7a848e;
+      font-size: 10.5px;
+      line-height: 1.45;
+    }
+
+    .kpi-main .kpi-note { color: #aeb7c0; }
+
+    .kpi-icon {
+      display: inline-grid;
+      width: 27px;
+      height: 27px;
+      margin-right: 7px;
+      place-items: center;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .kpi-icon.neutral { color: #4d5a66; background: #eef1f3; }
+    .kpi-icon.green { color: var(--green); background: var(--green-soft); }
+    .kpi-icon.orange { color: var(--orange); background: var(--orange-soft); }
+    .kpi-icon.red { color: var(--brand); background: var(--brand-soft); }
+
+    .kpi-main .kpi-icon {
+      color: #fff;
+      background: rgba(255,255,255,.12);
+    }
+
+    .kpi-label-name {
+      display: flex;
+      align-items: center;
+    }
+
+    .kpi-meta {
+      padding: 4px 7px;
+      color: #77818b;
+      background: rgba(238,241,243,.82);
+      border-radius: 999px;
+      font-size: 9.5px;
+      font-weight: 700;
+    }
+
+    .kpi-main .kpi-meta {
+      color: #d8dde1;
+      background: rgba(255,255,255,.1);
+    }
+
+    .trend-up { color: var(--green); background: var(--green-soft); }
+    .trend-warn { color: var(--orange); background: var(--orange-soft); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .panel { padding: 21px 22px; }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing: -.015em;
+    }
+
+    .panel-sub {
+      margin-top: 5px;
+      color: #7a848e;
+      font-size: 10.5px;
+      line-height: 1.45;
+    }
+    .link-btn { color: var(--brand); background: none; border: 0; font-size: 12px; }
+
+    .station-performance {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 350px;
+      padding: 18px 20px 16px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(245,245,245,.72), rgba(255,255,255,0) 42%),
+        repeating-linear-gradient(to bottom, transparent 0, transparent 39px, rgba(229,229,229,.72) 40px);
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      box-shadow: rgba(0,0,0,.05) 0 1px 2px;
+    }
+
+    .performance-scale {
+      display: flex;
+      justify-content: space-between;
+      min-width: 920px;
+      margin-bottom: 8px;
+      color: #9099a2;
+      font-size: 9px;
+    }
+
+    .performance-scale span:first-child,
+    .performance-scale span:last-child {
+      visibility: hidden;
+    }
+
+    .performance-plot {
+      position: relative;
+      height: 300px;
+      min-width: 920px;
+    }
+
+    .trend-line {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      width: 920px;
+      height: 206px;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .trend-area {
+      fill: url(#trendAreaGradient);
+      opacity: .52;
+    }
+
+    .trend-path {
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 4200;
+      stroke-dashoffset: 4200;
+      animation: drawTrend 1.4s cubic-bezier(.16,1,.3,1) .18s forwards;
+    }
+
+    .trend-path.total { stroke: #3b82f6; }
+    .trend-path.rented { stroke: #8b5cf6; animation-delay: .28s; }
+    .trend-path.vacant { stroke: #14b8a6; animation-delay: .38s; }
+
+    @keyframes drawTrend {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .trend-guide {
+      stroke: #d4d4d4;
+      stroke-width: 1;
+      stroke-dasharray: 3 4;
+      opacity: 0;
+      transition: x1 350ms cubic-bezier(.16,1,.3,1),
+                  x2 350ms cubic-bezier(.16,1,.3,1),
+                  opacity .15s ease;
+    }
+
+    .trend-focus {
+      fill: #fff;
+      stroke-width: 2;
+      opacity: 0;
+      transition: cx 350ms cubic-bezier(.16,1,.3,1),
+                  cy 350ms cubic-bezier(.16,1,.3,1),
+                  opacity .15s ease,
+                  r .15s ease;
+    }
+
+    .trend-focus.total { stroke: #3b82f6; }
+    .trend-focus.rented { stroke: #8b5cf6; }
+    .trend-focus.vacant { stroke: #14b8a6; }
+
+    .trend-guide.visible,
+    .trend-focus.visible {
+      opacity: 1;
+    }
+
+    .performance-station {
+      position: absolute;
+      top: 34px;
+      bottom: 0;
+      left: var(--x);
+      z-index: 2;
+      width: 86px;
+      padding: 0;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      transform: translateX(-50%);
+    }
+
+    .performance-bar-space {
+      position: relative;
+      display: block;
+      justify-content: center;
+      height: 206px;
+    }
+
+    .performance-bar {
+      display: none;
+    }
+
+    .performance-name {
+      display: block;
+      margin-top: 13px;
+      min-height: 35px;
+      color: #4f5a65;
+      font-family: var(--font-inter, "Inter", sans-serif);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.45;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .performance-summary {
+      display: block;
+      margin-top: 4px;
+      color: #737373;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .station-detail {
+      position: absolute;
+      bottom: calc(45px + (var(--rate) * 1.35px));
+      left: 50%;
+      z-index: 10;
+      width: 260px;
+      padding: 15px;
+      color: var(--ink);
+      text-align: left;
+      background: rgba(255,255,255,.98);
+      border: 1px solid #dfe3e7;
+      border-radius: 12px;
+      box-shadow: 0 18px 42px rgba(23,32,42,.16);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 8px);
+      transition: opacity .16s ease, transform .2s ease;
+    }
+
+    .station-detail::after {
+      position: absolute;
+      bottom: -6px;
+      left: calc(50% - 6px);
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border-right: 1px solid #dfe3e7;
+      border-bottom: 1px solid #dfe3e7;
+      content: "";
+      transform: rotate(45deg);
+    }
+
+    .performance-station:hover .station-detail,
+    .performance-station:focus-visible .station-detail {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .performance-station[data-edge="start"] .station-detail {
+      left: 0;
+      transform: translate(0, 8px);
+    }
+
+    .performance-station[data-edge="start"]:hover .station-detail,
+    .performance-station[data-edge="start"]:focus-visible .station-detail {
+      transform: translate(0, 0);
+    }
+
+    .performance-station[data-edge="start"] .station-detail::after {
+      left: 35px;
+    }
+
+    .performance-station[data-edge="end"] .station-detail {
+      right: 0;
+      left: auto;
+      transform: translate(0, 8px);
+    }
+
+    .performance-station[data-edge="end"]:hover .station-detail,
+    .performance-station[data-edge="end"]:focus-visible .station-detail {
+      transform: translate(0, 0);
+    }
+
+    .performance-station[data-edge="end"] .station-detail::after {
+      right: 35px;
+      left: auto;
+    }
+
+    .detail-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid #edf0f2;
+    }
+
+    .detail-grade {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .detail-grade.a { background: #d97720; }
+    .detail-grade.b { color: #6d5700; background: #f2d056; }
+    .detail-grade.c { background: #589b63; }
+    .detail-title { font-size: 13px; font-weight: 800; }
+    .detail-tag { margin-left: auto; padding: 3px 7px; color: var(--blue); background: var(--blue-soft); border-radius: 99px; font-size: 9px; font-weight: 700; }
+
+    .detail-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 0;
+    }
+
+    .detail-stat b {
+      display: block;
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .detail-stat:nth-child(1) b { color: #3b82f6; }
+    .detail-stat:nth-child(2) b { color: #8b5cf6; }
+    .detail-stat:nth-child(4) b { color: #14b8a6; }
+
+    .detail-stat span { display: block; margin-top: 3px; color: #818a93; font-size: 9px; }
+    .detail-foot { display: flex; justify-content: space-between; padding-top: 10px; color: #717b85; border-top: 1px solid #edf0f2; font-size: 9.5px; }
+
+    .performance-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      min-width: 920px;
+      margin-top: 8px;
+      color: #7a848e;
+      font-size: 10px;
+    }
+
+    .performance-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-mark {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    .legend-mark.mid { background: var(--orange); }
+    .legend-mark.low { background: var(--brand); }
+    .legend-mark.transfer { background: var(--blue); }
+
+    .legend-line {
+      width: 18px;
+      height: 2px;
+      background: #000;
+      border-radius: 99px;
+    }
+
+    .legend-line.total { background: #3b82f6; }
+    .legend-line.rented { background: #8b5cf6; }
+    .legend-line.vacant { background: #14b8a6; }
+
+    .legend-dot-ring {
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border: 2px solid #3b82f6;
+      border-radius: 50%;
+    }
+
+    .performance-viewport {
+      position: relative;
+      width: 100%;
+      height: 352px;
+      overflow: hidden;
+      border-radius: 10px;
+      cursor: default;
+      mask-image: linear-gradient(90deg, transparent, #000 30px, #000 calc(100% - 30px), transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 30px, #000 calc(100% - 30px), transparent);
+    }
+
+    .performance-canvas {
+      position: relative;
+      z-index: 1;
+      width: 3024px;
+      height: 336px;
+      will-change: transform;
+    }
+
+    .performance-canvas .trend-line {
+      top: 34px;
+      width: 3024px;
+    }
+
+    .performance-canvas .performance-station {
+      top: 34px;
+      width: 76px;
+    }
+
+    .edge-hint {
+      position: absolute;
+      top: 50%;
+      z-index: 20;
+      display: grid;
+      width: 30px;
+      height: 52px;
+      place-items: center;
+      color: #fff;
+      background: rgba(0,0,0,.72);
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%);
+      transition: opacity .18s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .edge-hint.left { left: 8px; }
+    .edge-hint.right { right: 8px; }
+    .performance-viewport[data-direction="-1"] .edge-hint.left,
+    .performance-viewport[data-direction="1"] .edge-hint.right { opacity: 1; }
+
+    .performance-tooltip {
+      position: absolute;
+      top: 46px;
+      left: 20px;
+      z-index: 30;
+      width: 248px;
+      padding: 14px;
+      color: var(--ink);
+      background: rgba(255,255,255,.98);
+      border: 1px solid #dfe3e7;
+      border-radius: 12px;
+      box-shadow: rgba(0,0,0,.1) 0 10px 15px -3px, rgba(0,0,0,.1) 0 4px 6px -4px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(7px);
+      transition: left 350ms cubic-bezier(.16,1,.3,1),
+                  opacity .15s ease,
+                  transform .18s ease;
+    }
+
+    .performance-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .performance-scale {
+      padding: 0 4px;
+    }
+
+    .y-axis {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      z-index: 0;
+      width: 100%;
+      height: 206px;
+      pointer-events: none;
+    }
+
+    .y-tick {
+      position: absolute;
+      left: 0;
+      color: #a3a3a3;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 9px;
+      transform: translateY(-50%);
+    }
+
+    .y-grid {
+      position: absolute;
+      right: 0;
+      left: 38px;
+      height: 0;
+      border-top: 1px dashed rgba(163, 163, 163, .26);
+      pointer-events: none;
+    }
+
+    .performance-viewport {
+      padding-left: 38px;
+    }
+
+    .performance-legend {
+      flex-wrap: wrap;
+      min-width: 0;
+      margin-top: 10px;
+    }
+
+    .panel,
+    .main-grid,
+    .table-card {
+      min-width: 0;
+    }
+
+    .task-list { display: grid; gap: 10px; }
+    .task {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #f7f8f9;
+      border-radius: 10px;
+    }
+
+    .task-icon {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .task-icon.red { color: var(--brand); background: var(--brand-soft); }
+    .task-icon.orange { color: var(--orange); background: var(--orange-soft); }
+    .task-icon.blue { color: var(--blue); background: var(--blue-soft); }
+    .task-name { font-size: 13px; font-weight: 700; }
+    .task-meta { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .task-count { font-size: 18px; font-weight: 800; }
+
+    .table-card {
+      grid-column: 1 / -1;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .table-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 20px 22px 16px;
+    }
+
+    .table-title-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .table-count {
+      padding: 3px 8px;
+      color: #525252;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 999px;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    .overview-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 0 22px 18px;
+      overflow: hidden;
+      background: #fafafa;
+      border: 1px solid #ededed;
+      border-radius: 10px;
+    }
+
+    .overview-stat {
+      position: relative;
+      padding: 13px 16px;
+    }
+
+    .overview-stat + .overview-stat {
+      border-left: 1px solid #e9e9e9;
+    }
+
+    .overview-stat-label {
+      display: block;
+      margin-bottom: 5px;
+      color: #737373;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .overview-stat-value {
+      color: #171717;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -.03em;
+    }
+
+    .overview-stat-value small {
+      margin-left: 4px;
+      color: #a3a3a3;
+      font-family: var(--font-inter, "Inter", sans-serif);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .overview-stat-value.green { color: #16a34a; }
+    .overview-stat-value.orange { color: #ea580c; }
+    .overview-stat-value.red { color: #dc2626; }
+
+    .table-shell {
+      max-height: 596px;
+      overflow: auto;
+      border-bottom: 1px solid var(--line);
+      scrollbar-color: #d4d4d4 transparent;
+      scrollbar-width: thin;
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chip {
+      padding: 7px 10px;
+      color: var(--muted);
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+    }
+
+    .chip:hover { color: #171717; border-color: #d4d4d4; }
+
+    .chip.active {
+      color: #171717;
+      background: #f5f5f5;
+      border-color: #d4d4d4;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .search {
+      width: 220px;
+      padding: 8px 11px 8px 31px;
+      color: #525252;
+      background:
+        linear-gradient(45deg, transparent 46%, #a3a3a3 47% 53%, transparent 54%) 18px 18px / 7px 7px no-repeat,
+        radial-gradient(circle, transparent 45%, #a3a3a3 48% 58%, transparent 61%) 10px 8px / 11px 11px no-repeat,
+        #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      outline: none;
+      font-size: 11px;
+    }
+
+    .search::placeholder { color: #a3a3a3; }
+
+    table {
+      width: 100%;
+      min-width: 1000px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      padding: 10px 16px;
+      color: #737373;
+      background: rgba(250,250,250,.96);
+      border-top: 1px solid #eeeeee;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 10px;
+      font-weight: 600;
+      text-align: left;
+      backdrop-filter: blur(10px);
+    }
+
+    th:first-child,
+    td:first-child { padding-left: 22px; }
+
+    th:last-child,
+    td:last-child { padding-right: 22px; }
+
+    td {
+      height: 58px;
+      padding: 9px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color .16s ease;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #fafafa; }
+    tbody tr:hover td:first-child { box-shadow: inset 3px 0 #3b82f6; }
+
+    .station {
+      min-width: 190px;
+      font-weight: 700;
+    }
+
+    .station-wrap {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .station-order {
+      display: grid;
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      color: #737373;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    .station-name {
+      display: block;
+      color: #171717;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .station small {
+      display: block;
+      margin-top: 3px;
+      color: #8a8a8a;
+      font-size: 9px;
+      font-weight: 400;
+    }
+
+    .business-counts {
+      display: inline-flex;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid #e8e8e8;
+      border-radius: 7px;
+    }
+
+    .business-counts span {
+      min-width: 31px;
+      padding: 5px 7px;
+      color: #737373;
+      text-align: center;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .business-counts span + span { border-left: 1px solid #e8e8e8; }
+    .business-counts .rented { color: #7c3aed; background: #faf5ff; }
+    .business-counts .renovating { color: #c2410c; background: #fff7ed; }
+    .business-counts .vacant { color: #0f766e; background: #f0fdfa; }
+
+    .grade {
+      display: inline-grid;
+      width: 23px;
+      height: 23px;
+      margin-right: 8px;
+      place-items: center;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .grade.a { background: #d97720; }
+    .grade.b { color: #6d5700; background: #f2d056; }
+    .grade.c { background: #589b63; }
+
+    .area-value {
+      color: #404040;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .area-value.rented { color: #7c3aed; }
+
+    .rate-cell { min-width: 164px; }
+    .rate-row { display: flex; align-items: center; gap: 10px; }
+    .rate-row b {
+      min-width: 45px;
+      color: #404040;
+      font-family: var(--font-geistmono, "Roboto Mono", monospace);
+      font-size: 10px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .rate-track { width: 88px; height: 5px; overflow: hidden; background: #eeeeee; border-radius: 99px; }
+    .rate-fill { height: 100%; background: var(--green); border-radius: 99px; }
+    .rate-fill.warn { background: var(--orange); }
+    .rate-fill.bad { background: var(--brand); }
+
+    .screen-note {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 36px;
+      color: #77818b;
+      background: #e9ecef;
+      font-size: 11px;
+    }
+
+    @media (max-width: 980px) {
+      .topbar { grid-template-columns: 1fr auto; }
+      .nav { display: none; }
+      .brand-copy { padding-left: 10px; }
+      .brand-name { font-size: 13px; }
+      .brand-sub { display: none; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-main { grid-column: 1 / -1; }
+      .main-grid { grid-template-columns: 1fr; }
+      .table-card { grid-column: auto; overflow-x: auto; }
+      .table-tools { align-items: flex-start; flex-direction: column; }
+      .filters { width: 100%; flex-wrap: wrap; }
+      .search { flex: 1 1 210px; width: auto; }
+      .overview-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-stat:nth-child(3) { border-left: 0; border-top: 1px solid #e9e9e9; }
+      .overview-stat:nth-child(4) { border-top: 1px solid #e9e9e9; }
+      .top-actions .sync { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .trend-path {
+        stroke-dasharray: none;
+        stroke-dashoffset: 0;
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="prototype-bar">
+    <strong>设计预览 V1 · 商业资产与点位管理平台</strong>
+    <span>独立设计稿，不影响现有网站</span>
+  </div>
+
+  <main class="screen">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <img src="../assets/design/logo-concept-02-v1.png" alt="">
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Commercial Management</div>
+          <div class="brand-name"><strong>11</strong>号线商业信息综合平台</div>
+          <div class="brand-sub">苏州轨道交通 · 商业资产与点位管理</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <button class="active">经营总览</button>
+        <button>点位台账</button>
+        <button>商业分析</button>
+        <button>线路资产</button>
+      </nav>
+
+      <div class="top-actions">
+        <span class="sync">数据已同步 · 10:32</span>
+        <span>商业管理部</span>
+        <span class="avatar">夏</span>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">COMMERCIAL OVERVIEW</div>
+          <h1>经营总览</h1>
+          <p class="page-desc">集中查看商业点位经营状态、异常事项与站点表现。</p>
+        </div>
+        <div class="hero-actions">
+          <button class="secondary-btn">查看通知公告</button>
+          <button class="primary-btn">进入点位台账</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <article class="card kpi kpi-main">
+          <div class="kpi-label">
+            <span class="kpi-label-name"><span class="kpi-icon">%</span>整体出租率</span>
+            <span class="kpi-meta">较上月 +1.8%</span>
+          </div>
+          <div class="kpi-value">78.6<small>%</small></div>
+          <div class="kpi-note">已租及装修点位 / 全部可租点位</div>
+        </article>
+        <article class="card kpi kpi-blue">
+          <div class="kpi-label">
+            <span class="kpi-label-name"><span class="kpi-icon neutral">位</span>商业点位</span>
+            <span class="kpi-meta">28 站</span>
+          </div>
+          <div class="kpi-value">186</div>
+          <div class="kpi-note">其中多经点位 32 个</div>
+        </article>
+        <article class="card kpi kpi-green">
+          <div class="kpi-label">
+            <span class="kpi-label-name"><span class="kpi-icon green">租</span>已出租</span>
+            <span class="kpi-meta trend-up">本月 +4</span>
+          </div>
+          <div class="kpi-value">132</div>
+          <div class="kpi-note">本月新增签约 4 个</div>
+        </article>
+        <article class="card kpi kpi-orange">
+          <div class="kpi-label">
+            <span class="kpi-label-name"><span class="kpi-icon orange">装</span>装修中</span>
+            <span class="kpi-meta">正常推进</span>
+          </div>
+          <div class="kpi-value">14</div>
+          <div class="kpi-note">3 个预计本周开业</div>
+        </article>
+        <article class="card kpi kpi-red">
+          <div class="kpi-label">
+            <span class="kpi-label-name"><span class="kpi-icon red">空</span>空置点位</span>
+            <span class="kpi-meta trend-warn">需关注</span>
+          </div>
+          <div class="kpi-value">40</div>
+          <div class="kpi-note">连续空置 90 天以上 7 个</div>
+        </article>
+      </div>
+
+      <div class="main-grid">
+        <article class="card panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">站点商业趋势</div>
+              <div class="panel-sub">三条折线分别展示商业点位、已出租与空置数量 · 数据圆点仅在悬浮时出现</div>
+            </div>
+            <button class="link-btn">查看完整分析 →</button>
+          </div>
+          <div class="station-performance">
+            <div class="performance-scale"><span>100%</span><span>站点出租率与趋势</span><span>0%</span></div>
+            <div class="performance-plot">
+              <svg class="trend-line" viewBox="0 0 920 145" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="43,25 162,33 281,52 400,45 519,64 638,18 757,49 876,78"></polyline>
+              </svg>
+              <button class="performance-station" data-edge="start" style="--x:43px;--rate:88.9">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot transfer"></span></span></span><span class="performance-name">唯亭</span><span class="performance-rate">88.9%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade">S</span><span class="detail-title">唯亭站</span><span class="detail-tag">换乘站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>18</b><span>点位</span></span><span class="detail-stat"><b>15</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>2</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 88.9%</span><span>总面积 642.5㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:162px;--rate:83.3">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot"></span></span></span><span class="performance-name">草鞋山</span><span class="performance-rate">83.3%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade a">A</span><span class="detail-title">草鞋山站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>12</b><span>点位</span></span><span class="detail-stat"><b>9</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>2</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 83.3%</span><span>总面积 418.0㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:281px;--rate:69.2">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot mid"></span></span></span><span class="performance-name">阳澄湖东</span><span class="performance-rate">69.2%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade b">B</span><span class="detail-title">阳澄湖东站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>13</b><span>点位</span></span><span class="detail-stat"><b>8</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>4</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 69.2%</span><span>总面积 356.8㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:400px;--rate:74">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot mid"></span></span></span><span class="performance-name">正仪</span><span class="performance-rate">74.0%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade a">A</span><span class="detail-title">正仪站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>10</b><span>点位</span></span><span class="detail-stat"><b>7</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>2</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 74.0%</span><span>总面积 301.2㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:519px;--rate:60">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot mid"></span></span></span><span class="performance-name">莲湖公园</span><span class="performance-rate">60.0%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade b">B</span><span class="detail-title">莲湖公园站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>10</b><span>点位</span></span><span class="detail-stat"><b>5</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>4</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 60.0%</span><span>总面积 284.6㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:638px;--rate:94.1">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot"></span></span></span><span class="performance-name">玉山广场</span><span class="performance-rate">94.1%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade">S</span><span class="detail-title">玉山广场站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>17</b><span>点位</span></span><span class="detail-stat"><b>15</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>1</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 94.1%</span><span>总面积 588.3㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" style="--x:757px;--rate:71.4">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot mid"></span></span></span><span class="performance-name">白马泾</span><span class="performance-rate">71.4%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade a">A</span><span class="detail-title">白马泾站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>14</b><span>点位</span></span><span class="detail-stat"><b>9</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>4</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 71.4%</span><span>总面积 402.7㎡</span></span>
+                </span>
+              </button>
+              <button class="performance-station" data-edge="end" style="--x:876px;--rate:50">
+                <span class="performance-bar-space"><span class="performance-bar"><span class="performance-dot low transfer"></span></span></span><span class="performance-name">花桥</span><span class="performance-rate">50.0%</span>
+                <span class="station-detail">
+                  <span class="detail-head"><span class="detail-grade">S</span><span class="detail-title">花桥站</span><span class="detail-tag">换乘站</span></span>
+                  <span class="detail-stats"><span class="detail-stat"><b>16</b><span>点位</span></span><span class="detail-stat"><b>7</b><span>已租</span></span><span class="detail-stat"><b>1</b><span>装修</span></span><span class="detail-stat"><b>8</b><span>空置</span></span></span>
+                  <span class="detail-foot"><span>出租率 50.0%</span><span>总面积 530.4㎡</span></span>
+                </span>
+              </button>
+            </div>
+            <div class="performance-legend">
+              <span><i class="legend-line"></i>出租率趋势</span>
+              <span><i class="legend-mark"></i>出租率 ≥ 80%</span>
+              <span><i class="legend-mark mid"></i>50–80%</span>
+              <span><i class="legend-mark low"></i>低于 50%</span>
+              <span><i class="legend-mark transfer"></i>换乘站</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card table-card">
+          <div class="table-tools">
+            <div>
+              <div class="table-title-line">
+                <div class="panel-title">站点经营概览</div>
+                <span class="table-count">28 STATIONS</span>
+              </div>
+              <div class="panel-sub">按线路顺序展示，点击站点进入点位台账</div>
+            </div>
+            <div class="filters">
+              <button class="chip active" type="button" data-overview-filter="all">全部站点</button>
+              <button class="chip" type="button" data-overview-filter="priority">S / A 级</button>
+              <button class="chip" type="button" data-overview-filter="low">低出租率</button>
+              <input class="search" type="search" placeholder="搜索站点" aria-label="搜索站点">
+            </div>
+          </div>
+          <div class="overview-summary">
+            <div class="overview-stat">
+              <span class="overview-stat-label">全线车站</span>
+              <strong class="overview-stat-value" id="overviewStationCount">28<small>座</small></strong>
+            </div>
+            <div class="overview-stat">
+              <span class="overview-stat-label">商业点位</span>
+              <strong class="overview-stat-value" id="overviewShopCount">--<small>个</small></strong>
+            </div>
+            <div class="overview-stat">
+              <span class="overview-stat-label">满租车站</span>
+              <strong class="overview-stat-value green" id="overviewFullCount">--<small>座</small></strong>
+            </div>
+            <div class="overview-stat">
+              <span class="overview-stat-label">重点关注</span>
+              <strong class="overview-stat-value red" id="overviewConcernCount">--<small>座</small></strong>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table>
+              <thead>
+                <tr><th>站点</th><th>价值等级</th><th>商铺</th><th>多经点位</th><th>总面积</th><th>已租面积</th><th>已租 / 装修 / 空置</th><th>出租率</th></tr>
+              </thead>
+              <tbody id="stationOverviewBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="screen-note">
+      <span>V1 方向：商业资产管理后台，而非运营调度大屏</span>
+      <span>桌面基准宽度 1440px · 后续补充商业分析、点位台账、线路资产页面</span>
+    </footer>
+  </main>
+  <script>
+    const stationPerformanceData = [
+      ['唯亭站','C',1,0,0,1,0,false],
+      ['草鞋山站','C',2,1,0,1,50,false],
+      ['阳澄湖东站','A',3,0,0,3,0,false],
+      ['正仪站','B',2,0,0,2,0,false],
+      ['莲湖公园站','A',3,0,0,3,0,false],
+      ['祖冲之公园站','C',2,2,0,0,100,false],
+      ['昆山文化艺术中心站','S',2,2,0,0,100,false],
+      ['共青站','B',2,2,0,0,100,false],
+      ['江浦站','C',2,2,0,0,100,false],
+      ['白马泾路站','B',2,2,0,0,100,false],
+      ['玉山广场站','S',3,3,0,0,100,false],
+      ['绣衣站','B',1,1,0,0,100,false],
+      ['昆山城市广场站','S',3,2,0,1,66.7,false],
+      ['金浦大桥东站','A',3,1,0,2,33.3,false],
+      ['顺帆北路站','C',2,0,0,2,0,false],
+      ['鱼池泾站','C',2,0,0,2,0,false],
+      ['白河潭站','C',2,2,0,0,100,false],
+      ['兵希站','C',3,2,0,1,66.7,false],
+      ['夏驾河公园站','B',1,1,0,0,100,false],
+      ['盛庄站','C',2,2,0,0,100,false],
+      ['章基路南站','C',2,0,0,2,0,false],
+      ['夏桥站','C',1,0,0,1,0,false],
+      ['神童泾站','B',1,0,0,1,0,false],
+      ['菉葭站','C',3,1,0,2,33.3,false],
+      ['花桥博览中心站','A',4,0,0,4,0,false],
+      ['集善站','C',2,0,0,2,0,false],
+      ['花溪公园站','B',3,0,0,3,0,false],
+      ['花桥站','S',7,5,2,0,100,true]
+    ];
+
+    const stationOperationData = [
+      [0,18.69,0],
+      [0,38.26,13.88],
+      [0,52.97,0],
+      [0,41.12,0],
+      [0,40.39,0],
+      [2,33.8,33.8],
+      [0,57.5,57.5],
+      [0,39.75,39.75],
+      [1,25.72,25.72],
+      [0,56.49,56.49],
+      [2,67.9,67.9],
+      [1,17.5,17.5],
+      [0,51.45,28.25],
+      [0,37.66,12.74],
+      [0,28.83,0],
+      [0,30.82,0],
+      [1,45.89,45.89],
+      [0,60.36,43.71],
+      [0,29.86,29.86],
+      [0,25.71,25.71],
+      [0,39.78,0],
+      [0,12.75,0],
+      [0,19.46,0],
+      [0,60.31,23.74],
+      [0,55.34,0],
+      [0,32.68,0],
+      [0,64.16,0],
+      [0,155.25,155.25]
+    ];
+
+    function performanceLevel(rate) {
+      if (rate >= 80) return '';
+      if (rate >= 50) return 'mid';
+      return 'low';
+    }
+
+    function gradeClass(grade) {
+      return grade === 'A' ? 'a' : grade === 'B' ? 'b' : grade === 'C' ? 'c' : '';
+    }
+
+    function linePath(points) {
+      if (!points.length) return '';
+      return points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point[0]} ${point[1]}`).join(' ');
+    }
+
+    function formatStationName(name) {
+      const characters = Array.from(name);
+      const lines = [];
+      for (let index = 0; index < characters.length; index += 5) {
+        lines.push(characters.slice(index, index + 5).join(''));
+      }
+      return lines.join('<br>');
+    }
+
+    function renderStationOverview() {
+      const body = document.getElementById('stationOverviewBody');
+      if (!body) return;
+
+      const totalShops = stationPerformanceData.reduce((sum, station) => sum + station[2], 0);
+      const fullStations = stationPerformanceData.filter((station) => station[6] === 100).length;
+      const concernStations = stationPerformanceData.filter((station) => station[6] < 50).length;
+      document.getElementById('overviewStationCount').innerHTML = `${stationPerformanceData.length}<small>座</small>`;
+      document.getElementById('overviewShopCount').innerHTML = `${totalShops}<small>个</small>`;
+      document.getElementById('overviewFullCount').innerHTML = `${fullStations}<small>座</small>`;
+      document.getElementById('overviewConcernCount').innerHTML = `${concernStations}<small>座</small>`;
+
+      const gradeLabels = {
+        S: '核心商业站',
+        A: '重点发展站',
+        B: '潜力提升站',
+        C: '基础服务站'
+      };
+      body.innerHTML = stationPerformanceData.map((station, index) => {
+        const [name, grade, total, rented, renovating, vacant, rate, transfer] = station;
+        const [multiSpot, totalArea, rentedArea] = stationOperationData[index];
+        const rateClass = rate < 50 ? 'bad' : rate < 80 ? 'warn' : '';
+        const stationNote = transfer
+          ? '可换乘上海 11 号线'
+          : vacant > 0
+            ? `${vacant} 个空置点位`
+            : '当前点位均已出租';
+
+        return `
+          <tr data-name="${name}" data-grade="${grade}" data-rate="${rate}">
+            <td class="station">
+              <span class="station-wrap">
+                <span class="station-order">${String(index + 1).padStart(2, '0')}</span>
+                <span>
+                  <span class="station-name">${name}</span>
+                  <small>${stationNote}</small>
+                </span>
+              </span>
+            </td>
+            <td><span class="grade ${gradeClass(grade)}">${grade}</span>${gradeLabels[grade]}</td>
+            <td>${total}</td>
+            <td>${multiSpot}</td>
+            <td><span class="area-value">${totalArea.toFixed(1)}㎡</span></td>
+            <td><span class="area-value rented">${rentedArea.toFixed(1)}㎡</span></td>
+            <td>
+              <span class="business-counts" aria-label="已租 ${rented}，装修 ${renovating}，空置 ${vacant}">
+                <span class="rented">${rented}</span>
+                <span class="renovating">${renovating}</span>
+                <span class="vacant">${vacant}</span>
+              </span>
+            </td>
+            <td class="rate-cell">
+              <div class="rate-row">
+                <div class="rate-track"><div class="rate-fill ${rateClass}" style="width:${rate}%"></div></div>
+                <b>${rate.toFixed(1)}%</b>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+
+      let activeFilter = 'all';
+      const search = document.querySelector('.table-card .search');
+      const chips = document.querySelectorAll('[data-overview-filter]');
+
+      const applyFilters = () => {
+        const keyword = search.value.trim().toLowerCase();
+        body.querySelectorAll('tr').forEach((row) => {
+          const matchesKeyword = !keyword || row.dataset.name.toLowerCase().includes(keyword);
+          const matchesFilter =
+            activeFilter === 'all' ||
+            (activeFilter === 'priority' && ['S', 'A'].includes(row.dataset.grade)) ||
+            (activeFilter === 'low' && Number(row.dataset.rate) < 80);
+          row.hidden = !(matchesKeyword && matchesFilter);
+        });
+      };
+
+      search.addEventListener('input', applyFilters);
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          activeFilter = chip.dataset.overviewFilter;
+          chips.forEach((item) => item.classList.toggle('active', item === chip));
+          applyFilters();
+        });
+      });
+    }
+
+    function renderAllStations() {
+      const root = document.querySelector('.station-performance');
+      if (!root) return;
+
+      const spacing = 94;
+      const start = 96;
+      const endPadding = 96;
+      const width = start + (stationPerformanceData.length - 1) * spacing + endPadding;
+      const chartTop = 10;
+      const chartBottom = 186;
+      const chartHeight = chartBottom - chartTop;
+      const maxValue = Math.max(...stationPerformanceData.flatMap((station) => [station[2], station[3], station[5]]));
+      const yFor = (value) => chartBottom - (value / maxValue) * chartHeight;
+      const totalPoints = stationPerformanceData.map((station, index) => {
+        const x = start + index * spacing;
+        const y = yFor(station[2]);
+        return [x, y];
+      });
+      const rentedPoints = stationPerformanceData.map((station, index) => {
+        const x = start + index * spacing;
+        const y = yFor(station[3]);
+        return [x, y];
+      });
+      const vacantPoints = stationPerformanceData.map((station, index) => {
+        const x = start + index * spacing;
+        const y = yFor(station[5]);
+        return [x, y];
+      });
+      const totalPath = linePath(totalPoints);
+      const rentedPath = linePath(rentedPoints);
+      const vacantPath = linePath(vacantPoints);
+      const areaPath = `${totalPath} L ${totalPoints[totalPoints.length - 1][0]} ${chartBottom} L ${totalPoints[0][0]} ${chartBottom} Z`;
+      const ticks = Array.from({ length: maxValue + 1 }, (_, value) => {
+        const y = yFor(value);
+        const topPercent = (y / 196) * 100;
+        return `<span class="y-grid" style="top:${topPercent}%"></span><span class="y-tick" style="top:${topPercent}%">${value}</span>`;
+      }).join('');
+
+      const stations = stationPerformanceData.map((station, index) => {
+        const [name, grade, total, rented, renovating, vacant, rate, transfer] = station;
+        const x = start + index * spacing;
+        const edge = index === 0 ? ' data-edge="start"' : index === stationPerformanceData.length - 1 ? ' data-edge="end"' : '';
+        return `
+          <button class="performance-station"${edge} data-index="${index}" style="--x:${x}px" aria-label="${name}，商业点位 ${total}，已出租 ${rented}，空置 ${vacant}">
+            <span class="performance-bar-space"></span>
+            <span class="performance-name" title="${name}">${formatStationName(name)}</span>
+          </button>`;
+      }).join('');
+
+      root.innerHTML = `
+        <div class="performance-scale"><span>7 个</span><span>全线 28 站 · 鼠标悬停查看三项数据</span><span>0</span></div>
+        <div class="performance-viewport">
+          <div class="y-axis">${ticks}</div>
+          <span class="edge-hint left">‹</span><span class="edge-hint right">›</span>
+          <div class="performance-canvas" style="width:${width}px">
+            <svg class="trend-line" viewBox="0 0 ${width} 196" preserveAspectRatio="none" aria-hidden="true" style="width:${width}px">
+              <defs>
+                <linearGradient id="trendAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#dcfce7" stop-opacity=".68"></stop>
+                  <stop offset="72%" stop-color="#f5f5f5" stop-opacity=".2"></stop>
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path class="trend-area" d="${areaPath}"></path>
+              <path class="trend-path total" d="${totalPath}"></path>
+              <path class="trend-path rented" d="${rentedPath}"></path>
+              <path class="trend-path vacant" d="${vacantPath}"></path>
+              <line class="trend-guide" x1="0" y1="${chartTop}" x2="0" y2="${chartBottom}"></line>
+              <circle class="trend-focus total" cx="0" cy="0" r="5"></circle>
+              <circle class="trend-focus rented" cx="0" cy="0" r="5"></circle>
+              <circle class="trend-focus vacant" cx="0" cy="0" r="5"></circle>
+            </svg>
+            ${stations}
+          </div>
+        </div>
+        <div class="performance-tooltip" aria-hidden="true"></div>
+        <div class="performance-legend">
+          <span><i class="legend-line total"></i>商业点位</span>
+          <span><i class="legend-line rented"></i>已出租</span>
+          <span><i class="legend-line vacant"></i>空置</span>
+          <span><i class="legend-dot-ring"></i>悬浮数据点</span>
+        </div>`;
+
+      const viewport = root.querySelector('.performance-viewport');
+      const canvas = root.querySelector('.performance-canvas');
+      const tooltip = root.querySelector('.performance-tooltip');
+      const trendGuide = root.querySelector('.trend-guide');
+      const trendFoci = {
+        total: root.querySelector('.trend-focus.total'),
+        rented: root.querySelector('.trend-focus.rented'),
+        vacant: root.querySelector('.trend-focus.vacant')
+      };
+      let targetOffset = 0;
+      let currentOffset = 0;
+      let frame = 0;
+
+      function animateScroll() {
+        const maxOffset = Math.max(0, canvas.offsetWidth - viewport.clientWidth);
+        targetOffset = Math.max(0, Math.min(maxOffset, targetOffset));
+        const diff = targetOffset - currentOffset;
+        if (Math.abs(diff) < .5) {
+          currentOffset = targetOffset;
+          canvas.style.transform = `translateX(${-currentOffset}px)`;
+          frame = 0;
+          return;
+        }
+        currentOffset += diff * .11;
+        canvas.style.transform = `translateX(${-currentOffset}px)`;
+        frame = requestAnimationFrame(animateScroll);
+      }
+
+      viewport.addEventListener('mousemove', (event) => {
+        const rect = viewport.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        const maxOffset = Math.max(0, canvas.offsetWidth - rect.width);
+        const edgeZone = .2;
+        if (ratio < edgeZone) {
+          const edgeProgress = (edgeZone - ratio) / edgeZone;
+          targetOffset = Math.max(0, currentOffset - (70 + edgeProgress * 220));
+          viewport.dataset.direction = '-1';
+          if (!frame) frame = requestAnimationFrame(animateScroll);
+        } else if (ratio > 1 - edgeZone) {
+          const edgeProgress = (ratio - (1 - edgeZone)) / edgeZone;
+          targetOffset = Math.min(maxOffset, currentOffset + (70 + edgeProgress * 220));
+          viewport.dataset.direction = '1';
+          if (!frame) frame = requestAnimationFrame(animateScroll);
+        } else {
+          targetOffset = currentOffset;
+          viewport.dataset.direction = '0';
+        }
+      });
+
+      viewport.addEventListener('mouseleave', () => {
+        targetOffset = currentOffset;
+        viewport.dataset.direction = '0';
+      });
+
+      canvas.querySelectorAll('.performance-station').forEach((stationNode) => {
+        const showDetail = () => {
+          const index = Number(stationNode.dataset.index);
+          const [name, grade, total, rented, renovating, vacant, rate, transfer] = stationPerformanceData[index];
+          const [pointX, totalY] = totalPoints[index];
+          const rentedY = rentedPoints[index][1];
+          const vacantY = vacantPoints[index][1];
+          trendGuide.setAttribute('x1', pointX);
+          trendGuide.setAttribute('x2', pointX);
+          trendFoci.total.setAttribute('cx', pointX);
+          trendFoci.total.setAttribute('cy', totalY);
+          trendFoci.rented.setAttribute('cx', pointX);
+          trendFoci.rented.setAttribute('cy', rentedY);
+          trendFoci.vacant.setAttribute('cx', pointX);
+          trendFoci.vacant.setAttribute('cy', vacantY);
+          trendGuide.classList.add('visible');
+          Object.values(trendFoci).forEach((focus) => focus.classList.add('visible'));
+          tooltip.innerHTML = `
+            <span class="detail-head">
+              <span class="detail-grade ${gradeClass(grade)}">${grade}</span>
+              <span class="detail-title">${name}</span>
+              ${transfer ? '<span class="detail-tag">换乘站</span>' : ''}
+            </span>
+            <span class="detail-stats">
+              <span class="detail-stat"><b>${total}</b><span>点位</span></span>
+              <span class="detail-stat"><b>${rented}</b><span>已租</span></span>
+              <span class="detail-stat"><b>${renovating}</b><span>装修</span></span>
+              <span class="detail-stat"><b>${vacant}</b><span>空置</span></span>
+            </span>
+            <span class="detail-foot"><span>出租率 ${rate.toFixed(1)}%</span><span>第 ${index + 1} / 28 站</span></span>`;
+
+          const viewportRect = viewport.getBoundingClientRect();
+          const stationRect = stationNode.getBoundingClientRect();
+          const tooltipWidth = 248;
+          const desiredLeft = stationRect.left - root.getBoundingClientRect().left + stationRect.width / 2 - tooltipWidth / 2;
+          const maxLeft = root.clientWidth - tooltipWidth - 20;
+          tooltip.style.left = `${Math.max(20, Math.min(maxLeft, desiredLeft))}px`;
+          tooltip.classList.add('visible');
+        };
+
+        stationNode.addEventListener('mouseenter', showDetail);
+        stationNode.addEventListener('focus', showDetail);
+      });
+    }
+
+    renderAllStations();
+    renderStationOverview();
+  </script>
+</body>
+</html>

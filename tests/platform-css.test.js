@@ -73,8 +73,9 @@ describe('platform.css 设计系统 Token', () => {
       expect(cssContent).toMatch(/body::before\s*\{/);
     });
 
-    it('噪点纹理应该使用 feTurbulence', () => {
-      expect(cssContent).toMatch(/feTurbulence/);
+    it('纹理应该使用 CSP 兼容的纯 CSS 渐变', () => {
+      expect(cssContent).toMatch(/radial-gradient/);
+      expect(cssContent).not.toMatch(/data:image/);
     });
 
     it('透明度应在 1.5%-2.5% 之间', () => {

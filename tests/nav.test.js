@@ -2,6 +2,8 @@
  * 导航模块测试 —— js/modules/nav.js
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // nav.js 使用 ES module，且依赖 DOM，需要在 jsdom 中动态导入
 async function loadNavModule() {
@@ -71,14 +73,31 @@ describe('导航模块', () => {
       expect(document.querySelector('.topnav-actions')).not.toBeNull();
     });
 
-    it('应该包含三个导航链接', async () => {
+    it('应该显示确认的 Logo 和双行品牌文案', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('home');
+
+      const logo = document.querySelector('.topnav-logo');
+      expect(logo).toBeInstanceOf(HTMLImageElement);
+      expect(logo.getAttribute('src')).toBe('assets/design/logo-concept-02-v1-160.png');
+      expect(logo.getAttribute('width')).toBe('40');
+      expect(logo.getAttribute('height')).toBe('40');
+      expect(logo.getAttribute('alt')).toBe('');
+      expect(document.querySelector('.topnav-title').textContent).toBe('11号线商业信息综合平台');
+      expect(document.querySelector('.topnav-subtitle').textContent).toBe('苏州轨道交通 · 商业资产与点位管理');
+    });
+
+    it('应该包含三个现有路由的新导航文案', async () => {
       const { initNav } = await loadNavModule();
       initNav('home');
       const links = document.querySelectorAll('.topnav-links .nav-link');
       expect(links.length).toBe(3);
-      expect(links[0].textContent).toBe('首页');
-      expect(links[1].textContent).toBe('商业数据');
-      expect(links[2].textContent).toBe('作战图');
+      expect([...links].map(link => link.textContent)).toEqual(['经营总览', '商业分析', '线路资产']);
+      expect([...links].map(link => link.getAttribute('href'))).toEqual([
+        'index.html',
+        'data-viz.html',
+        'battle-map.html'
+      ]);
     });
 
     it('当前页链接应该有 active 类', async () => {
@@ -86,7 +105,7 @@ describe('导航模块', () => {
       initNav('data');
       const activeLink = document.querySelector('.nav-link.active');
       expect(activeLink).not.toBeNull();
-      expect(activeLink.textContent).toBe('商业数据');
+      expect(activeLink.textContent).toBe('商业分析');
     });
   });
 
@@ -104,6 +123,8 @@ describe('导航模块', () => {
       initNav('home');
       const items = document.querySelectorAll('.bottom-nav .bnav-item');
       expect(items.length).toBe(3);
+      expect([...items].map(item => item.textContent)).toEqual(['总览', '分析', '资产']);
+      expect([...items].map(item => item.dataset.page)).toEqual(['home', 'data', 'battle']);
     });
   });
 
@@ -114,6 +135,20 @@ describe('导航模块', () => {
       updateActiveState('battle');
       const activeLink = document.querySelector('.topnav .nav-link.active');
       expect(activeLink.dataset.page).toBe('battle');
+    });
+  });
+
+  describe('重复初始化', () => {
+    it('多次调用 initNav 应该只保留一套导航并使用最后的激活页', async () => {
+      const { initNav } = await loadNavModule();
+
+      initNav('home');
+      initNav('battle');
+
+      expect(document.querySelectorAll('.topnav')).toHaveLength(1);
+      expect(document.querySelectorAll('.bottom-nav')).toHaveLength(1);
+      expect(document.querySelector('.topnav .nav-link.active').dataset.page).toBe('battle');
+      expect(document.querySelector('.bottom-nav .bnav-item.active').dataset.page).toBe('battle');
     });
   });
 
@@ -154,6 +189,21 @@ describe('导航模块', () => {
       window.dispatchEvent(new CustomEvent('datasource:change', { detail: { source: 'default' } }));
       const indicator = document.getElementById('datasource-indicator');
       expect(indicator.textContent).toContain('演示数据');
+    });
+  });
+
+  describe('CSP 兼容资源', () => {
+    it.each(['index.html', 'data-viz.html', 'battle-map.html'])(
+      '%s 不应该引用外部字体或样式',
+      (filename) => {
+        const html = readFileSync(resolve(process.cwd(), filename), 'utf8');
+        expect(html).not.toMatch(/<link[^>]+href=["']https?:\/\//i);
+      }
+    );
+
+    it('platform.css 不应该导入外部字体样式', () => {
+      const css = readFileSync(resolve(process.cwd(), 'css/platform.css'), 'utf8');
+      expect(css).not.toMatch(/@import\s+url\(["']?https?:\/\//i);
     });
   });
 });

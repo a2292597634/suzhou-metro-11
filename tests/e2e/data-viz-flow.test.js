@@ -21,6 +21,27 @@ describe('data-viz 页面 E2E', () => {
     if (browser) await browser.close();
   });
 
+  it('商业分析页应应用站点卡片网格并控制图表首屏比例', async () => {
+    const layout = await page.evaluate(() => {
+      const grid = document.querySelector('.cards-grid');
+      const card = document.querySelector('.station-card');
+      const charts = document.querySelector('.charts-row');
+      const chart = document.querySelector('.chart-container');
+      return {
+        gridDisplay: getComputedStyle(grid).display,
+        cardWidth: card.getBoundingClientRect().width,
+        gridWidth: grid.getBoundingClientRect().width,
+        chartsDisplay: getComputedStyle(charts).display,
+        chartHeight: chart.getBoundingClientRect().height
+      };
+    });
+
+    expect(layout.gridDisplay).toBe('grid');
+    expect(layout.cardWidth).toBeLessThan(layout.gridWidth / 2);
+    expect(layout.chartsDisplay).toBe('grid');
+    expect(layout.chartHeight).toBeLessThan(400);
+  });
+
   it('页面应正常加载并显示图表', async () => {
     const barChart = await page.$('#barChart');
     const statusChart = await page.$('#statusChart');

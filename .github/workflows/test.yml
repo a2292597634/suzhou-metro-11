@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
 
     services:
       postgres:
@@ -37,6 +39,14 @@ jobs:
 
       - name: 安装依赖
         run: npm ci
+
+      - name: 配置 E2E 浏览器
+        run: |
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable)"
+          test -n "$CHROME_PATH"
+          test -x "$CHROME_PATH"
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+          "$CHROME_PATH" --version
 
       - name: 生成 Prisma Client
         run: npx prisma generate

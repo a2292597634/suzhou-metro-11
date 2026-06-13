@@ -10,9 +10,15 @@
  * href: 页面文件路径
  */
 const PAGE_CONFIG = {
-  home:   { label: '首页',   href: 'index.html' },
-  data:   { label: '商业数据', href: 'data-viz.html' },
-  battle: { label: '作战图',  href: 'battle-map.html' }
+  home:   { label: '经营总览', href: 'index.html' },
+  data:   { label: '商业分析', href: 'data-viz.html' },
+  battle: { label: '线路资产', href: 'battle-map.html' }
+};
+
+const BRAND_CONFIG = {
+  logo: 'assets/design/logo-concept-02-v1-160.png',
+  title: '11号线商业信息综合平台',
+  subtitle: '苏州轨道交通 · 商业资产与点位管理'
 };
 
 /**
@@ -23,18 +29,20 @@ const PAGE_CONFIG = {
  */
 const BOTTOM_NAV_CONFIG = {
   home: {
-    label: '首页',
+    label: '总览',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
   },
   data: {
-    label: '数据',
+    label: '分析',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
   },
   battle: {
-    label: '作战图',
+    label: '资产',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 21 18 21 2 16 6 8 2 1 6"/></svg>`
   }
 };
+
+let cleanupNav = null;
 
 /**
  * 根据 URL 路径自动检测当前页面标识
@@ -54,6 +62,73 @@ function detectActivePage() {
   return 'home';
 }
 
+function createBrand() {
+  const brand = document.createElement('div');
+  brand.className = 'topnav-brand';
+
+  const logo = document.createElement('img');
+  logo.className = 'topnav-logo';
+  logo.src = BRAND_CONFIG.logo;
+  logo.width = 40;
+  logo.height = 40;
+  logo.alt = '';
+
+  const brandText = document.createElement('span');
+  brandText.className = 'topnav-brand-text';
+
+  const title = document.createElement('span');
+  title.className = 'topnav-title';
+  title.textContent = BRAND_CONFIG.title;
+
+  const subtitle = document.createElement('span');
+  subtitle.className = 'topnav-subtitle';
+  subtitle.textContent = BRAND_CONFIG.subtitle;
+
+  brandText.append(title, subtitle);
+  brand.append(logo, brandText);
+  return brand;
+}
+
+function createTopNavLinks(activePage) {
+  const links = document.createElement('div');
+  links.className = 'topnav-links';
+
+  Object.entries(PAGE_CONFIG).forEach(([key, config]) => {
+    const link = document.createElement('a');
+    link.className = 'nav-link';
+    link.href = config.href;
+    link.dataset.page = key;
+    link.textContent = config.label;
+    const isActive = key === activePage;
+    link.classList.toggle('active', isActive);
+    if (isActive) link.setAttribute('aria-current', 'page');
+    links.appendChild(link);
+  });
+
+  return links;
+}
+
+function createTopNavActions() {
+  const actions = document.createElement('div');
+  actions.className = 'topnav-actions';
+
+  const refreshBtn = document.createElement('button');
+  refreshBtn.className = 'nav-link';
+  refreshBtn.type = 'button';
+  refreshBtn.title = '刷新数据';
+  refreshBtn.setAttribute('aria-label', '刷新数据');
+  refreshBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>`;
+  refreshBtn.addEventListener('click', () => window.location.reload());
+
+  const sourceIndicator = document.createElement('span');
+  sourceIndicator.id = 'datasource-indicator';
+  sourceIndicator.className = 'datasource-badge';
+  sourceIndicator.textContent = '检测中…';
+
+  actions.append(refreshBtn, sourceIndicator);
+  return actions;
+}
+
 /**
  * 创建顶部导航栏 DOM 元素
  * @param {string} activePage 当前激活的页面标识
@@ -66,63 +141,11 @@ function createTopNav(activePage) {
   const inner = document.createElement('div');
   inner.className = 'topnav-inner';
 
-  // 左侧品牌区 —— flex:1 让中间导航居中
-  const brand = document.createElement('div');
-  brand.className = 'topnav-brand';
-
-  const logo = document.createElement('div');
-  logo.className = 'topnav-logo';
-  logo.textContent = '11';
-
-  const title = document.createElement('span');
-  title.className = 'topnav-title';
-  title.textContent = '苏州地铁11号线商业信息综合平台';
-
-  brand.appendChild(logo);
-  brand.appendChild(title);
-
-  // 中间导航链接区
-  const links = document.createElement('div');
-  links.className = 'topnav-links';
-
-  Object.entries(PAGE_CONFIG).forEach(([key, config]) => {
-    const link = document.createElement('a');
-    link.className = 'nav-link';
-    link.href = config.href;
-    link.dataset.page = key;
-    link.textContent = config.label;
-
-    if (key === activePage) {
-      link.classList.add('active');
-    }
-
-    links.appendChild(link);
-  });
-
-  // 右侧操作区 —— flex:1 与左侧对称，保持导航居中
-  const actions = document.createElement('div');
-  actions.className = 'topnav-actions';
-
-  // 添加一个刷新按钮（简洁图标）
-  const refreshBtn = document.createElement('button');
-  refreshBtn.className = 'nav-link';
-  refreshBtn.title = '刷新数据';
-  refreshBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>`;
-  refreshBtn.addEventListener('click', () => {
-    window.location.reload();
-  });
-  actions.appendChild(refreshBtn);
-
-  // 数据来源指示器
-  const sourceIndicator = document.createElement('span');
-  sourceIndicator.id = 'datasource-indicator';
-  sourceIndicator.className = 'datasource-badge';
-  sourceIndicator.textContent = '检测中…';
-  actions.appendChild(sourceIndicator);
-
-  inner.appendChild(brand);
-  inner.appendChild(links);
-  inner.appendChild(actions);
+  inner.append(
+    createBrand(),
+    createTopNavLinks(activePage),
+    createTopNavActions()
+  );
   nav.appendChild(inner);
 
   return nav;
@@ -144,6 +167,7 @@ function createBottomNav(activePage) {
 
     if (key === activePage) {
       btn.classList.add('active');
+      btn.setAttribute('aria-current', 'page');
     }
 
     // 图标
@@ -177,6 +201,9 @@ function createBottomNav(activePage) {
  * @param {string} [activePage] 当前激活的页面标识，如未提供则自动从 URL 检测
  */
 export function initNav(activePage) {
+  if (cleanupNav) cleanupNav();
+  document.querySelectorAll('.topnav, .bottom-nav').forEach(element => element.remove());
+
   // 若未传入 activePage，则从 URL 自动推断
   const currentPage = activePage || detectActivePage();
 
@@ -189,32 +216,45 @@ export function initNav(activePage) {
   document.body.appendChild(bottomNav);
 
   // 监听数据来源变更事件，自动更新指示器
-  window.addEventListener('datasource:change', (e) => {
+  const handleDataSourceChange = (e) => {
     if (e.detail && e.detail.source) {
       updateDataSourceIndicator(e.detail.source);
     }
-  });
+  };
 
-  // 监听窗口大小变化，确保导航栏显示状态正确（CSS media query 已处理，此处为增强兼容性）
-  // 若页面使用了 SPA 路由，可通过事件通知 nav 模块更新高亮状态
-  document.addEventListener('nav:update', (e) => {
+  const handleNavUpdate = (e) => {
     if (e.detail && e.detail.page) {
       updateActiveState(e.detail.page);
     }
-  });
+  };
 
   // 滚动时给导航栏添加阴影
-  const navEl = topNav;
   let ticking = false;
-  window.addEventListener('scroll', () => {
+  let rafId = null;
+  const handleScroll = () => {
     if (!ticking) {
-      window.requestAnimationFrame(() => {
-        navEl.classList.toggle('scrolled', window.scrollY > 4);
+      rafId = window.requestAnimationFrame(() => {
+        topNav.classList.toggle('scrolled', window.scrollY > 4);
         ticking = false;
+        rafId = null;
       });
       ticking = true;
     }
-  }, { passive: true });
+  };
+
+  window.addEventListener('datasource:change', handleDataSourceChange);
+  document.addEventListener('nav:update', handleNavUpdate);
+  window.addEventListener('scroll', handleScroll, { passive: true });
+
+  cleanupNav = () => {
+    window.removeEventListener('datasource:change', handleDataSourceChange);
+    document.removeEventListener('nav:update', handleNavUpdate);
+    window.removeEventListener('scroll', handleScroll);
+    if (rafId !== null) window.cancelAnimationFrame(rafId);
+    topNav.remove();
+    bottomNav.remove();
+    cleanupNav = null;
+  };
 }
 
 /**
@@ -244,11 +284,23 @@ function updateDataSourceIndicator(source) {
 export function updateActiveState(page) {
   // 更新顶部导航链接
   document.querySelectorAll('.topnav .nav-link').forEach(link => {
-    link.classList.toggle('active', link.dataset.page === page);
+    const isActive = link.dataset.page === page;
+    link.classList.toggle('active', isActive);
+    if (isActive) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
   });
 
   // 更新底部标签栏
   document.querySelectorAll('.bottom-nav .bnav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.page === page);
+    const isActive = btn.dataset.page === page;
+    btn.classList.toggle('active', isActive);
+    if (isActive) {
+      btn.setAttribute('aria-current', 'page');
+    } else {
+      btn.removeAttribute('aria-current');
+    }
   });
 }
