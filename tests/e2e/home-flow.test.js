@@ -194,6 +194,24 @@ describe('首页 E2E', () => {
   }, 60000);
 
   it('趋势图应在悬停后显示并保持详情，且只在边缘区域移动画布', async () => {
+    await page.evaluateOnNewDocument(() => {
+      const nativeMatchMedia = window.matchMedia.bind(window);
+      window.matchMedia = query => {
+        if (query !== '(hover: hover) and (pointer: fine)') {
+          return nativeMatchMedia(query);
+        }
+        return {
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener() {},
+          removeListener() {},
+          addEventListener() {},
+          removeEventListener() {},
+          dispatchEvent() { return false; }
+        };
+      };
+    });
     await page.setViewport({ width: 1440, height: 900 });
     await page.goto(`${BASE}/index.html`, {
       waitUntil: 'domcontentloaded',
@@ -261,7 +279,11 @@ describe('首页 E2E', () => {
     expect(Math.abs(centerScroll - viewportBox.scrollLeft)).toBeLessThanOrEqual(1);
 
     await page.mouse.move(viewportBox.left + viewportBox.width - 4, centerY);
-    await new Promise(resolve => setTimeout(resolve, 350));
+    await page.waitForFunction(
+      previousScroll => document.querySelector('.trend-viewport')?.scrollLeft > previousScroll,
+      { timeout: 3000 },
+      centerScroll
+    );
     const edgeScroll = await page.$eval('.trend-viewport', element => element.scrollLeft);
     expect(edgeScroll).toBeGreaterThan(centerScroll);
   }, 60000);
