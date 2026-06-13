@@ -44,7 +44,7 @@ jobs:
       - name: 安装 E2E 浏览器
         run: |
           rm -rf "$PUPPETEER_CACHE_DIR"
-          node tools/install-e2e-browser.js
+          node tools/install-e2e-browser.mjs
 
       - name: 生成 Prisma Client
         run: npx prisma generate
