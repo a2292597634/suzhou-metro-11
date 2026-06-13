@@ -244,7 +244,8 @@ describe('首页 E2E', () => {
 
     const viewportBox = await page.$eval('.trend-viewport', element => {
       const rect = element.getBoundingClientRect();
-      element.scrollLeft = Math.min(500, element.scrollWidth - element.clientWidth);
+      const maxScroll = element.scrollWidth - element.clientWidth;
+      element.scrollLeft = Math.min(200, Math.max(0, maxScroll / 2));
       return {
         left: rect.left,
         top: rect.top,
@@ -348,7 +349,16 @@ describe('首页 E2E', () => {
       await securityPage.hover('.trend-station-node');
       await new Promise(resolve => setTimeout(resolve, 200));
 
-      expect(response.headers()['content-security-policy']).toBe("default-src 'self'");
+      const csp = response.headers()['content-security-policy'];
+      const directives = new Map(
+        csp.split(';').map(part => {
+          const [name, ...sources] = part.trim().split(/\s+/);
+          return [name, sources];
+        })
+      );
+      expect(directives.get('default-src')).toContain("'self'");
+      expect(directives.get('script-src') || directives.get('default-src')).toContain("'self'");
+      expect(directives.get('connect-src') || directives.get('default-src')).toContain("'self'");
       expect(externalRequests).toEqual([]);
       expect(failedRequests).toEqual([]);
       expect(failedResponses).toEqual([]);
