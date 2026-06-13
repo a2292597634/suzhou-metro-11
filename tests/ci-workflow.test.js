@@ -18,6 +18,13 @@ describe('GitHub Actions 测试工作流', () => {
       .toBeLessThan(workflow.indexOf('npm run test:all'));
   });
 
+  it('安装 Chrome 前应清理可能损坏的 Puppeteer 缓存', () => {
+    const workflow = readFileSync(workflowPath, 'utf8');
+
+    expect(workflow.indexOf('rm -rf "$HOME/.cache/puppeteer"'))
+      .toBeLessThan(workflow.indexOf('npx puppeteer browsers install chrome'));
+  });
+
   it('E2E 应安装 Puppeteer 所需的 Chrome', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
