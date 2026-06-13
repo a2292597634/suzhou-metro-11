@@ -21,7 +21,7 @@ describe('GitHub Actions 测试工作流', () => {
   it('安装 Chrome 前应清理可能损坏的 Puppeteer 缓存', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
-    expect(workflow.indexOf('rm -rf "$HOME/.cache/puppeteer"'))
+    expect(workflow.indexOf('rm -rf "$PUPPETEER_CACHE_DIR"'))
       .toBeLessThan(workflow.indexOf('npx puppeteer browsers install chrome'));
   });
 
@@ -29,5 +29,20 @@ describe('GitHub Actions 测试工作流', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
     expect(workflow).toContain('npx puppeteer browsers install chrome');
+  });
+
+  it('应显式启用浏览器下载并固定缓存目录', () => {
+    const workflow = readFileSync(workflowPath, 'utf8');
+
+    expect(workflow).toContain("PUPPETEER_SKIP_DOWNLOAD: 'false'");
+    expect(workflow).toContain('PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.cache/puppeteer');
+  });
+
+  it('浏览器安装后应验证可执行文件存在', () => {
+    const workflow = readFileSync(workflowPath, 'utf8');
+
+    expect(workflow).toContain("fs.existsSync(executable)");
+    expect(workflow.indexOf('fs.existsSync(executable)'))
+      .toBeLessThan(workflow.indexOf('npm run test:all'));
   });
 });

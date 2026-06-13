@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'false'
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.cache/puppeteer
 
     services:
       postgres:
@@ -40,8 +43,9 @@ jobs:
 
       - name: 安装 E2E 浏览器
         run: |
-          rm -rf "$HOME/.cache/puppeteer"
+          rm -rf "$PUPPETEER_CACHE_DIR"
           npx puppeteer browsers install chrome
+          node -e "const fs = require('node:fs'); const puppeteer = require('puppeteer'); const executable = puppeteer.executablePath(); if (!fs.existsSync(executable)) throw new Error('Chrome executable missing: ' + executable); console.log('Chrome ready:', executable)"
 
       - name: 生成 Prisma Client
         run: npx prisma generate
