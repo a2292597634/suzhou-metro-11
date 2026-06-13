@@ -8,13 +8,13 @@ describe('GitHub Actions 测试工作流', () => {
   it('应包含 Puppeteer 浏览器安装步骤', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
-    expect(workflow).toContain('@puppeteer/browsers install');
+    expect(workflow).toContain('@puppeteer/browsers/lib/cjs/main-cli.js install');
   });
 
   it('浏览器安装步骤应位于全量测试之前', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
-    expect(workflow.indexOf('@puppeteer/browsers install'))
+    expect(workflow.indexOf('@puppeteer/browsers/lib/cjs/main-cli.js install'))
       .toBeLessThan(workflow.indexOf('npm run test:all'));
   });
 
@@ -22,14 +22,14 @@ describe('GitHub Actions 测试工作流', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
     expect(workflow.indexOf('rm -rf "$PUPPETEER_CACHE_DIR"'))
-      .toBeLessThan(workflow.indexOf('npx @puppeteer/browsers install'));
+      .toBeLessThan(workflow.indexOf('@puppeteer/browsers/lib/cjs/main-cli.js install'));
   });
 
   it('E2E 应安装 Puppeteer 所需的 Chrome', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
     expect(workflow).toContain("PUPPETEER_REVISIONS.chrome");
-    expect(workflow).toContain('npx @puppeteer/browsers install "chrome@$CHROME_VERSION"');
+    expect(workflow).toContain('node node_modules/@puppeteer/browsers/lib/cjs/main-cli.js install "chrome@$CHROME_VERSION"');
     expect(workflow).toContain('--path "$PUPPETEER_CACHE_DIR"');
   });
 

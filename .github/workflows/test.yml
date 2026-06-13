@@ -45,7 +45,7 @@ jobs:
         run: |
           rm -rf "$PUPPETEER_CACHE_DIR"
           CHROME_VERSION="$(node -p "require('puppeteer-core/internal/revisions.js').PUPPETEER_REVISIONS.chrome")"
-          npx @puppeteer/browsers install "chrome@$CHROME_VERSION" --path "$PUPPETEER_CACHE_DIR"
+          node node_modules/@puppeteer/browsers/lib/cjs/main-cli.js install "chrome@$CHROME_VERSION" --path "$PUPPETEER_CACHE_DIR"
           node -e "const fs = require('node:fs'); const puppeteer = require('puppeteer'); const executable = puppeteer.executablePath(); if (!fs.existsSync(executable)) throw new Error('Chrome executable missing: ' + executable); console.log('Chrome ready:', executable)"
 
       - name: 生成 Prisma Client
