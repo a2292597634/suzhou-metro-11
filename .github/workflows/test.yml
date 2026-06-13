@@ -38,6 +38,9 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      - name: 安装 E2E 浏览器
+        run: npx puppeteer browsers install chrome
+
       - name: 生成 Prisma Client
         run: npx prisma generate
 
