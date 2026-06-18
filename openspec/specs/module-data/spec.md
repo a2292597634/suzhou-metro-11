@@ -23,15 +23,28 @@
 - **THEN** 模块重新计算总商铺数、已出租数、空置数（多经点位不计入）
 
 ### Requirement: 数据模块支持 Excel 导入导出
-数据模块须提供导出站点商铺数据到 Excel 和从 Excel 导入的功能。
+数据模块 SHALL 通过服务端 API 实现 Excel 导入导出。导出 SHALL 调用 `GET /api/export-excel` 下载服务端生成的文件。导入 SHALL 通过 FormData 上传文件到 `POST /api/import-excel`。新增 `downloadTemplate()` 函数 SHALL 调用 `GET /api/template-excel` 下载空白模板。
+
+前端不再使用 SheetJS 生成或解析 Excel 文件。导入完成后 SHALL 展示服务端返回的行级导入报告。
 
 #### Scenario: 导出 Excel
-- **WHEN** 调用 exportExcel() 时
-- **THEN** 生成 .xlsx 文件，列包含：序号、车站、商铺简洁序号、铺号、商铺属性、面积、商户、联系方式、开业时间、状态、备注
+- **WHEN** 调用 `exportExcel()` 时
+- **THEN** 向 `GET /api/export-excel` 发起请求，触发浏览器下载 xlsx 文件
 
-#### Scenario: 从 Excel 导入
-- **WHEN** 导入一个 Excel 文件时
-- **THEN** 按站点名称匹配商铺数据并合并到现有站点中
+#### Scenario: 导入 Excel
+- **WHEN** 用户选择 Excel 文件后
+- **THEN** 通过 FormData 将文件 POST 到 `/api/import-excel`，服务端返回导入报告后展示 toast
+
+#### Scenario: 下载模板
+- **WHEN** 调用 `downloadTemplate()` 时
+- **THEN** 向 `GET /api/template-excel` 发起请求，触发浏览器下载空白模板
+
+### Requirement: 数据模块使用统一默认数据源
+数据模块 SHALL 从 `data/default-data.json` 加载默认数据，替代硬编码的 `getDefaultStations()` 和 `getDefaultGlobalStats()` 函数。默认数据 SHALL 包含花桥站数据。
+
+#### Scenario: 从 JSON 加载默认数据
+- **WHEN** API 和 localStorage 均不可用时
+- **THEN** 模块 fetch `/data/default-data.json` 获取默认站点和统计信息
 
 ### Requirement: 数据模块持久化变更
 数据模块须将数据保存到后端 API 和 localStorage。

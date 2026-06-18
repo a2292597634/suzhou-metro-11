@@ -45,20 +45,30 @@ window.app = {
 
   exportExcel: () => {
     data.exportExcel();
-    interaction.showToast('📥 Excel 已导出');
+    interaction.showToast('📥 Excel 导出下载中...');
+  },
+
+  downloadTemplate: () => {
+    data.downloadTemplate();
+    interaction.showToast('📋 模板下载中...');
   },
 
   importExcel: async (input) => {
     if (input.files && input.files[0]) {
-      data.importExcel(input, async () => {
+      const result = await data.importExcel(input);
+      if (result.needLogin) {
+        interaction.showToast('⚠️ ' + result.error, 'error');
+      } else if (result.success) {
+        // 重新加载数据以获取服务器端更新
+        await data.loadData();
         data.calcGlobalStats();
         render.renderAll();
         bindEventsAfterRender();
-        await data.saveData();
-        interaction.showToast('📤 Excel 导入成功');
-      }, (msg) => {
-        interaction.showToast(msg, 'error');
-      });
+        const s = result.summary;
+        interaction.showToast(`📤 导入完成：新增 ${s.created} 条，更新 ${s.updated} 条` + (s.errors > 0 ? `，${s.errors} 条错误` : ''));
+      } else {
+        interaction.showToast('❌ ' + (result.error || '导入失败'), 'error');
+      }
     }
   },
 
@@ -186,6 +196,7 @@ function bindGlobalButtons() {
   bind('btn-print', 'click', window.app.printMap);
   bind('btn-hd-export', 'click', window.app.showHDExportHelp);
   bind('btn-export-excel', 'click', window.app.exportExcel);
+  bind('btn-download-template', 'click', window.app.downloadTemplate);
   bind('btn-import-excel', 'click', () => document.getElementById('importFile').click());
   bind('btn-reset', 'click', window.app.resetData);
   bind('btn-save', 'click', window.app.saveNow);
@@ -221,16 +232,20 @@ async function init() {
   bindGlobalButtons();
 
   // 设置全局事件监听
-  interaction.setupEventListeners((input) => {
-    data.importExcel(input, () => {
+  interaction.setupEventListeners(async (input) => {
+    const result = await data.importExcel(input);
+    if (result.needLogin) {
+      interaction.showToast('⚠️ ' + result.error, 'error');
+    } else if (result.success) {
+      await data.loadData();
       data.calcGlobalStats();
       render.renderAll();
       bindEventsAfterRender();
-      data.saveData();
-      interaction.showToast('📤 Excel 导入成功');
-    }, (msg) => {
-      interaction.showToast(msg, 'error');
-    });
+      const s = result.summary;
+      interaction.showToast(`📤 导入完成：新增 ${s.created} 条，更新 ${s.updated} 条` + (s.errors > 0 ? `，${s.errors} 条错误` : ''));
+    } else {
+      interaction.showToast('❌ ' + (result.error || '导入失败'), 'error');
+    }
   });
 
   viewport.initViewport();

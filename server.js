@@ -13,6 +13,7 @@ const crypto = require('crypto');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const multer = require('multer');
 const { z } = require('zod');
 
 const prisma = new PrismaClient();
@@ -22,6 +23,25 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me-in-production';
 
 // 解析 JSON body
 app.use(express.json({ limit: '10mb' }));
+
+// multer 配置文件上传（Excel 导入）
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.originalname.endsWith('.xlsx')) {
+      cb(null, true);
+    } else {
+      cb(new Error('仅支持 .xlsx 文件格式'));
+    }
+  }
+});
 
 // 解析 Cookie（使用 SESSION_SECRET 签名）
 app.use(cookieParser(SESSION_SECRET));
@@ -235,6 +255,8 @@ const shopSchema = z.object({
   contact: z.string().max(100).optional().default(''),
   openDate: z.string().max(50).optional().default(''),
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
+  power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
+  water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
   remark: z.string().max(500).optional().default('')
 });
 
@@ -463,6 +485,70 @@ app.get('/api/ip', (req, res) => {
   res.json({ ips, port: PORT });
 });
 
+// ========== Excel 导入导出 API ==========
+
+const { generateTemplate, generateExport } = require('./tools/excel-export');
+const { importExcel } = require('./tools/excel-import');
+
+// 下载空白模板（无需认证）
+app.get('/api/template-excel', async (req, res) => {
+  try {
+    const wb = generateTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent('11号线商铺信息模板.xlsx')}"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('模板生成失败:', err.message);
+    res.status(500).json({ error: '模板生成失败' });
+  }
+});
+
+// 导出全量数据（无需认证）
+app.get('/api/export-excel', async (req, res) => {
+  try {
+    const stations = await prisma.station.findMany({
+      include: { shops: true },
+      orderBy: { x: 'asc' }
+    });
+    const globalStats = await prisma.globalStats.findUnique({ where: { id: 1 } });
+    const gradeInfos = await prisma.gradeInfo.findMany();
+    const gradeInfo = {};
+    gradeInfos.forEach(g => { gradeInfo[g.id] = { name: g.name, desc: g.desc || '', color: g.color }; });
+
+    const wb = generateExport(stations, globalStats, gradeInfo);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent('轨道交通11号线商铺信息表')}_${new Date().toISOString().slice(0, 10)}.xlsx"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('导出失败:', err.message);
+    res.status(500).json({ error: '数据导出失败' });
+  }
+});
+
+// 上传 Excel 导入（需要认证 + 限流）
+app.post('/api/import-excel', authenticateToken, rateLimiter, upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: '请上传 Excel 文件' });
+  }
+  try {
+    const result = await importExcel(req.file.path, prisma);
+    // 清理临时文件
+    const fs = require('fs');
+    fs.unlink(req.file.path, () => {});
+    res.json(result);
+  } catch (err) {
+    console.error('导入失败:', err.message);
+    // 清理临时文件
+    if (req.file && req.file.path) {
+      const fs = require('fs');
+      fs.unlink(req.file.path, () => {});
+    }
+    res.status(500).json({ error: '导入处理失败：' + err.message });
+  }
+});
+
 // ========== 静态文件服务（白名单）==========
 
 // HTML 服务 — 注入 nonce 以支持内联样式和脚本，不注入 Token
@@ -495,6 +581,10 @@ app.get('/data-viz.html', (req, res) => serveHtml(path.join(__dirname, 'data-viz
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+// 仅暴露 default-data.json，屏蔽其他数据文件
+app.get('/data/default-data.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'data', 'default-data.json'));
+});
 
 // 导出供测试使用
 module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, rateLimiter };

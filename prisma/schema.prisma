@@ -33,6 +33,8 @@ model Shop {
   contact   String?
   openDate  String?
   status    String
+  power     String?  @default("")
+  water     String?  @default("/")
   remark    String?
   station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
   stationId String

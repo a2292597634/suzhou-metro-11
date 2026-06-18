@@ -3,8 +3,10 @@ output/
 *.log
 *.zip
 .env
-data/
+data/*
+!data/default-data.json
 .claude/settings.local.json
 screenshots/
+uploads/
 
 /generated/prisma

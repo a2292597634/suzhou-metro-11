@@ -16,6 +16,8 @@
 
 所有字符串字段 MUST 添加 `.max()` 长度限制：`stationSchema.id` ≤100、`stationSchema.name` ≤100、`shopSchema.name` ≤200、`shopSchema.tenant` ≤100、`shopSchema.contact` ≤100、`shopSchema.remark` ≤500 等。
 
+Shop schema MUST 新增 `power` 字段（`z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default('')`）和 `water` 字段（`z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/')`）。
+
 `stations` 数组 MUST ≤100，`shops` 数组 MUST ≤200。MUST 通过 `.refine()` 检查无重复站点 ID。
 
 #### Scenario: 缺失必填字段
@@ -34,9 +36,24 @@
 - **WHEN** 站点 name 长度 > 100
 - **THEN** 返回 400 校验失败
 
+#### Scenario: 非法电量值
+- **WHEN** shop power 不是 20KW 或 30KW
+- **THEN** 返回 400，错误信息说明允许的值
+
+#### Scenario: 非法上下水值
+- **WHEN** shop water 不是「有」或「/」
+- **THEN** 返回 400，错误信息说明允许的值
+
 #### Scenario: 重复站点 ID 被拒绝
 - **WHEN** stations 数组包含两个相同 id 的站点
 - **THEN** 返回 400，错误信息提及重复 ID
+
+### Requirement: Excel 导入后自动重算 GlobalStats
+`POST /api/import-excel` 在事务成功提交后 MUST 自动重新计算并更新 GlobalStats 表。
+
+#### Scenario: 导入后统计更新
+- **WHEN** 导入完成后数据库有 74 个商铺，37 个营业中
+- **THEN** GlobalStats.totalShops = 74，rentedShops = 37
 
 ### Requirement: 原子乐观锁防止并发覆盖
 Station 表 MUST 包含 `version` 字段。保存时若站点已存在且请求携带了 version（非 null/undefined），MUST 使用原子 `updateMany({ where: { id, version } })` 进行版本检查和更新，消除 findUnique+upsert 之间的竞态窗口。

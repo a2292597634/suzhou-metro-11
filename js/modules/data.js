@@ -213,7 +213,23 @@ export async function loadData() {
     console.warn('加载保存数据失败，使用默认数据', e);
   }
 
-  // 使用默认数据
+  // 尝试从 /data/default-data.json 加载默认数据
+  try {
+    const res = await fetch('/data/default-data.json');
+    if (res.ok) {
+      const defaultData = await res.json();
+      state.stations = defaultData.stations || [];
+      state.globalStats = defaultData.globalStats || getDefaultGlobalStats();
+      if (defaultData.gradeInfo) state.gradeInfo = defaultData.gradeInfo;
+      console.log('✅ 已从 JSON 文件加载默认数据');
+      notifySource('default');
+      return { source: 'default' };
+    }
+  } catch (e) {
+    console.warn('JSON 默认数据加载失败，使用内联兜底', e);
+  }
+
+  // 内联兜底（最终降级）
   state.stations = getDefaultStations();
   state.globalStats = getDefaultGlobalStats();
   notifySource('default');
@@ -337,99 +353,52 @@ export function saveToLocal(data) {
   }
 }
 
-// 导出 Excel
+// 导出 Excel（通过服务端 API）
 export function exportExcel() {
-  const headers = ['序号', '车站', '商铺简洁序号', '铺号', '商铺属性', '面积(㎡)', '商户', '联系方式', '开业时间', '状态', '备注'];
-  const rows = [headers];
-  let seq = 1;
-
-  state.stations.forEach(s => {
-    (s.shops || []).forEach(shop => {
-      rows.push([
-        seq++,
-        s.name,
-        shop.shortNo || '',
-        shop.name || '',
-        shop.type || '商铺',
-        shop.area || 0,
-        shop.tenant || '',
-        shop.contact || '',
-        shop.openDate || '',
-        shop.status || '未出租',
-        shop.remark || ''
-      ]);
-    });
-  });
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, '商铺信息');
-  XLSX.writeFile(wb, `轨道交通11号线商铺信息表_${new Date().toLocaleDateString()}.xlsx`);
+  const link = document.createElement('a');
+  link.href = `${state.apiBase}/api/export-excel`;
+  link.download = `轨道交通11号线商铺信息表_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-// 导入 Excel
-export function importExcel(input, onSuccess, onError) {
+// 下载空白模板（通过服务端 API）
+export function downloadTemplate() {
+  const link = document.createElement('a');
+  link.href = `${state.apiBase}/api/template-excel`;
+  link.download = '11号线商铺信息模板.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 导入 Excel（通过服务端 API，FormData 上传）
+export async function importExcel(input) {
   const file = input.files[0];
-  if (!file) return;
+  if (!file) return { success: false, error: '未选择文件' };
 
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const formData = new FormData();
+  formData.append('file', file);
 
-      if (json.length < 2) {
-        throw new Error('Excel 文件为空或格式不正确');
-      }
+  try {
+    const res = await fetch(`${state.apiBase}/api/import-excel`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
 
-      const shopsByStation = {};
-      let currentStation = null;
-
-      for (let i = 1; i < json.length; i++) {
-        const row = json[i];
-        if (!row[3]) continue;
-
-        const stationName = row[1] ? String(row[1]).trim() : currentStation;
-        if (!stationName) continue;
-        currentStation = stationName;
-
-        if (!shopsByStation[stationName]) {
-          shopsByStation[stationName] = [];
-        }
-
-        shopsByStation[stationName].push({
-          shortNo: row[2] ? String(row[2]) : '',
-          name: row[3] ? String(row[3]) : '',
-          type: row[4] ? String(row[4]) : '商铺',
-          area: parseFloat(row[5]) || 0,
-          tenant: row[6] ? String(row[6]) : '',
-          contact: row[7] ? String(row[7]) : '',
-          openDate: row[8] ? String(row[8]) : '',
-          status: row[9] ? String(row[9]) : '未出租',
-          remark: row[10] ? String(row[10]) : ''
-        });
-      }
-
-      state.stations.forEach(s => {
-        const stationName = s.name;
-        if (shopsByStation[stationName]) {
-          s.shops = shopsByStation[stationName].map((shop, idx) => ({
-            no: idx + 1,
-            ...shop
-          }));
-        }
-      });
-
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      if (onError) onError('❌ 导入失败：' + err.message);
-      console.error(err);
+    if (res.status === 401) {
+      return { success: false, needLogin: true, error: '请先登录后再导入' };
     }
+
+    const result = await res.json();
+    input.value = ''; // 清空文件选择
+    return result;
+  } catch (err) {
     input.value = '';
-  };
-  reader.readAsArrayBuffer(file);
+    return { success: false, error: '导入失败：' + err.message };
+  }
 }
 
 // 恢复默认

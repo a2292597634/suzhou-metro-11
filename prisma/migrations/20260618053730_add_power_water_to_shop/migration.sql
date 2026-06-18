@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Shop" ALTER COLUMN "power" DROP NOT NULL,
+ALTER COLUMN "water" DROP NOT NULL;
