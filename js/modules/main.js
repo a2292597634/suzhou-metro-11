@@ -59,8 +59,11 @@ window.app = {
       if (result.needLogin) {
         interaction.showToast('⚠️ ' + result.error, 'error');
       } else if (result.success) {
-        // 重新加载数据以获取服务器端更新
-        await data.loadData();
+        if (result.source !== 'local') {
+          // 服务端导入：重新加载数据
+          await data.loadData();
+        }
+        // 降级导入：state 和 localStorage 已更新，直接渲染
         data.calcGlobalStats();
         render.renderAll();
         bindEventsAfterRender();
@@ -237,7 +240,9 @@ async function init() {
     if (result.needLogin) {
       interaction.showToast('⚠️ ' + result.error, 'error');
     } else if (result.success) {
-      await data.loadData();
+      if (result.source !== 'local') {
+        await data.loadData();
+      }
       data.calcGlobalStats();
       render.renderAll();
       bindEventsAfterRender();

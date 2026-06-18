@@ -353,26 +353,32 @@ export function saveToLocal(data) {
   }
 }
 
-// 导出 Excel（优先服务端 API，不可用时降级到前端 SheetJS）
-export function exportExcel() {
+// 导出 Excel（优先服务端 blob 下载，不可用时降级到前端 SheetJS）
+export async function exportExcel() {
   const url = `${state.apiBase}/api/export-excel`;
-  // 先用 fetch 探测 API 是否可达
-  fetch(url, { method: 'HEAD' }).then(res => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
     if (res.ok) {
-      // API 可用，下载服务端文件
+      // 服务端可用，下载 blob
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = blobUrl;
       link.download = `轨道交通11号线商铺信息表_${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      fallbackExport();
+      URL.revokeObjectURL(blobUrl);
+      return;
     }
-  }).catch(() => {
-    // 网络不可达，降级到前端 SheetJS 导出
-    fallbackExport();
-  });
+  } catch (e) {
+    // 网络不可达，降级
+  }
+  fallbackExport();
 }
 
 // 前端降级导出（SheetJS 浏览器端生成）
@@ -396,23 +402,31 @@ function fallbackExport() {
   XLSX.writeFile(wb, `轨道交通11号线商铺信息表_${new Date().toLocaleDateString()}.xlsx`);
 }
 
-// 下载空白模板（优先服务端 API，不可用时降级到前端 SheetJS）
-export function downloadTemplate() {
+// 下载空白模板（优先服务端 blob 下载，不可用时降级到前端 SheetJS）
+export async function downloadTemplate() {
   const url = `${state.apiBase}/api/template-excel`;
-  fetch(url, { method: 'HEAD' }).then(res => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
     if (res.ok) {
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = blobUrl;
       link.download = '11号线商铺信息模板.xlsx';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      fallbackTemplate();
+      URL.revokeObjectURL(blobUrl);
+      return;
     }
-  }).catch(() => {
-    fallbackTemplate();
-  });
+  } catch (e) {
+    // 降级
+  }
+  fallbackTemplate();
 }
 
 // 前端降级模板（SheetJS 浏览器端生成）
@@ -434,11 +448,15 @@ export async function importExcel(input) {
   formData.append('file', file);
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(`${state.apiBase}/api/import-excel`, {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      body: formData,
+      signal: controller.signal
     });
+    clearTimeout(timeout);
 
     if (res.status === 401) {
       return { success: false, needLogin: true, error: '请先登录后再导入' };
@@ -447,9 +465,8 @@ export async function importExcel(input) {
     if (res.ok) {
       const result = await res.json();
       input.value = '';
-      return result;
+      return { ...result, source: 'server' };
     }
-    // 服务端返回错误（非网络错误），使用前端降级
   } catch (e) {
     // 网络不可达，降级
   }
@@ -458,7 +475,7 @@ export async function importExcel(input) {
   return await fallbackImport(input);
 }
 
-// 前端降级导入（SheetJS 浏览器端解析，仅更新 state，不写 DB）
+// 前端降级导入（SheetJS 解析 → 更新 state → 保存 localStorage）
 function fallbackImport(input) {
   return new Promise((resolve) => {
     const file = input.files[0];
@@ -482,7 +499,7 @@ function fallbackImport(input) {
 
         for (let i = 1; i < json.length; i++) {
           const row = json[i];
-          if (!row[1]) continue; // 跳过无简洁编号的行
+          if (!row[1]) continue;
 
           const stationName = row[0] ? String(row[0]).trim() : currentStation;
           if (!stationName) continue;
@@ -513,8 +530,11 @@ function fallbackImport(input) {
           }
         });
 
+        // 降级导入后保存到 localStorage，防止刷新丢失和 loadData 覆盖
+        saveToLocal({ stations: state.stations, globalStats: state.globalStats, gradeInfo: state.gradeInfo });
+
         input.value = '';
-        resolve({ success: true, summary: { created: 0, updated, skipped: 0, errors: 0 }, errors: [] });
+        resolve({ success: true, source: 'local', summary: { created: 0, updated, skipped: 0, errors: 0 }, errors: [] });
       } catch (err) {
         input.value = '';
         resolve({ success: false, error: '导入失败：' + err.message });

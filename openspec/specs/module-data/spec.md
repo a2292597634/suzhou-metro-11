@@ -23,13 +23,21 @@
 - **THEN** 模块重新计算总商铺数、已出租数、空置数（多经点位不计入）
 
 ### Requirement: 数据模块支持 Excel 导入导出
-数据模块 SHALL 通过服务端 API 实现 Excel 导入导出。导出 SHALL 调用 `GET /api/export-excel` 下载服务端生成的文件。导入 SHALL 通过 FormData 上传文件到 `POST /api/import-excel`。新增 `downloadTemplate()` 函数 SHALL 调用 `GET /api/template-excel` 下载空白模板。
+数据模块 SHALL 优先通过服务端 API 实现 Excel 导入导出，API 不可达时 SHALL 自动降级到前端 SheetJS。
 
-前端不再使用 SheetJS 生成或解析 Excel 文件。导入完成后 SHALL 展示服务端返回的行级导入报告。
+导出 SHALL 使用 fetch blob 下载（5s 超时），失败时降级 SheetJS 生成。模板 SHALL 同理。导入 SHALL 使用 FormData fetch API（10s 超时）。降级导入 SHALL 保存到 localStorage 并返回 `{ source: 'local' }`，调用方 MUST 跳过 `loadData()`。
 
-#### Scenario: 导出 Excel
-- **WHEN** 调用 `exportExcel()` 时
-- **THEN** 向 `GET /api/export-excel` 发起请求，触发浏览器下载 xlsx 文件
+#### Scenario: 导出 Excel（API 可达）
+- **WHEN** `exportExcel()` 且 API 可达
+- **THEN** blob 下载服务端生成的文件
+
+#### Scenario: 导出 Excel（API 不可达时降级）
+- **WHEN** `exportExcel()` 且 API 不可达
+- **THEN** SheetJS 前端生成 xlsx 并触发下载
+
+#### Scenario: 降级导入保存 localStorage
+- **WHEN** fetch POST `/api/import-excel` 网络异常
+- **THEN** SheetJS 解析 xlsx → 更新 state → 写入 localStorage → 返回 `{ source: 'local' }`
 
 #### Scenario: 导入 Excel
 - **WHEN** 用户选择 Excel 文件后
