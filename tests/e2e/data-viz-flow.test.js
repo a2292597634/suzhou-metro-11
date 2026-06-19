@@ -21,25 +21,32 @@ describe('data-viz 页面 E2E', () => {
     if (browser) await browser.close();
   });
 
-  it('商业分析页应应用站点卡片网格并控制图表首屏比例', async () => {
+  it('商业信息管理页应应用站点卡片网格并控制图表首屏比例', async () => {
     const layout = await page.evaluate(() => {
       const grid = document.querySelector('.cards-grid');
       const card = document.querySelector('.station-card');
       const charts = document.querySelector('.charts-row');
       const chart = document.querySelector('.chart-container');
+      const gradeManager = document.querySelector('#gradeManager');
       return {
+        title: document.querySelector('.page-title')?.textContent.trim(),
         gridDisplay: getComputedStyle(grid).display,
         cardWidth: card.getBoundingClientRect().width,
         gridWidth: grid.getBoundingClientRect().width,
         chartsDisplay: getComputedStyle(charts).display,
-        chartHeight: chart.getBoundingClientRect().height
+        chartHeight: chart.getBoundingClientRect().height,
+        gradeSummaryCount: gradeManager.querySelectorAll('[data-grade-summary]').length,
+        gradeRows: gradeManager.querySelectorAll('[data-grade-row]').length
       };
     });
 
+    expect(layout.title).toBe('商业信息管理');
     expect(layout.gridDisplay).toBe('grid');
     expect(layout.cardWidth).toBeLessThan(layout.gridWidth / 2);
     expect(layout.chartsDisplay).toBe('grid');
     expect(layout.chartHeight).toBeLessThan(400);
+    expect(layout.gradeSummaryCount).toBe(4);
+    expect(layout.gradeRows).toBeGreaterThan(0);
   });
 
   it('页面应正常加载并显示图表', async () => {

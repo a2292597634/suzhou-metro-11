@@ -10,6 +10,29 @@ export const config = {
   storageKey: 'suzhou_m11_battle_map_data_v4'
 };
 
+export const VALID_GRADES = ['S', 'A', 'B', 'C'];
+const VALID_GRADE_SET = new Set(VALID_GRADES);
+
+export function normalizeGrade(grade, fallback = 'C') {
+  const normalized = String(grade || '').trim().toUpperCase();
+  if (VALID_GRADE_SET.has(normalized)) return normalized;
+  return VALID_GRADE_SET.has(fallback) ? fallback : 'C';
+}
+
+export function getGradeClass(grade, prefix = 'grade-') {
+  const normalized = String(grade || '').trim().toUpperCase();
+  if (!VALID_GRADE_SET.has(normalized)) return '';
+  return `${prefix}${normalized}`;
+}
+
+export function groupStationsByGrade(stations) {
+  const groups = Object.fromEntries(VALID_GRADES.map(grade => [grade, []]));
+  (Array.isArray(stations) ? stations : []).forEach(station => {
+    groups[normalizeGrade(station?.grade)].push(station);
+  });
+  return groups;
+}
+
 // 计算出租率（支持空值）
 export function calcRate(total, rented) {
   if (total === '' || total === null || total === undefined || total === 0) return '';

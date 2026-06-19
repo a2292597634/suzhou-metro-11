@@ -1,6 +1,6 @@
 import { initNav } from '../modules/nav.js';
 import { initRouter } from '../modules/router.js';
-import { initViz, bindToolbar } from '../modules/viz.js';
+import { initViz } from '../modules/viz.js';
 import { renderBarChart, renderStatusChart } from '../modules/charts.js';
 
 initNav('data');
@@ -24,4 +24,3 @@ function updateCharts(stations) {
 }
 
 initViz({ onRender: updateCharts });
-bindToolbar();

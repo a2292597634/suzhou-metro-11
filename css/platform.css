@@ -292,7 +292,9 @@ body::before {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 8px 20px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 8px;
   color: var(--color-steel-gray);
   font-size: 10px;
   font-weight: var(--font-weight-medium);
@@ -301,6 +303,13 @@ body::before {
   border: none;
   background: transparent;
   transition: color var(--duration-fast);
+}
+
+.bnav-item span:last-child {
+  max-width: 100%;
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .bnav-item.active {

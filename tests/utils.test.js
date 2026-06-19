@@ -2,7 +2,17 @@
  * 工具函数测试 —— js/modules/utils.js
  */
 import { describe, it, expect } from 'vitest';
-import { config, calcRate, escapeHtml, resolveCardOverlaps, enforceLineBoundaries } from '../js/modules/utils.js';
+import {
+  VALID_GRADES,
+  config,
+  calcRate,
+  escapeHtml,
+  enforceLineBoundaries,
+  getGradeClass,
+  groupStationsByGrade,
+  normalizeGrade,
+  resolveCardOverlaps
+} from '../js/modules/utils.js';
 
 describe('工具函数', () => {
   describe('config 常量', () => {
@@ -40,6 +50,39 @@ describe('工具函数', () => {
 
     it('应该支持字符串数字', () => {
       expect(calcRate('20', '10')).toBe('50.0');
+    });
+  });
+
+  describe('商业价值等级工具', () => {
+    it('应该规范化大小写、空白和非法等级', () => {
+      expect(VALID_GRADES).toEqual(['S', 'A', 'B', 'C']);
+      expect(normalizeGrade(' a ')).toBe('A');
+      expect(normalizeGrade('s')).toBe('S');
+      expect(normalizeGrade('X')).toBe('C');
+      expect(normalizeGrade(null)).toBe('C');
+    });
+
+    it('应该按规范化后的等级生成安全 class', () => {
+      expect(getGradeClass('b', 'grade-')).toBe('grade-B');
+      expect(getGradeClass(' S ', 'card-grade-')).toBe('card-grade-S');
+      expect(getGradeClass('A extra-class', 'grade-')).toBe('');
+    });
+
+    it('应该按当前站点等级分组且不改变原数组', () => {
+      const stations = [
+        { id: 's1', grade: 's' },
+        { id: 'a1', grade: 'A' },
+        { id: 'bad', grade: 'X' },
+        { id: 'empty' }
+      ];
+
+      const grouped = groupStationsByGrade(stations);
+
+      expect(grouped.S.map(station => station.id)).toEqual(['s1']);
+      expect(grouped.A.map(station => station.id)).toEqual(['a1']);
+      expect(grouped.B).toEqual([]);
+      expect(grouped.C.map(station => station.id)).toEqual(['bad', 'empty']);
+      expect(stations[0].grade).toBe('s');
     });
   });
 

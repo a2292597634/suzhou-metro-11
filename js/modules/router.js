@@ -12,7 +12,7 @@
  */
 const ROUTES = {
   home:   { path: 'index.html', title: '首页' },
-  data:   { path: 'data-viz.html',  title: '商业数据' },
+  data:   { path: 'data-viz.html',  title: '商业信息管理' },
   battle: { path: 'battle-map.html', title: '作战图' }
 };
 

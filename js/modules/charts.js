@@ -1,5 +1,5 @@
 /**
- * SVG 图表引擎 — 商业数据可视化图表
+ * SVG 图表引擎 — 商业信息管理图表
  * 纯 SVG 实现，零外部依赖，使用项目 CSS Token 配色
  *
  * 导出函数：
@@ -7,6 +7,8 @@
  *   renderDonutChart(gradeCount, options) — 分级占比环形图
  *   renderStatusChart(stations, options) — 经营状态分布图
  */
+
+import { normalizeGrade } from './utils.js';
 
 // ============================================
 // 颜色工具
@@ -74,7 +76,9 @@ function calcRate(station) {
 
 function countByGrade(stations) {
   const count = { S: 0, A: 0, B: 0, C: 0 };
-  stations.forEach(s => { if (count[s.grade] !== undefined) count[s.grade]++; });
+  stations.forEach(station => {
+    count[normalizeGrade(station?.grade)]++;
+  });
   return count;
 }
 

@@ -87,6 +87,18 @@ describe('首页数据看板', () => {
       expect(stats.gradeCount.C).toBe(1);
     });
 
+    it('应该用规范化后的当前等级统计站点数量', () => {
+      state.stations = [
+        { name: '小写S', grade: 's', shops: [] },
+        { name: '非法等级', grade: 'X', shops: [] }
+      ];
+
+      const stats = calcHomeStats();
+
+      expect(stats.gradeCount).toEqual({ S: 1, A: 0, B: 0, C: 1 });
+      expect(stats.stationStats.map(station => station.grade)).toEqual(['S', 'C']);
+    });
+
     it('空数据应该返回 0', () => {
       state.stations = [];
 
@@ -242,8 +254,8 @@ describe('首页数据看板', () => {
 
     it('应该组合等级筛选与去除首尾空格后的站名搜索', () => {
       const stations = [
-        { name: '花桥', grade: 'S', rate: 92 },
-        { name: '花溪公园', grade: 'A', rate: 76 },
+        { name: '花桥', grade: 's', rate: 92 },
+        { name: '花溪公园', grade: 'a', rate: 76 },
         { name: '兵希', grade: 'B', rate: 60 }
       ];
 

@@ -1,11 +1,18 @@
 /**
- * 数据可视化模块 — 商业数据页面逻辑
+ * 商业信息管理模块 — 商业点位与站点价值等级页面逻辑
  * 负责卡片网格渲染、筛选排序、站点编辑，复用 data.js 和 state.js
  */
 
 import { state } from './state.js';
 import { loadData, saveData } from './data.js';
-import { escapeHtml, escapeAttr } from './utils.js';
+import {
+  VALID_GRADES,
+  escapeHtml,
+  escapeAttr,
+  getGradeClass,
+  groupStationsByGrade,
+  normalizeGrade
+} from './utils.js';
 
 // ============================================
 // 常量
@@ -67,7 +74,9 @@ export function calcStationStats(station) {
  */
 export function filterStations(stations, grade) {
   if (grade === 'all' || !grade) return [...stations];
-  return stations.filter(s => s.grade === grade);
+  const targetGrade = String(grade || '').trim().toUpperCase();
+  if (!VALID_GRADES.includes(targetGrade)) return [];
+  return stations.filter(s => normalizeGrade(s?.grade) === targetGrade);
 }
 
 /**
@@ -159,7 +168,7 @@ export function renderCards(stations, expandedId, currentFilter, currentSort) {
  */
 export function renderCard(station, idx, expandedId) {
   const stats = calcStationStats(station);
-  const grade = station.grade || 'C';
+  const grade = normalizeGrade(station.grade);
   const gc = GRADE_CONFIG[grade] || GRADE_CONFIG.C;
   const rateClass = stats.rate >= 70 ? 'high' : stats.rate >= 40 ? 'mid' : 'low';
   const isExpanded = expandedId === station.id;
@@ -221,6 +230,7 @@ export function renderCard(station, idx, expandedId) {
  */
 function renderDetail(station, idx) {
   const shops = station.shops || [];
+  const grade = normalizeGrade(station.grade);
   return `
     <div class="card-detail">
       <div class="detail-section">
@@ -233,10 +243,10 @@ function renderDetail(station, idx) {
           <div class="info-field">
             <label>商业价值等级</label>
             <select data-field="grade">
-              <option value="S" ${station.grade === 'S' ? 'selected' : ''}>S级（核心商圈/换乘）</option>
-              <option value="A" ${station.grade === 'A' ? 'selected' : ''}>A级（重点发展站）</option>
-              <option value="B" ${station.grade === 'B' ? 'selected' : ''}>B级（潜力提升站）</option>
-              <option value="C" ${station.grade === 'C' ? 'selected' : ''}>C级（培育优化站）</option>
+              <option value="S" ${grade === 'S' ? 'selected' : ''}>S级（核心商圈/换乘）</option>
+              <option value="A" ${grade === 'A' ? 'selected' : ''}>A级（重点发展站）</option>
+              <option value="B" ${grade === 'B' ? 'selected' : ''}>B级（潜力提升站）</option>
+              <option value="C" ${grade === 'C' ? 'selected' : ''}>C级（培育优化站）</option>
             </select>
           </div>
           <div class="info-field">
@@ -317,6 +327,190 @@ let currentFilter = 'all';
 let currentSort = 'default';
 let expandedId = null;
 let onRenderCallback = null; // 图表更新回调
+const gradeDrafts = new Map();
+
+function getEffectiveGrade(station) {
+  return gradeDrafts.get(station?.id) || normalizeGrade(station?.grade);
+}
+
+function getGradeSummary(stations) {
+  const effectiveStations = (Array.isArray(stations) ? stations : []).map(station => ({
+    ...station,
+    grade: getEffectiveGrade(station)
+  }));
+  return groupStationsByGrade(effectiveStations);
+}
+
+function getPendingCount() {
+  return Array.from(gradeDrafts.entries()).filter(([stationId, grade]) => {
+    const station = state.stations.find(item => item.id === stationId);
+    return station && normalizeGrade(station.grade) !== grade;
+  }).length;
+}
+
+function pruneGradeDrafts() {
+  Array.from(gradeDrafts.keys()).forEach(stationId => {
+    const station = state.stations.find(item => item.id === stationId);
+    if (!station || normalizeGrade(station.grade) === gradeDrafts.get(stationId)) {
+      gradeDrafts.delete(stationId);
+    }
+  });
+}
+
+function renderGradeSummary(groups) {
+  return VALID_GRADES.map(grade => {
+    const stations = groups[grade] || [];
+    const config = GRADE_CONFIG[grade];
+    return `
+      <div class="grade-summary-item" data-grade-summary="${escapeAttr(grade)}">
+        <span class="grade-summary-dot ${getGradeClass(grade, 'grade-dot-')}" style="background:${config.color};"></span>
+        <span class="grade-summary-name">${escapeHtml(config.label)}</span>
+        <strong class="grade-summary-count">${stations.length}</strong>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderGradeButtons(station, currentGrade) {
+  return VALID_GRADES.map(grade => `
+    <button
+      class="grade-choice${grade === currentGrade ? ' active' : ''}"
+      type="button"
+      data-grade-action="set-grade"
+      data-station-id="${escapeAttr(station.id)}"
+      data-grade="${escapeAttr(grade)}"
+      aria-pressed="${grade === currentGrade}"
+    >${escapeHtml(grade)}</button>
+  `).join('');
+}
+
+function renderGradeRows(stations) {
+  return (Array.isArray(stations) ? stations : []).map((station, index) => {
+    const originalGrade = normalizeGrade(station?.grade);
+    const currentGrade = getEffectiveGrade(station);
+    const isPending = originalGrade !== currentGrade;
+    const stats = calcStationStats(station);
+    return `
+      <tr class="${isPending ? 'is-pending' : ''}" data-grade-row data-station-id="${escapeAttr(station.id)}">
+        <td class="grade-row-seq">${String(index + 1).padStart(2, '0')}</td>
+        <td>
+          <div class="grade-station-name">${escapeHtml(station.name)}</div>
+          <div class="grade-station-meta">${station.transfer ? '换乘站' : '普通站'} · 商业点位 ${stats.total}</div>
+        </td>
+        <td><span class="grade-current grade-${currentGrade.toLowerCase()}">${escapeHtml(currentGrade)}</span></td>
+        <td><div class="grade-choice-group">${renderGradeButtons(station, currentGrade)}</div></td>
+        <td class="grade-change-state">${isPending ? `${originalGrade} → ${currentGrade}` : '已同步'}</td>
+        <td>
+          <button class="grade-locate-btn" type="button" data-grade-action="locate-card" data-station-id="${escapeAttr(station.id)}">定位卡片</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+export function renderGradeManager(stations = state.stations) {
+  const manager = document.getElementById('gradeManager');
+  if (!manager) return;
+  pruneGradeDrafts();
+  const safeStations = Array.isArray(stations) ? stations : [];
+  const groups = getGradeSummary(safeStations);
+  const pendingCount = getPendingCount();
+
+  manager.innerHTML = `
+    <div class="grade-manager-header">
+      <div>
+        <h2 id="gradeManagerTitle">站点价值等级管理</h2>
+        <p>按线路顺序调整全线站点 S/A/B/C 商业价值等级</p>
+      </div>
+      <div class="grade-manager-actions">
+        <span class="grade-pending" data-grade-pending-count>待保存 ${pendingCount}</span>
+        <button class="btn btn-ghost" type="button" data-grade-action="discard-grades" ${pendingCount === 0 ? 'disabled' : ''}>撤销更改</button>
+        <button class="btn btn-primary" type="button" data-grade-action="save-grades" ${pendingCount === 0 ? 'disabled' : ''}>保存等级调整</button>
+      </div>
+    </div>
+    <div class="grade-summary-grid">${renderGradeSummary(groups)}</div>
+    <div class="grade-table-wrap">
+      <table class="grade-management-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>站点</th>
+            <th>当前等级</th>
+            <th>调整等级</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>${renderGradeRows(safeStations)}</tbody>
+      </table>
+    </div>
+  `;
+  manager.onclick = handleGradeManagerClick;
+}
+
+export function setGradeDraft(stationId, grade) {
+  const station = state.stations.find(item => item.id === stationId);
+  if (!station) return;
+  const normalized = normalizeGrade(grade);
+  if (normalizeGrade(station.grade) === normalized) {
+    gradeDrafts.delete(stationId);
+  } else {
+    gradeDrafts.set(stationId, normalized);
+  }
+  renderGradeManager(state.stations);
+}
+
+export function discardGradeDrafts() {
+  gradeDrafts.clear();
+  renderGradeManager(state.stations);
+}
+
+export async function saveGradeDrafts(persist = saveData) {
+  const pending = Array.from(gradeDrafts.entries());
+  if (pending.length === 0) {
+    renderGradeManager(state.stations);
+    return { success: true, source: 'none' };
+  }
+
+  pending.forEach(([stationId, grade]) => {
+    const station = state.stations.find(item => item.id === stationId);
+    if (station) station.grade = normalizeGrade(grade);
+  });
+  const result = await persist();
+  gradeDrafts.clear();
+  expandedId = null;
+  renderGrid();
+  return result;
+}
+
+function locateStationCard(stationId) {
+  const selectorId = globalThis.CSS?.escape
+    ? globalThis.CSS.escape(stationId)
+    : String(stationId).replace(/["\\]/g, '\\$&');
+  const card = document.querySelector(`.station-card[data-id="${selectorId}"]`);
+  if (!card) return;
+  card.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+  card.classList.add('is-grade-located');
+  setTimeout(() => card.classList.remove('is-grade-located'), 1600);
+}
+
+function handleGradeManagerClick(event) {
+  const button = event.target.closest('[data-grade-action]');
+  if (!button) return;
+  const action = button.dataset.gradeAction;
+  if (action === 'set-grade') {
+    setGradeDraft(button.dataset.stationId, button.dataset.grade);
+  } else if (action === 'discard-grades') {
+    discardGradeDrafts();
+  } else if (action === 'save-grades') {
+    saveGradeDrafts().then(result => {
+      const source = result?.source === 'server' ? '服务器' : '本地';
+      showToast(`✅ 等级已保存到${source}`);
+    });
+  } else if (action === 'locate-card') {
+    locateStationCard(button.dataset.stationId);
+  }
+}
 
 // ============================================
 // Toast 提示
@@ -483,6 +677,8 @@ function saveCard(card) {
     const field = input.dataset.field;
     if (field === 'transfer') {
       station[field] = input.value === 'true';
+    } else if (field === 'grade') {
+      station[field] = normalizeGrade(input.value);
     } else {
       station[field] = input.value;
     }
@@ -519,6 +715,7 @@ function saveCard(card) {
 function renderGrid() {
   renderCards(state.stations, expandedId, currentFilter, currentSort);
   bindCardEvents();
+  renderGradeManager(state.stations);
   // 通知图表更新
   if (onRenderCallback) {
     const filtered = filterStations(state.stations, currentFilter);

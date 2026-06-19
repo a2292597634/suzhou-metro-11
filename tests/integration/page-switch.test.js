@@ -75,7 +75,7 @@ describe('页面集成', () => {
       expect(activeLink.dataset.page).toBe('home');
     });
 
-    it('数据页应高亮「商业数据」链接', async () => {
+    it('数据页应高亮「商业信息管理」链接', async () => {
       delete window.location;
       window.location = new URL('http://localhost/data-viz.html');
       const { initNav } = await loadNavModule();

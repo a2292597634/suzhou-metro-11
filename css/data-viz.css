@@ -674,6 +674,210 @@
   flex: 0 0 auto;
 }
 
+/* ===== 站点价值等级管理 ===== */
+.grade-manager {
+  max-width: var(--page-max-width);
+  margin: 0 auto var(--spacing-64);
+  padding: 0 var(--spacing-24);
+}
+
+.grade-manager:empty {
+  display: none;
+}
+
+.grade-manager-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-20);
+  margin-bottom: var(--spacing-16);
+}
+
+.grade-manager-header h2 {
+  margin: 0 0 4px;
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.grade-manager-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+}
+
+.grade-manager-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.grade-pending {
+  min-width: 82px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  text-align: center;
+}
+
+.grade-manager button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.grade-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-16);
+}
+
+.grade-summary-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-8);
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.grade-summary-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.grade-summary-name {
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+}
+
+.grade-summary-count {
+  font-size: var(--text-subheading);
+  color: var(--text-primary);
+}
+
+.grade-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.grade-management-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-caption);
+}
+
+.grade-management-table th {
+  padding: 11px 12px;
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+
+.grade-management-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.grade-management-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.grade-management-table tbody tr.is-pending {
+  background: #fffbeb;
+}
+
+.grade-row-seq,
+.grade-change-state {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.grade-station-name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.grade-station-meta {
+  margin-top: 3px;
+  color: var(--text-secondary);
+}
+
+.grade-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+}
+
+.grade-current.grade-b {
+  color: var(--color-ink-black);
+}
+
+.grade-choice-group {
+  display: inline-grid;
+  grid-template-columns: repeat(4, 32px);
+  gap: 4px;
+}
+
+.grade-choice {
+  width: 32px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-muted);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.grade-choice:hover,
+.grade-choice.active {
+  border-color: var(--color-jet-black);
+  background: var(--color-jet-black);
+  color: var(--color-canvas-white);
+}
+
+.grade-locate-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.grade-locate-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.station-card.is-grade-located {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 3px;
+}
 
 /* 响应式 */
 @media (max-width: 1200px) {
@@ -695,5 +899,15 @@
   .chart-container svg {
     min-width: 640px;
     height: 270px;
+  }
+  .grade-manager-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .grade-manager-actions {
+    justify-content: flex-start;
+  }
+  .grade-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

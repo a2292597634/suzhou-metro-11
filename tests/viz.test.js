@@ -1,7 +1,8 @@
 /**
  * 数据可视化模块测试 —— js/modules/viz.js
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { state } from '../js/modules/state.js';
 
 // 注意：viz.js 还不存在，测试先写后实现（Red → Green → Refactor）
 // 以下 import 当前会失败，这正是 Red 阶段的目的
@@ -109,6 +110,18 @@ describe('数据可视化模块', () => {
       const result = filterStations(stations, 'A');
       expect(result).toHaveLength(2);
       expect(result.every(s => s.grade === 'A')).toBe(true);
+    });
+
+    it('应该按规范化后的当前等级筛选站点', async () => {
+      const { filterStations } = await import('../js/modules/viz.js');
+      const result = filterStations([
+        { id: 'a1', grade: 'a' },
+        { id: 'b1', grade: 'B' },
+        { id: 'bad', grade: 'X' }
+      ], 'A');
+      expect(result.map(station => station.id)).toEqual(['a1']);
+      expect(filterStations([{ id: 'bad', grade: 'X' }], 'C').map(station => station.id))
+        .toEqual(['bad']);
     });
 
     it('筛选 "all" 应返回全部站点', async () => {
@@ -285,11 +298,13 @@ describe('数据可视化模块', () => {
     it('所有卡片应包含等级徽章和站点名称', async () => {
       const { renderCards } = await import('../js/modules/viz.js');
       const stations = [
-        { id: 's1', name: '唯亭站', grade: 'C', shops: [], transfer: false }
+        { id: 's1', name: '唯亭站', grade: 'c', shops: [], transfer: false }
       ];
       renderCards(stations, null, 'all', 'default');
       const card = document.querySelector('.station-card');
       expect(card.querySelector('.card-grade').textContent).toBe('C');
+      expect(card.dataset.grade).toBe('C');
+      expect(card.querySelector('.card-grade').classList.contains('grade-c')).toBe(true);
       expect(card.querySelector('.card-name').textContent).toBe('唯亭站');
     });
 
@@ -338,6 +353,85 @@ describe('数据可视化模块', () => {
       // input value 中的脚本标签应该被转义
       expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
       expect(html).not.toContain('value="<script>');
+    });
+  });
+
+  describe('站点价值等级管理模块', () => {
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="cardsGrid"></div><section id="gradeManager"></section><div id="saveToast"></div>';
+      state.stations = [
+        { id: 'weiting', name: '唯亭站', grade: 'B', x: 10, shops: [], transfer: false },
+        { id: 'huaqiao', name: '花桥站', grade: 'S', x: 20, shops: [], transfer: true },
+        { id: 'bad', name: '待校验站', grade: 'X', x: 30, shops: [], transfer: false }
+      ];
+    });
+
+    it('等级分布概览应该从当前 state.stations 派生', async () => {
+      const { renderGradeManager } = await import('../js/modules/viz.js');
+
+      renderGradeManager(state.stations);
+
+      const counts = Object.fromEntries(
+        Array.from(document.querySelectorAll('[data-grade-summary]')).map(item => [
+          item.dataset.gradeSummary,
+          item.querySelector('.grade-summary-count').textContent.trim()
+        ])
+      );
+      expect(counts).toEqual({ S: '1', A: '0', B: '1', C: '1' });
+    });
+
+    it('等级调整应该先暂存且不立即修改 state.stations', async () => {
+      const { renderGradeManager, setGradeDraft } = await import('../js/modules/viz.js');
+      renderGradeManager(state.stations);
+
+      setGradeDraft('weiting', 'A');
+
+      expect(state.stations.find(station => station.id === 'weiting').grade).toBe('B');
+      expect(document.querySelector('[data-grade-pending-count]').textContent).toContain('1');
+      expect(document.querySelector('[data-grade-row][data-station-id="weiting"] .grade-current').textContent)
+        .toContain('A');
+    });
+
+    it('保存等级调整后应该更新 state.stations 并调用保存函数', async () => {
+      const persist = vi.fn(() => Promise.resolve({ success: true, source: 'local' }));
+      const { renderGradeManager, setGradeDraft, saveGradeDrafts } = await import('../js/modules/viz.js');
+      renderGradeManager(state.stations);
+      setGradeDraft('weiting', 'A');
+
+      await saveGradeDrafts(persist);
+
+      expect(state.stations.find(station => station.id === 'weiting').grade).toBe('A');
+      expect(persist).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('[data-grade-pending-count]').textContent).toContain('0');
+    });
+
+    it('撤销未保存等级调整应该恢复界面选择且不修改 state', async () => {
+      const { renderGradeManager, setGradeDraft, discardGradeDrafts } = await import('../js/modules/viz.js');
+      renderGradeManager(state.stations);
+      setGradeDraft('weiting', 'A');
+
+      discardGradeDrafts();
+
+      expect(state.stations.find(station => station.id === 'weiting').grade).toBe('B');
+      expect(document.querySelector('[data-grade-pending-count]').textContent).toContain('0');
+      expect(document.querySelector('[data-grade-row][data-station-id="weiting"] .grade-current').textContent)
+        .toContain('B');
+    });
+
+    it('定位到站点卡片不应该改变等级', async () => {
+      const card = document.createElement('article');
+      card.className = 'station-card';
+      card.dataset.id = 'weiting';
+      card.scrollIntoView = vi.fn();
+      document.getElementById('cardsGrid').appendChild(card);
+      const { renderGradeManager } = await import('../js/modules/viz.js');
+      renderGradeManager(state.stations);
+
+      document.querySelector('[data-grade-action="locate-card"][data-station-id="weiting"]').click();
+
+      expect(card.scrollIntoView).toHaveBeenCalled();
+      expect(card.classList.contains('is-grade-located')).toBe(true);
+      expect(state.stations.find(station => station.id === 'weiting').grade).toBe('B');
     });
   });
 });
