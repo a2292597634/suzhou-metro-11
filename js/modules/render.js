@@ -3,7 +3,16 @@
  */
 
 import { state } from './state.js';
-import { config, escapeHtml, escapeAttr, resolveCardOverlaps, enforceLineBoundaries, calcRate } from './utils.js';
+import {
+  VALID_GRADES,
+  config,
+  escapeHtml,
+  escapeAttr,
+  resolveCardOverlaps,
+  enforceLineBoundaries,
+  calcRate,
+  groupStationsByGrade
+} from './utils.js';
 
 // 主渲染函数
 export function renderAll() {
@@ -257,21 +266,25 @@ export function renderGradePanel() {
   if (!list) return;
   const showText = (text) => (text && text.trim() !== '') ? text : '      ';
   list.innerHTML = '';
-  const validGrades = ['S', 'A', 'B', 'C'];
-  Object.entries(state.gradeInfo).forEach(([key, info]) => {
-    // 仅允许已知的等级 key，防止 CSS 注入
-    const safeKey = validGrades.includes(key) ? key : 'C';
+  const groupedStations = groupStationsByGrade(state.stations);
+
+  VALID_GRADES.forEach(key => {
+    const info = state.gradeInfo?.[key] || { name: `${key}级`, desc: '' };
     const safeName = escapeHtml(info.name || '');
     const safeDesc = escapeHtml(info.desc || '');
     const safeKeyHtml = escapeHtml(key);
+    const stationNames = groupedStations[key]
+      .map(station => escapeHtml(station?.name || '未命名站点'))
+      .join('、') || '暂无站点';
 
     const item = document.createElement('div');
-    item.className = `grade-item grade-${safeKey.toLowerCase()}`;
+    item.className = `grade-item grade-${key.toLowerCase()}`;
     item.innerHTML = `
       <div class="grade-badge">${safeKeyHtml}</div>
       <div class="grade-text">
         <div class="grade-name editable-grade" data-grade="${escapeAttr(key)}" data-field="name">${showText(safeName)}</div>
         <div class="grade-stations editable-grade" data-grade="${escapeAttr(key)}" data-field="desc">${showText(safeDesc)}</div>
+        <div class="grade-station-list" data-grade-station-list="${escapeAttr(key)}">${stationNames}</div>
       </div>
     `;
 

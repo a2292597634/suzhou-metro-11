@@ -79,10 +79,13 @@ describe('首页综合经营看板', () => {
     expect(css).toMatch(/\.trend-viewport\s*\{[^}]*min-height:\s*31\dpx/s);
   });
 
-  it('商业分析页应通过同源外部样式呈现卡片网格和紧凑图表', () => {
+  it('商业信息管理页应通过同源外部样式呈现卡片网格和紧凑图表', () => {
     const html = readFileSync(dataVizPath, 'utf8');
 
     expect(html).toContain('css/data-viz.css');
+    expect(html).toContain('商业信息管理');
+    expect(html).toContain('id="gradeManager"');
+    expect(html).not.toContain('商业数据可视化');
     expect(html).not.toContain('<style>');
     expect(existsSync(dataVizCssPath)).toBe(true);
 

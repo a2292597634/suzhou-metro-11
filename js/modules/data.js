@@ -3,11 +3,49 @@
  */
 
 import { state } from './state.js';
-import { config, calcRate } from './utils.js';
+import { config, calcRate, normalizeGrade } from './utils.js';
+
+const DEFAULT_STATION_GRADES = {
+  weiting: 'B',
+  caoxieshan: 'C',
+  yangchenghudong: 'C',
+  zhengyi: 'B',
+  lianhuagongyuan: 'B',
+  zuchongzhi: 'A',
+  kunshanwenhua: 'B',
+  gongqing: 'B',
+  jiangpu: 'A',
+  baimajing: 'A',
+  yushanguangchang: 'A',
+  xiuyi: 'A',
+  kunshanchengshi: 'B',
+  jinpudaqiao: 'B',
+  shunfanbei: 'C',
+  yuchijing: 'C',
+  baihetan: 'A',
+  bingxi: 'A',
+  xiajiahe: 'C',
+  shengzhuang: 'C',
+  zhangjilu: 'C',
+  xiaqiao: 'C',
+  shentongjing: 'B',
+  lujia: 'B',
+  huaqiaobolan: 'A',
+  jishan: 'B',
+  huaxigongyuan: 'C',
+  huaqiao: 'S'
+};
+
+function applyDefaultStationGrades(stations) {
+  return stations.map(station => ({
+    ...station,
+    grade: normalizeGrade(DEFAULT_STATION_GRADES[station.id] || station.grade)
+  }));
+}
 
 // 默认站点数据（坐标、等级、商铺列表）
 export function getDefaultStations() {
-  return [
+  const stations = [
     { id: 'weiting', name: '唯亭站', grade: 'C',
       shops: [{ no: 1, shortNo: 'S11-1', name: 'A商铺', type: '商铺', area: 18.69, tenant: '', contact: '', openDate: '', status: '未出租', remark: '' }],
       x: 80, y: 480, pos: 'top', transfer: false },
@@ -127,6 +165,7 @@ export function getDefaultStations() {
       { no: 73, shortNo: '待定', name: 'G号商铺', type: '商铺', area: 14.09, tenant: '牙博士', contact: '', openDate: '', status: '营业中', remark: '苏州花桥站' }],
       x: 2380, y: 840, pos: 'top', transfer: true, transferLine: '上海11号线' },
   ];
+  return applyDefaultStationGrades(stations);
 }
 
 export function getDefaultGlobalStats() {

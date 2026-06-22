@@ -5,9 +5,8 @@
 
 import { loadData, calcGlobalStats } from './data.js';
 import { state } from './state.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, getGradeClass, normalizeGrade } from './utils.js';
 
-const VALID_GRADES = new Set(['S', 'A', 'B', 'C']);
 let cleanupStationTrend = null;
 
 // ============================================
@@ -17,13 +16,6 @@ let cleanupStationTrend = null;
 function toFiniteNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
-}
-
-function getGradeClass(grade, prefix) {
-  const normalizedGrade = String(grade || '').toUpperCase();
-  return VALID_GRADES.has(normalizedGrade)
-    ? `${prefix}${normalizedGrade}`
-    : '';
 }
 
 function clampPercentage(value) {
@@ -94,9 +86,10 @@ export function filterStationStats(stationStats, {
 
   return stations.filter(station => {
     const matchesQuery = !normalizedQuery || String(station?.name || '').includes(normalizedQuery);
+    const grade = normalizeGrade(station?.grade);
     const matchesFilter =
       filter === 'priority'
-        ? station?.grade === 'S' || station?.grade === 'A'
+        ? grade === 'S' || grade === 'A'
         : filter === 'low'
           ? toFiniteNumber(station?.rate) < 80
           : true;
@@ -183,7 +176,8 @@ export function calcHomeStats() {
   const stationStats = [];
 
   stations.forEach((station, idx) => {
-    gradeCount[station.grade] = (gradeCount[station.grade] || 0) + 1;
+    const grade = normalizeGrade(station?.grade);
+    gradeCount[grade] += 1;
 
     let sTotal = 0, sRented = 0, sVacant = 0, sRenovating = 0, sMultiSpot = 0;
     let sTotalArea = 0, sRentedArea = 0;
@@ -218,6 +212,7 @@ export function calcHomeStats() {
     const rate = sTotal > 0 ? ((sRented + sRenovating) / sTotal * 100).toFixed(1) : '0.0';
     stationStats.push({
       ...station,
+      grade,
       _origIdx: idx,
       shopCount: sTotal,
       multiSpot: sMultiSpot,
@@ -308,7 +303,7 @@ function renderDashboardHero(container) {
       <h1 id="dashboard-hero-title">经营总览</h1>
       <p class="dashboard-hero-description">汇集全线站点商业点位、出租状态与经营表现，为商业资产管理提供统一、清晰的实时视图。</p>
       <div class="dashboard-hero-actions" aria-label="相关业务页面">
-        <a href="data-viz.html">查看商业分析</a>
+        <a href="data-viz.html">管理商业信息</a>
         <a href="battle-map.html">查看线路资产</a>
       </div>
     </div>

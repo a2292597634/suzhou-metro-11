@@ -1,10 +1,10 @@
 # module-data Specification
 
-## 用途
-站点数据与全局统计的集中管理模块规范。
+## Purpose
+The data module centralizes station state, global statistics, default data loading, import and export workflows, persistence, fallback behavior, and data source notifications.
 ## Requirements
 ### Requirement: 数据模块管理所有站点和统计状态
-数据模块是所有应用状态的唯一数据源，包括站点数据、全局统计和商业价值分级信息。
+数据模块 SHALL 作为所有应用状态的唯一数据源，包括站点数据、全局统计和商业价值分级信息。
 
 #### Scenario: 使用默认数据初始化
 - **WHEN** 应用启动且没有已保存的数据时
@@ -54,8 +54,20 @@
 - **WHEN** API 和 localStorage 均不可用时
 - **THEN** 模块 fetch `/data/default-data.json` 获取默认站点和统计信息
 
+### Requirement: 默认车站等级使用统一数据源
+数据模块 SHALL 保证默认站点数据中的每个 `station.grade` 与 `data/default-data.json` 中同一 `station.id` 的 `grade` 一致。若存在内联兜底数据，内联兜底数据 MUST NOT 包含与 JSON 默认数据不同的等级值。
+
+#### Scenario: 内联兜底等级与 JSON 一致
+- **WHEN** 测试读取 `data/default-data.json` 并调用 `getDefaultStations()`
+- **THEN** 两份数据中相同 `station.id` 的 `grade` 字段完全一致
+
+#### Scenario: 默认加载返回最新等级
+- **WHEN** API 与 localStorage 均不可用且 `/data/default-data.json` 可访问
+- **THEN** `loadData()` 将 `state.stations` 设置为 JSON 文件中的站点数据
+- **AND** `state.stations` 中每个站点的 `grade` 与 JSON 文件一致
+
 ### Requirement: 数据模块持久化变更
-数据模块须将数据保存到后端 API 和 localStorage。
+数据模块 SHALL 将数据保存到后端 API 和 localStorage。
 
 #### Scenario: 保存到后端
 - **WHEN** 调用 saveData() 且后端可用时
@@ -71,7 +83,7 @@
 - **AND** 返回 `{ source }` 对象供调用方使用
 
 ### Requirement: 数据模块支持恢复默认值
-数据模块须提供将所有数据恢复为出厂默认值的功能。
+数据模块 SHALL 提供将所有数据恢复为出厂默认值的功能。
 
 #### Scenario: 重置数据
 - **WHEN** 调用 resetData() 且用户确认后

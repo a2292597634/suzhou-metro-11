@@ -66,7 +66,7 @@ describe('首页 E2E', () => {
     ];
     const expectedLinks = [
       { page: 'home', label: '经营总览', href: 'index.html' },
-      { page: 'data', label: '商业分析', href: 'data-viz.html' },
+      { page: 'data', label: '商业信息管理', href: 'data-viz.html' },
       { page: 'battle', label: '线路资产', href: 'battle-map.html' }
     ];
 

@@ -92,7 +92,8 @@ describe('导航模块', () => {
       initNav('home');
       const links = document.querySelectorAll('.topnav-links .nav-link');
       expect(links.length).toBe(3);
-      expect([...links].map(link => link.textContent)).toEqual(['经营总览', '商业分析', '线路资产']);
+      expect([...links].map(link => link.textContent)).toEqual(['经营总览', '商业信息管理', '线路资产']);
+      expect(document.body.textContent).not.toContain('商业分析');
       expect([...links].map(link => link.getAttribute('href'))).toEqual([
         'index.html',
         'data-viz.html',
@@ -105,7 +106,7 @@ describe('导航模块', () => {
       initNav('data');
       const activeLink = document.querySelector('.nav-link.active');
       expect(activeLink).not.toBeNull();
-      expect(activeLink.textContent).toBe('商业分析');
+      expect(activeLink.textContent).toBe('商业信息管理');
     });
   });
 
@@ -123,8 +124,16 @@ describe('导航模块', () => {
       initNav('home');
       const items = document.querySelectorAll('.bottom-nav .bnav-item');
       expect(items.length).toBe(3);
-      expect([...items].map(item => item.textContent)).toEqual(['总览', '分析', '资产']);
+      expect([...items].map(item => item.textContent)).toEqual(['总览', '商业信息管理', '资产']);
       expect([...items].map(item => item.dataset.page)).toEqual(['home', 'data', 'battle']);
+    });
+
+    it('数据页底部导航应显示新名称且保持 data 激活态', async () => {
+      const { initNav } = await loadNavModule();
+      initNav('data');
+      const activeItem = document.querySelector('.bottom-nav .bnav-item.active');
+      expect(activeItem.dataset.page).toBe('data');
+      expect(activeItem.textContent).toBe('商业信息管理');
     });
   });
 

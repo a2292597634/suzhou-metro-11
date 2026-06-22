@@ -64,6 +64,49 @@ describe('渲染引擎', () => {
       expect(gradeList.innerHTML).toContain('S级');
       expect(gradeList.innerHTML).toContain('A级');
     });
+
+    it('应该从当前站点等级动态派生分级面板站点名单', () => {
+      state.gradeInfo = {
+        S: { name: 'S级', desc: '核心', color: '#d4380d' },
+        A: { name: 'A级', desc: '重点', color: '#fa8c16' },
+        B: { name: 'B级', desc: '潜力', color: '#facc14' },
+        C: { name: 'C级', desc: '培育', color: '#52c41a' }
+      };
+      state.stations = [
+        { id: 'weiting', name: '唯亭站', grade: 'B' },
+        { id: 'huaqiao', name: '花桥站', grade: 'S' }
+      ];
+      document.body.innerHTML = '<div id="gradeList"></div>';
+
+      renderGradePanel();
+      expect(document.querySelector('[data-grade-station-list="S"]').textContent).toContain('花桥站');
+      expect(document.querySelector('[data-grade-station-list="B"]').textContent).toContain('唯亭站');
+
+      state.stations[0].grade = 'S';
+      renderGradePanel();
+      expect(document.querySelector('[data-grade-station-list="S"]').textContent).toContain('唯亭站');
+      expect(document.querySelector('[data-grade-station-list="B"]').textContent).toContain('暂无站点');
+    });
+
+    it('应该将非法站点等级兜底归入 C 级并转义站点名称', () => {
+      state.gradeInfo = {
+        S: { name: 'S级', desc: '', color: '#d4380d' },
+        A: { name: 'A级', desc: '', color: '#fa8c16' },
+        B: { name: 'B级', desc: '', color: '#facc14' },
+        C: { name: 'C级', desc: '', color: '#52c41a' }
+      };
+      state.stations = [
+        { id: 'bad', name: '<img src=x onerror=alert(1)>', grade: 'X' }
+      ];
+      document.body.innerHTML = '<div id="gradeList"></div>';
+
+      renderGradePanel();
+
+      const stationList = document.querySelector('[data-grade-station-list="C"]');
+      expect(stationList.textContent).toContain('<img src=x onerror=alert(1)>');
+      expect(stationList.innerHTML).toContain('&lt;img src=x onerror=alert(1)&gt;');
+      expect(document.querySelector('img')).toBeNull();
+    });
   });
 
   describe('renderFooter', () => {

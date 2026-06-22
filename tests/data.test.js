@@ -2,6 +2,8 @@
  * 数据管理测试 —— js/modules/data.js
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { state } from '../js/modules/state.js';
 import { getDefaultStations, getDefaultGlobalStats, calcGlobalStats, saveToLocal, loadData, saveData } from '../js/modules/data.js';
 
@@ -45,6 +47,15 @@ describe('数据管理', () => {
       const huaqiao = stations.find(s => s.id === 'huaqiao');
       expect(huaqiao).toBeDefined();
       expect(huaqiao.transfer).toBe(true);
+    });
+
+    it('内联默认站点等级应该与 data/default-data.json 保持一致', () => {
+      const json = JSON.parse(readFileSync(resolve(process.cwd(), 'data/default-data.json'), 'utf8'));
+      const jsonGrades = new Map(json.stations.map(station => [station.id, station.grade]));
+
+      getDefaultStations().forEach(station => {
+        expect(station.grade, station.id).toBe(jsonGrades.get(station.id));
+      });
     });
   });
 
@@ -148,6 +159,28 @@ describe('数据管理', () => {
       localStorage.getItem = vi.fn(() => null);
       const result = await loadData();
       expect(result).toEqual({ source: 'default' });
+    });
+
+    it('JSON 默认数据可用时应使用 JSON 中的最新站点等级', async () => {
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) {
+          return Promise.reject(new Error('网络错误'));
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            stations: [{ id: 'weiting', name: '唯亭站', grade: 'S', shops: [] }],
+            globalStats: {}
+          })
+        });
+      }));
+      localStorage.getItem = vi.fn(() => null);
+
+      const result = await loadData();
+
+      expect(result).toEqual({ source: 'default' });
+      expect(state.stations).toHaveLength(1);
+      expect(state.stations[0].grade).toBe('S');
     });
   });
 
