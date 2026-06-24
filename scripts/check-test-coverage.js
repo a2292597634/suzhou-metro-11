@@ -14,6 +14,7 @@ const { execSync } = require('child_process');
 const MODULES_DIR = path.resolve(__dirname, '..', 'js', 'modules');
 const TESTS_DIR = path.resolve(__dirname, '..', 'tests');
 const MIN_TESTS_PER_FILE = 3;
+const STRUCTURE_ONLY = process.argv.includes('--structure-only');
 
 // 不需要测试的模块（纯入口、纯配置、纯副作用）
 const EXCLUDED_MODULES = ['main.js'];
@@ -167,7 +168,10 @@ function printSummary(results) {
 
   console.log(`模块覆盖: ${moduleCoverage.ok ? C.green('通过 ✅') : C.red('未通过 ❌')} (${moduleCoverage.covered.length}/${moduleCoverage.covered.length + moduleCoverage.missing.length})`);
   console.log(`数量底线: ${testCount.ok ? C.green('通过 ✅') : C.red('未通过 ❌')}`);
-  console.log(`执行验证: ${execution.ok ? C.green('通过 ✅') : C.red('未通过 ❌')} ${execution.passed ? `(${execution.passed} 个测试)` : ''}`);
+  const executionStatus = execution.skipped
+    ? C.yellow('跳过（由独立测试步骤执行）')
+    : `${execution.ok ? C.green('通过 ✅') : C.red('未通过 ❌')} ${execution.passed ? `(${execution.passed} 个测试)` : ''}`;
+  console.log(`执行验证: ${executionStatus}`);
 
   console.log(C.bold('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
   if (allOk) {
@@ -186,8 +190,9 @@ function main() {
 
   const moduleCoverage = checkModuleCoverage();
   const testCount = checkTestCount(moduleCoverage.covered);
-  const execution = checkExecution();
-
+  const execution = STRUCTURE_ONLY
+    ? { ok: true, skipped: true }
+    : checkExecution();
   printSummary({ moduleCoverage, testCount, execution });
 }
 
