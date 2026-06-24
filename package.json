@@ -15,12 +15,14 @@
     "export-8k": "node tools/export-hd.js 8K",
     "excel-export": "node tools/excel-export.js",
     "excel-import": "node tools/excel-import.js",
-    "init-from-excel": "node tools/init-from-excel.js"
+    "init-from-excel": "node tools/init-from-excel.js",
+    "setup": "node scripts/setup.mjs"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "1.4.1",
     "@testing-library/dom": "^10.4.1",
     "jsdom": "^29.1.1",
     "puppeteer": "^24.0.0",

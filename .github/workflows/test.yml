@@ -1,4 +1,4 @@
-name: 测试
+name: 测试与规范门禁
 
 on:
   push:
@@ -6,11 +6,20 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       PUPPETEER_SKIP_DOWNLOAD: 'true'
+      OPENSPEC_TELEMETRY: '0'
 
     services:
       postgres:
@@ -28,17 +37,83 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: 检出代码
+      - name: 检出代码与完整历史
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
+          cache: npm
 
-      - name: 安装依赖
+      - name: 按锁文件安装依赖
         run: npm ci
+
+      - name: 验证 OpenSpec 精确版本
+        run: |
+          node <<'NODE'
+          const packageJson = require('./package.json');
+          const lock = require('./package-lock.json');
+          const installed = require('./node_modules/@fission-ai/openspec/package.json');
+          const versions = {
+            packageJson: packageJson.devDependencies?.['@fission-ai/openspec'],
+            lockRoot: lock.packages?.['']?.devDependencies?.['@fission-ai/openspec'],
+            lockResolved: lock.packages?.['node_modules/@fission-ai/openspec']?.version,
+            installed: installed.version,
+          };
+          const expected = versions.packageJson;
+          if (!/^\d+\.\d+\.\d+$/.test(expected ?? '')) {
+            throw new Error(`OpenSpec 必须使用精确版本，当前为 ${expected}`);
+          }
+          for (const [source, version] of Object.entries(versions)) {
+            if (version !== expected) {
+              throw new Error(`${source} 的 OpenSpec 版本 ${version} 与 ${expected} 不一致`);
+            }
+          }
+          console.log(`OpenSpec 版本一致：${expected}`);
+          NODE
+
+      - name: 严格校验活跃 OpenSpec changes
+        run: npm exec -- openspec validate --changes --strict --no-interactive
+
+      - name: 增量校验修改过的 specs 与归档 tasks
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BASE_SHA}" ] || [[ "${BASE_SHA}" =~ ^0+$ ]] || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            BASE_SHA="$(git rev-parse HEAD^)"
+          fi
+
+          mapfile -t changed_specs < <(
+            git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- 'openspec/specs/*/spec.md'
+          )
+          for spec_file in "${changed_specs[@]}"; do
+            spec_name="$(basename "$(dirname "${spec_file}")")"
+            echo "严格校验 spec：${spec_name}"
+            npm exec -- openspec validate "${spec_name}" --type spec --strict --no-interactive
+          done
+
+          mapfile -t archived_tasks < <(
+            git diff --name-only "${BASE_SHA}" "${GITHUB_SHA}" -- 'openspec/changes/archive/*/tasks.md'
+          )
+          for task_file in "${archived_tasks[@]}"; do
+            if [ ! -f "${task_file}" ]; then
+              echo "禁止删除已归档任务文件：${task_file}" >&2
+              exit 1
+            fi
+            echo "检查归档任务：${task_file}"
+            if grep -nE '^[[:space:]]*-[[:space:]]+\[[[:space:]]\]' "${task_file}"; then
+              echo "归档 change 中仍有未完成任务：${task_file}" >&2
+              exit 1
+            fi
+          done
+
+      - name: 检查测试结构覆盖
+        run: node scripts/check-test-coverage.js --structure-only
 
       - name: 配置 E2E 浏览器
         run: |
@@ -49,41 +124,41 @@ jobs:
           "$CHROME_PATH" --version
 
       - name: 生成 Prisma Client
-        run: npx prisma generate
+        run: npm exec -- prisma generate
 
       - name: 创建测试数据库
-        run: |
-          PGPASSWORD=metro123 psql -h localhost -U postgres -c "CREATE DATABASE suzhou_metro_test;" 2>/dev/null || echo "测试数据库已存在"
-          PGPASSWORD=metro123 psql -h localhost -U postgres -d suzhou_metro_test -c "SELECT 1;" || echo "测试数据库就绪"
         env:
           PGPASSWORD: metro123
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE suzhou_metro_test;" 2>/dev/null || echo "测试数据库已存在"
+          psql -h localhost -U postgres -d suzhou_metro_test -c "SELECT 1;"
 
       - name: 运行数据库迁移（测试库）
-        run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
+        run: npm exec -- prisma migrate deploy
 
       - name: 运行种子数据（测试库）
-        run: npx prisma db seed
         env:
           DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
+        run: npm exec -- prisma db seed
 
       - name: 启动服务（测试库）
-        run: |
-          node server.js &
-          echo "等待服务就绪..."
-          npx wait-on http://localhost:3000/api/data --timeout 30000
         env:
           DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
           AUTH_TOKEN: ci-test-token
           ALLOWED_ORIGINS: http://localhost:3000
           SESSION_SECRET: ci-session-secret
+        run: |
+          node server.js &
+          echo "等待服务就绪..."
+          npm exec -- wait-on http://localhost:3000/api/data --timeout 30000
 
       - name: 运行全量测试（含 E2E）
-        run: npm run test:all
         env:
           DATABASE_URL: postgresql://postgres:metro123@localhost:5432/suzhou_metro_test?schema=public
           AUTH_TOKEN: ci-test-token
           ALLOWED_ORIGINS: http://localhost:3000
           SESSION_SECRET: ci-session-secret
           PORT: 3000
+        run: npm run test:all -- --testTimeout=15000
