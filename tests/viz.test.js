@@ -9,8 +9,6 @@ import { state } from '../js/modules/state.js';
 
 describe('数据可视化模块', () => {
   // ============================================
-  // calcStationStats — 站点统计计算
-  // ============================================
   describe('calcStationStats', () => {
     it('应该正确计算站点商铺统计数据（正向）', async () => {
       const { calcStationStats } = await import('../js/modules/viz.js');
@@ -317,6 +315,156 @@ describe('数据可视化模块', () => {
       const card = document.querySelector('.station-card');
       expect(card.classList.contains('expanded')).toBe(true);
       expect(card.querySelector('.card-detail')).not.toBeNull();
+    });
+  });
+
+  // ============================================
+  // 照片管理 — 商铺表格照片列与操作按钮
+  // ============================================
+  describe('商铺照片管理', () => {
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="cardsGrid"></div><div id="saveToast"></div>';
+    });
+
+    it('展开的商铺表格应包含现场照片列', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '', status: '未出租', photo: '' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(stations, 's1', 'all', 'default');
+      const ths = document.querySelectorAll('.shop-table th');
+      const headerTexts = Array.from(ths).map(th => th.textContent.trim());
+      expect(headerTexts).toContain('现场照片');
+    });
+
+    it('有照片的商铺行应显示替换照片和删除照片按钮', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '', status: '营业中', photo: 'data:image/jpeg;base64,/9j/4AAQ==' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(stations, 's1', 'all', 'default');
+      const photoCells = document.querySelectorAll('.col-photo');
+      // 第二个 .col-photo 是数据行（跳过表头）
+      const dataCell = photoCells[1];
+      expect(dataCell).not.toBeNull();
+      const replaceBtn = dataCell.querySelector('[data-photo-action="replace"]');
+      const deleteBtn = dataCell.querySelector('[data-photo-action="delete"]');
+      expect(replaceBtn).not.toBeNull();
+      expect(deleteBtn).not.toBeNull();
+    });
+
+    it('无照片的商铺行应显示导入照片按钮', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '', status: '未出租', photo: '' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(stations, 's1', 'all', 'default');
+      const photoCells = document.querySelectorAll('.col-photo');
+      const dataCell = photoCells[1];
+      const importBtn = dataCell.querySelector('[data-photo-action="import"]');
+      expect(importBtn).not.toBeNull();
+    });
+
+    it('新增商铺应包含 photo 默认空字符串', async () => {
+      const { renderCards, bindCardEvents } = await import('../js/modules/viz.js');
+      state.stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      // 先渲染展开
+      renderCards(state.stations, 's1', 'all', 'default');
+      bindCardEvents();
+      const card = document.querySelector('.station-card');
+      const addBtn = card.querySelector('[data-add-shop]');
+      addBtn.click();
+      expect(state.stations[0].shops[0]).toHaveProperty('photo');
+      expect(state.stations[0].shops[0].photo).toBe('');
+    });
+  });
+
+  // ============================================
+  // 照片悬停预览
+  // ============================================
+  describe('商铺照片悬停预览', () => {
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="cardsGrid"></div><div id="saveToast"></div>';
+    });
+
+    it('有照片的商铺预览项应包含照片预览标记', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '商户A', status: '营业中', photo: 'data:image/jpeg;base64,/9j/4AAQ==' },
+          { no: 2, name: '商铺2', type: '商铺', area: 15, tenant: '', status: '未出租', photo: '' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(stations, null, 'all', 'default');
+      const previewRows = document.querySelectorAll('.preview-row');
+      // 有照片的预览项应有 data-photo 属性
+      const hasPhotoRow = previewRows[0];
+      expect(hasPhotoRow.dataset.photo).toBeTruthy();
+    });
+
+    it('悬停有照片的商铺行应显示预览浮层', async () => {
+      const { renderCards, bindCardEvents } = await import('../js/modules/viz.js');
+      state.stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '', status: '营业中', photo: 'data:image/jpeg;base64,/9j/4AAQ==' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(state.stations, 's1', 'all', 'default');
+      bindCardEvents();
+      const photoCells = document.querySelectorAll('.col-photo');
+      const dataCell = photoCells[1];
+      // Simulate cell at left side of viewport so popup goes to the right
+      Object.defineProperty(dataCell, 'getBoundingClientRect', { value: () => ({ left: 100, right: 220, top: 200, bottom: 248, width: 120, height: 48 }) });
+      dataCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      const preview = document.getElementById('photoPreviewPopup');
+      expect(preview).not.toBeNull();
+      expect(preview.querySelector('img')).not.toBeNull();
+      expect(preview.querySelector('img').src).toBe('data:image/jpeg;base64,/9j/4AAQ==');
+    });
+
+    it('悬停无照片的商铺行不应显示图片浮层', async () => {
+      const { renderCards, bindCardEvents } = await import('../js/modules/viz.js');
+      state.stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '商铺1', type: '商铺', area: 10, tenant: '', status: '未出租', photo: '' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(state.stations, 's1', 'all', 'default');
+      bindCardEvents();
+      const photoCells = document.querySelectorAll('.col-photo');
+      const dataCell = photoCells[1];
+      const popup = document.getElementById('photoPreviewPopup');
+      const prevDisplay = popup ? popup.style.display : '';
+      dataCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      // 无照片时 popup 仍存在但不显示内容
+      const preview = document.getElementById('photoPreviewPopup');
+      expect(preview.querySelector('img')).toBeNull();
+    });
+
+    it('预览浮层应包含商铺名称作为上下文', async () => {
+      const { renderCards, bindCardEvents } = await import('../js/modules/viz.js');
+      state.stations = [{
+        id: 's1', name: '测试站', grade: 'A', shops: [
+          { no: 1, name: '有照片的商铺', type: '商铺', area: 10, tenant: '', status: '营业中', photo: 'data:image/jpeg;base64,/9j/4AAQ==' }
+        ], transfer: false, x: 100, y: 480, pos: 'top'
+      }];
+      renderCards(state.stations, 's1', 'all', 'default');
+      bindCardEvents();
+      const photoCells = document.querySelectorAll('.col-photo');
+      const dataCell = photoCells[1];
+      Object.defineProperty(dataCell, 'getBoundingClientRect', { value: () => ({ left: 100, right: 220, top: 200, bottom: 248, width: 120, height: 48 }) });
+      dataCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      const preview = document.getElementById('photoPreviewPopup');
+      expect(preview).not.toBeNull();
+      expect(preview.textContent).toContain('有照片的商铺');
     });
   });
 

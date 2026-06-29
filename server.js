@@ -43,6 +43,25 @@ const upload = multer({
   }
 });
 
+const uploadPhoto = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, 'assets', 'shop-photos'),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, Date.now() + ext);
+    }
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('仅支持 PNG、JPEG、WebP 格式'));
+    }
+  }
+});
+
 // 解析 Cookie（使用 SESSION_SECRET 签名）
 app.use(cookieParser(SESSION_SECRET));
 
@@ -147,6 +166,16 @@ app.use(corsMiddleware);
 
 // ========== API 路由 ==========
 
+// 照片上传端点（需认证）
+app.post('/api/upload-photo', authenticateToken, uploadPhoto.single('photo'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: '未提供照片文件' });
+  }
+
+  const webPath = '/assets/shop-photos/' + req.file.filename;
+  res.json({ path: webPath });
+});
+
 // 登录端点 — 验证密码后设置 HttpOnly 签名 Cookie（带限流）
 app.post('/api/login', rateLimiter, (req, res) => {
   const { password } = req.body || {};
@@ -227,7 +256,10 @@ app.get('/api/data', async (req, res) => {
         contact: shop.contact || '',
         openDate: shop.openDate || '',
         status: shop.status,
-        remark: shop.remark || ''
+        remark: shop.remark || '',
+        power: shop.power || '',
+        water: shop.water || '/',
+        photo: shop.photo || ''
       }))
     }));
 
@@ -257,7 +289,11 @@ const shopSchema = z.object({
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
   power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
   water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
-  remark: z.string().max(500).optional().default('')
+  remark: z.string().max(500).optional().default(''),
+  photo: z.string().max(500).refine(
+    (v) => v === '' || /^\/assets\/shop-photos\/.+\.(png|jpg|jpeg|webp)$/i.test(v) || /^data:image\/(jpeg|png|webp);base64,/.test(v),
+    { message: 'photo 必须为空字符串、路径 /assets/shop-photos/*.{png,jpg,jpeg,webp} 或 data:image/(jpeg|png|webp);base64,... Data URL' }
+  ).optional().default('')
 });
 
 const stationSchema = z.object({
@@ -399,6 +435,9 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
               openDate: shop.openDate,
               status: shop.status,
               remark: shop.remark,
+              power: shop.power || '',
+              water: shop.water || '/',
+              photo: shop.photo || '',
               stationId: s.id
             }
           });
@@ -560,11 +599,15 @@ function serveHtml(htmlPath, req, res) {
 
     const nonce = res.locals.nonce || generateNonce();
 
-    // 注入 nonce 到所有 <style> 和 <script> 标签（无 src 属性的内联标签）
+    // 注入 nonce 到所有 <style> 和 <script> 标签（无 src 属性的内联标签），并追加构建号防缓存
+    // Inject nonce, preserve existing query params, and append cache-bust fingerprint
+    const mtime = fs.statSync(htmlPath).mtimeMs.toString(36);
     let result = data
       .replace(/<style>/g, `<style nonce="${nonce}">`)
       .replace(/<script type="module">/g, `<script type="module" nonce="${nonce}">`)
-      .replace(/<script>/g, `<script nonce="${nonce}">`);
+      .replace(/<script>/g, `<script nonce="${nonce}">`)
+      .replace(/(<script type="module" src="[^"?]+)(\?[^"]*)?"/g, `$1?b=${mtime}"`)
+      .replace(/(<link rel="stylesheet" href="[^"?]+)(\?[^"]*)?"/g, `$1?b=${mtime}"`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(result);
@@ -578,9 +621,9 @@ app.get('/battle-map.html', (req, res) => serveHtml(path.join(__dirname, 'battle
 app.get('/data-viz.html', (req, res) => serveHtml(path.join(__dirname, 'data-viz.html'), req, res));
 
 // 允许的前端资源目录
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/css', express.static(path.join(__dirname, 'css'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
+app.use('/js', express.static(path.join(__dirname, 'js'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
+app.use('/assets', express.static(path.join(__dirname, 'assets'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
 // 仅暴露 default-data.json，屏蔽其他数据文件
 app.get('/data/default-data.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'data', 'default-data.json'));

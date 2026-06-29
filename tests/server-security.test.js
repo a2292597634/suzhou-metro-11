@@ -206,4 +206,66 @@ describe('Zod 数据校验', () => {
 
     expect(res.status).toBe(400);
   });
+
+  it('非法照片字段（非 Data URL 字符串）应返回 400', async () => {
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({
+        data: {
+          stations: [{
+            id: 's1',
+            name: '测试',
+            grade: 'A',
+            x: 100,
+            y: 100,
+            pos: 'top',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-1',
+              name: '测试商铺',
+              type: '商铺',
+              area: 10,
+              status: '营业中',
+              photo: '<script>alert(1)</script>'
+            }]
+          }]
+        }
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.details).toBeDefined();
+  });
+
+  it('超长照片字段应返回 400', async () => {
+    // 构造超过 3,000,000 字符的字符串
+    const longBase64 = 'data:image/jpeg;base64,' + 'A'.repeat(3_000_001);
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({
+        data: {
+          stations: [{
+            id: 's1',
+            name: '测试',
+            grade: 'A',
+            x: 100,
+            y: 100,
+            pos: 'top',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-1',
+              name: '测试商铺',
+              type: '商铺',
+              area: 10,
+              status: '营业中',
+              photo: longBase64
+            }]
+          }]
+        }
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.details).toBeDefined();
+  });
 });

@@ -36,6 +36,7 @@ model Shop {
   power     String?  @default("")
   water     String?  @default("/")
   remark    String?
+  photo     String?  @default("")
   station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
   stationId String
 }

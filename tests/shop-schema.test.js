@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 
-// 从 server.js 复制的 Zod schemas（含新增 power/water）
+// 从 server.js 复制的 Zod schemas（含新增 power/water/photo）
 const shopSchema = z.object({
   no: z.number().int().min(0),
   shortNo: z.string().max(50).optional().default(''),
@@ -17,7 +17,11 @@ const shopSchema = z.object({
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
   power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
   water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
-  remark: z.string().max(500).optional().default('')
+  remark: z.string().max(500).optional().default(''),
+  photo: z.string().max(3_000_000).refine(
+    (v) => v === '' || /^data:image\/(jpeg|png|webp);base64,/.test(v),
+    { message: 'photo 必须为空字符串或 data:image/(jpeg|png|webp);base64,... Data URL' }
+  ).optional().default('')
 });
 
 describe('Shop Schema - power/water 字段校验', () => {
@@ -90,6 +94,73 @@ describe('Shop Schema - power/water 字段校验', () => {
       if (result.success) {
         expect(result.data.water).toBe('/');
       }
+    });
+  });
+
+  describe('photo 字段', () => {
+    it('应该接受空字符串作为默认值', () => {
+      const result = shopSchema.safeParse({ ...validShop, photo: '' });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.photo).toBe('');
+      }
+    });
+
+    it('应该接受未传 photo 字段（optional 默认空字符串）', () => {
+      const { photo, ...withoutPhoto } = validShop;
+      const result = shopSchema.safeParse(withoutPhoto);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.photo).toBe('');
+      }
+    });
+
+    it('应该接受合法的 data:image/jpeg;base64 Data URL', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'data:image/jpeg;base64,/9j/4AAQSkZJRg=='
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('应该接受合法的 data:image/png;base64 Data URL', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'data:image/png;base64,iVBORw0KGgo=='
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('应该接受合法的 data:image/webp;base64 Data URL', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'data:image/webp;base64,UklGRg=='
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('应该拒绝非 data:image URL 的普通字符串', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'not-a-data-url'
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('应该拒绝 data:text/html Data URL', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'data:text/html,<p>hello</p>'
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('应该拒绝 data:image/gif Data URL（不支持的格式）', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP=='
+      });
+      expect(result.success).toBe(false);
     });
   });
 });

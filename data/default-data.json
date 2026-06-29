@@ -224,7 +224,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-13_祖冲之公园站_祖冲之公园站B商铺(4号出口)_牙博士口腔.png"
         },
         {
           "no": 14,
@@ -344,7 +345,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-18_江浦站_江浦站A商铺(4号出口)_牙博士口腔.png"
         },
         {
           "no": 21,
@@ -356,7 +358,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-19_江浦站_江浦站A1商铺(4号出口)_包一切馅饼.png"
         },
         {
           "no": 22,
@@ -423,24 +426,26 @@
           "shortNo": "S11-22",
           "name": "A商铺（3号出口）",
           "type": "商铺",
-          "area": 32.0,
+          "area": 32,
           "tenant": "11号便利店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-22_玉山广场站_玉山广场站A商铺(3号出口)_11号便利店.png"
         },
         {
           "no": 26,
           "shortNo": "S11-23",
           "name": "B商铺（3号出口）",
           "type": "商铺",
-          "area": 15.0,
+          "area": 15,
           "tenant": "11号咖啡店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-23_玉山广场站_玉山广场站B商铺(3号出口)_11号咖啡店.png"
         },
         {
           "no": 27,
@@ -452,7 +457,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-24_玉山广场站_玉山广场站C商铺(1号2号出口)_包一切馅饼.png"
         },
         {
           "no": 28,
@@ -500,7 +506,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-25_绣衣站_绣衣站A商铺_牙博士口腔.png"
         },
         {
           "no": 31,
@@ -704,7 +711,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-36_白河潭站_白河潭站A商铺(1号出口)_汇城房产.png"
         },
         {
           "no": 43,
@@ -716,7 +724,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-37_白河潭站_白河潭站B商铺(3号出口)_牙博士口腔.png"
         },
         {
           "no": 44,
@@ -752,7 +761,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-38_兵希站_兵希站A商铺(1号出口)_全家便利店.png"
         },
         {
           "no": 46,
@@ -776,7 +786,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-40_兵希站_兵希站A2商铺(1号出口)_咖啡店.png"
         }
       ]
     },
@@ -800,7 +811,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-41_夏驾河公园站_美宜佳超市.png"
         }
       ]
     },
@@ -956,7 +968,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": "/assets/shop-photos/S11-50_菉葭站_菉葭站B商铺(3号出口)_便利店.png"
         },
         {
           "no": 57,

@@ -551,6 +551,76 @@
   background: #eff6ff;
 }
 
+/* 照片列与操作按钮 */
+.col-photo { min-width: 120px; white-space: nowrap; }
+
+.photo-thumb {
+  width: 48px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.photo-placeholder {
+  display: inline-block;
+  width: 48px;
+  height: 36px;
+  background: var(--color-subtle-ash);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-muted);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.photo-btn {
+  padding: 3px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.photo-btn:hover {
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+  background: #eff6ff;
+}
+
+.photo-btn-delete {
+  margin-left: 4px;
+}
+
+.photo-btn-delete:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+  background: #fee2e2;
+}
+
+/* 照片预览弹窗 */
+.photo-preview-popup {
+  padding: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  pointer-events: none;
+  max-width: 300px;
+}
+
+.photo-preview-caption {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  text-align: center;
+}
+
 /* 详情操作栏 */
 .detail-actions {
   display: flex;

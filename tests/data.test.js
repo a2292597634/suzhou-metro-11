@@ -298,4 +298,59 @@ describe('数据管理', () => {
       expect(result.error).toContain('QuotaExceededError');
     });
   });
+
+  describe('photo 字段数据链路', () => {
+    it('getDefaultStations 中每个商铺应有 photo 默认空字符串', () => {
+      const stations = getDefaultStations();
+      stations.forEach(station => {
+        (station.shops || []).forEach(shop => {
+          expect(shop).toHaveProperty('photo');
+          expect(shop.photo).toBe('');
+        });
+      });
+    });
+
+    it('loadData 从 API 加载应保留 shop.photo', async () => {
+      const mockPhoto = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            data: {
+              stations: [{
+                id: 's1', name: '测试站', grade: 'A', shops: [
+                  { no: 1, shortNo: 'S11-1', name: '有照片商铺', type: '商铺', area: 10, status: '营业中', photo: mockPhoto }
+                ], x: 100, y: 480, pos: 'top', transfer: false
+              }]
+            }
+          })
+        })
+      ));
+      await loadData();
+      expect(state.stations[0].shops[0].photo).toBe(mockPhoto);
+    });
+
+    it('saveData 请求体应包含 shop.photo', async () => {
+      const fetchMock = vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) })
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      const photo = 'data:image/png;base64,iVBORw0KGgo==';
+      state.stations = [{
+        id: 's1', name: '保存站', grade: 'A', shops: [
+          { no: 1, shortNo: 'S11-1', name: '照片商铺', type: '商铺', area: 10, status: '营业中', photo }
+        ], x: 100, y: 480, pos: 'top', transfer: false, version: 0
+      }];
+      await saveData();
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      expect(body.data.stations[0].shops[0].photo).toBe(photo);
+    });
+
+    it('Excel 前端降级导出表头不应包含照片列', () => {
+      const headers = ['车站', '简洁编号', '铺号', '类型', '面积(㎡)', '电量', '上下水', '状态', '商户', '备注'];
+      expect(headers).not.toContain('照片');
+      expect(headers).not.toContain('photo');
+      expect(headers.length).toBe(10);
+    });
+  });
 });
