@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: API 数据同步保留商铺照片字段
 `/api/data` SHALL 在读取、校验、保存和返回站点数据时保留 `shops[].photo` 字段。

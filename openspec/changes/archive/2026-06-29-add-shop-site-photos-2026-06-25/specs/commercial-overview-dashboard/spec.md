@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: 站点商业趋势悬浮卡片展示点位信息和照片
 经营总览页面的站点商业趋势悬浮卡片 SHALL 在下半部分展示当前站点每个商业点位的信息和照片缩略图，信息在左，照片在右。

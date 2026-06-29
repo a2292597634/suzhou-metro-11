@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: 商业信息管理页商铺编辑表格支持现场照片
 data-viz 模块 SHALL 在站点详情的商铺编辑表格中显示每个商铺的现场照片管理控件，并在保存站点详情时保留 `shop.photo` 字段。
