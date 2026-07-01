@@ -60,4 +60,4 @@
 - `tests/integration/viz-data.test.js` 中两项 saveCard 反馈测试改为调用真实 `showToast` 并断言 DOM toast 文案，不再 mock 自身业务逻辑。
 - `tests/e2e/data-viz-flow.test.js` 新增照片完整流程 E2E：fixture 验证、Puppeteer fileChooser 真实 FileReader 导入、鼠标悬停预览浮层、删除照片、保存后刷新验证。`PORT=4173 npm run test:e2e` 9/9 passed。
 - `tasks.md` 全部项目已勾选（含 E2E 任务组 5.x/5.T.x 和测试检查清单），E2E Red/Green 在实际环境中完成验证。
-- Docker PostgreSQL（`docker compose up -d postgres`）已启动，`npm test` 24 files / 368 passed。
+- Docker PostgreSQL（`docker compose up -d postgres`）已启动，测试数据库可用；`npm test` 24 files / 368 passed。
