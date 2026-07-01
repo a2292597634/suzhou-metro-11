@@ -115,9 +115,11 @@
 ### 阶段三：验证阶段
 
 - [x] **全部测试通过**：运行 `npm test` 输出 `Tests 368 passed (368)`，零失败
-- [x] **覆盖率检查通过**：运行 `node scripts/check-test-coverage.js`，输出「所有模块均已覆盖」
+- [x] **覆盖率检查通过**：运行 `node scripts/check-test-coverage.js`，输出「所有检查通过」
 - [x] **无测试作弊**：没有为了通过而修改测试期望值、没有跳过关键断言、没有 mock 掉核心业务逻辑
 - [x] **手动验证完成**：在真实浏览器中验证了核心场景（至少一次）
+- [x] **E2E 全部通过**：`PORT=4173 npm run test:e2e` 输出 `Tests 9 passed (9)`
+- [x] **excel-export 超时已修复**：单独给第一个 Sheet 工作簿测试增加 `{ timeout: 15000 }`
 
 ### 阶段四：归档阶段
 
