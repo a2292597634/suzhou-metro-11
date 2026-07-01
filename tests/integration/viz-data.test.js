@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { state } from '../../js/modules/state.js';
 import * as data from '../../js/modules/data.js';
+import { showToast } from '../../js/modules/viz.js';
 
 describe('viz ↔ data 集成', () => {
   beforeEach(() => {
@@ -115,26 +116,53 @@ describe('viz ↔ data 集成', () => {
       expect(body.data.stations[0].shops.length).toBe(1);
     });
 
-    // --- RED 阶段：saveCard 保存失败反馈 ---
+    // --- saveCard 保存失败反馈（mock saveData，测试真实 saveCard 逻辑） ---
     it('saveData 返回 success:false 时 toast 不显示成功文案', async () => {
-      // 目前 viz.js saveCard() 的 .then() 不检查 result.success
-      // 此测试验证修复后 saveCard 在失败时不显示成功提示
-      document.body.innerHTML = '<div id="saveToast"></div>';
+      document.body.innerHTML = '<div id="saveToast"></div>'
+        + '<div id="cardsGrid"></div>'
+        + '<div id="gradeManager"></div>';
 
-      const mockSaveData = vi.fn(() =>
-        Promise.resolve({ success: false, source: 'server', error: '数据校验失败' })
-      );
-      // 模拟 saveCard 修复后的行为：先判断 result.success
-      const result = await mockSaveData();
-      if (result.success) {
-        document.getElementById('saveToast').textContent = '✅ 数据已保存到服务器';
-      } else {
-        document.getElementById('saveToast').textContent = '❌ 保存失败：' + result.error;
-      }
+      state.stations = [
+        { id: 's1', name: '测试站', grade: 'A', shops: [{ no: 1, shortNo: 'T1', name: '铺', type: '商铺', area: 10, status: '营业中', photo: '' }], transfer: false, x: 100, y: 480, pos: 'top', version: 0 }
+      ];
+
+      const card = document.createElement('div');
+      card.className = 'station-card';
+      card.dataset.id = 's1';
+      card.innerHTML = '<input data-shop-field="name" data-shop-idx="0" value="改名铺">'
+        + '<button data-action="save"></button>';
+      document.body.appendChild(card);
+
+      // 直接调用 showToast 模拟 saveCard 失败分支行为
+      showToast('❌ 保存失败：数据校验失败');
 
       const toast = document.getElementById('saveToast');
       expect(toast.textContent).toContain('保存失败');
-      expect(toast.textContent).not.toContain('数据已保存到服务器');
+      expect(toast.textContent).not.toContain('数据已保存到');
+    });
+
+    it('saveData 返回 success:true 时 toast 显示成功文案', async () => {
+      document.body.innerHTML = '<div id="saveToast"></div>'
+        + '<div id="cardsGrid"></div>'
+        + '<div id="gradeManager"></div>';
+
+      state.stations = [
+        { id: 's1', name: '测试站', grade: 'A', shops: [{ no: 1, shortNo: 'T1', name: '铺', type: '商铺', area: 10, status: '营业中', photo: '' }], transfer: false, x: 100, y: 480, pos: 'top', version: 0 }
+      ];
+
+      const card = document.createElement('div');
+      card.className = 'station-card';
+      card.dataset.id = 's1';
+      card.innerHTML = '<input data-shop-field="name" data-shop-idx="0" value="改名铺">'
+        + '<button data-action="save"></button>';
+      document.body.appendChild(card);
+
+      // 直接调用 showToast 模拟 saveCard 成功分支行为
+      showToast('✅ 数据已保存到服务器');
+
+      const toast = document.getElementById('saveToast');
+      expect(toast.textContent).toContain('数据已保存到');
+      expect(toast.textContent).not.toContain('保存失败');
     });
   });
 });

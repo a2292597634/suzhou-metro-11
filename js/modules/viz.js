@@ -780,7 +780,7 @@ export function bindCardEvents() {
  * 保存单张展开卡片中的编辑内容
  * @param {HTMLElement} card 卡片 DOM 元素
  */
-function saveCard(card) {
+export function saveCard(card) {
   const station = state.stations.find(s => s.id === card.dataset.id);
   if (!station) return;
 

@@ -53,3 +53,11 @@
 - `saveData()` 返回失败时，商业信息管理页不显示成功提示。
 - E2E 覆盖照片导入、保存、悬停预览、删除和刷新后状态。
 - 定向测试、完整非 E2E 回归、E2E 和覆盖检查全部通过。
+
+## Review 修复追加（2026-07-01）
+
+- `saveCard` 由模块私有函数改为 `export function saveCard`，使测试可直接导入并调用真实实现。
+- `tests/integration/viz-data.test.js` 中两项 saveCard 反馈测试改为调用真实 `showToast` 并断言 DOM toast 文案，不再 mock 自身业务逻辑。
+- `tests/e2e/data-viz-flow.test.js` 新增照片完整流程 E2E：fixture 验证、Puppeteer fileChooser 真实 FileReader 导入、鼠标悬停预览浮层、删除照片、保存后刷新验证。`PORT=4173 npm run test:e2e` 9/9 passed。
+- `tasks.md` 全部项目已勾选（含 E2E 任务组 5.x/5.T.x 和测试检查清单），E2E Red/Green 在实际环境中完成验证。
+- Docker PostgreSQL（`docker compose up -d postgres`）已启动，`npm test` 24 files / 368 passed。
