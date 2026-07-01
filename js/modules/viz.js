@@ -813,8 +813,13 @@ function saveCard(card) {
 
   // 保存到后端
   saveData().then(result => {
-    const source = result.source === 'server' ? '服务器' : '本地';
-    showToast(`✅ 数据已保存到${source}`);
+    if (result.success) {
+      const source = result.source === 'server' ? '服务器' : '本地';
+      showToast(`✅ 数据已保存到${source}`);
+    } else {
+      const msg = result.error || (result.needLogin ? '请先登录' : result.conflict ? '数据已被他人修改，请刷新后重试' : '保存失败');
+      showToast(`❌ 保存失败：${msg}`);
+    }
   });
 
   expandedId = station.id;

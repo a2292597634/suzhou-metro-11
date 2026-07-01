@@ -43,25 +43,6 @@ const upload = multer({
   }
 });
 
-const uploadPhoto = multer({
-  storage: multer.diskStorage({
-    destination: path.join(__dirname, 'assets', 'shop-photos'),
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      cb(null, Date.now() + ext);
-    }
-  }),
-  limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('仅支持 PNG、JPEG、WebP 格式'));
-    }
-  }
-});
-
 // 解析 Cookie（使用 SESSION_SECRET 签名）
 app.use(cookieParser(SESSION_SECRET));
 
@@ -165,16 +146,6 @@ app.use(setSecurityHeaders);
 app.use(corsMiddleware);
 
 // ========== API 路由 ==========
-
-// 照片上传端点（需认证）
-app.post('/api/upload-photo', authenticateToken, uploadPhoto.single('photo'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: '未提供照片文件' });
-  }
-
-  const webPath = '/assets/shop-photos/' + req.file.filename;
-  res.json({ path: webPath });
-});
 
 // 登录端点 — 验证密码后设置 HttpOnly 签名 Cookie（带限流）
 app.post('/api/login', rateLimiter, (req, res) => {
@@ -290,9 +261,9 @@ const shopSchema = z.object({
   power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
   water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
   remark: z.string().max(500).optional().default(''),
-  photo: z.string().max(500).refine(
-    (v) => v === '' || /^\/assets\/shop-photos\/.+\.(png|jpg|jpeg|webp)$/i.test(v) || /^data:image\/(jpeg|png|webp);base64,/.test(v),
-    { message: 'photo 必须为空字符串、路径 /assets/shop-photos/*.{png,jpg,jpeg,webp} 或 data:image/(jpeg|png|webp);base64,... Data URL' }
+  photo: z.string().max(3_000_000).refine(
+    (v) => v === '' || /^data:image\/(jpeg|png|webp);base64,/.test(v),
+    { message: 'photo 必须为空字符串或 data:image/(jpeg|png|webp);base64,... Data URL' }
   ).optional().default('')
 });
 

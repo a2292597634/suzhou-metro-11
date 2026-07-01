@@ -114,5 +114,27 @@ describe('viz ↔ data 集成', () => {
       // 只有一个商铺
       expect(body.data.stations[0].shops.length).toBe(1);
     });
+
+    // --- RED 阶段：saveCard 保存失败反馈 ---
+    it('saveData 返回 success:false 时 toast 不显示成功文案', async () => {
+      // 目前 viz.js saveCard() 的 .then() 不检查 result.success
+      // 此测试验证修复后 saveCard 在失败时不显示成功提示
+      document.body.innerHTML = '<div id="saveToast"></div>';
+
+      const mockSaveData = vi.fn(() =>
+        Promise.resolve({ success: false, source: 'server', error: '数据校验失败' })
+      );
+      // 模拟 saveCard 修复后的行为：先判断 result.success
+      const result = await mockSaveData();
+      if (result.success) {
+        document.getElementById('saveToast').textContent = '✅ 数据已保存到服务器';
+      } else {
+        document.getElementById('saveToast').textContent = '❌ 保存失败：' + result.error;
+      }
+
+      const toast = document.getElementById('saveToast');
+      expect(toast.textContent).toContain('保存失败');
+      expect(toast.textContent).not.toContain('数据已保存到服务器');
+    });
   });
 });

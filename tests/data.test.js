@@ -353,4 +353,21 @@ describe('数据管理', () => {
       expect(headers.length).toBe(10);
     });
   });
+
+  // --- RED 阶段：默认数据不应引用 /assets/shop-photos/ 路径 ---
+  describe('默认数据照片路径清理', () => {
+    it('data/default-data.json 中不应包含 /assets/shop-photos/ 路径引用', () => {
+      const json = JSON.parse(readFileSync(resolve(process.cwd(), 'data/default-data.json'), 'utf8'));
+      const violations = [];
+      json.stations.forEach(station => {
+        (station.shops || []).forEach(shop => {
+          if (shop.photo && typeof shop.photo === 'string' && shop.photo.includes('/assets/shop-photos/')) {
+            violations.push({ station: station.id, shop: shop.name, photo: shop.photo });
+          }
+        });
+      });
+      // 当前默认数据有 10 个路径引用 → Red 阶段此断言失败
+      expect(violations).toHaveLength(0);
+    });
+  });
 });

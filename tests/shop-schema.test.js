@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 
-// 从 server.js 复制的 Zod schemas（含新增 power/water/photo）
+// 从 server.js 复制的 Zod schemas（与真实 server.js 保持一致）
 const shopSchema = z.object({
   no: z.number().int().min(0),
   shortNo: z.string().max(50).optional().default(''),
@@ -161,6 +161,36 @@ describe('Shop Schema - power/water 字段校验', () => {
         photo: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP=='
       });
       expect(result.success).toBe(false);
+    });
+
+    // --- Green 阶段：修复后验证 ---
+
+    it('应该接受 500 字符以上合法 Data URL', () => {
+      // 构造一个 ~600 字符的合法 JPEG Data URL
+      const longPhoto = 'data:image/jpeg;base64,' + 'A'.repeat(580);
+      const result = shopSchema.safeParse({ ...validShop, photo: longPhoto });
+      expect(result.success).toBe(true);
+    });
+
+    it('应该拒绝 /assets/shop-photos/demo.png 路径型照片值', () => {
+      const result = shopSchema.safeParse({
+        ...validShop,
+        photo: '/assets/shop-photos/demo.png'
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('应该拒绝超过 3_000_000 字符的照片字段', () => {
+      const tooLong = 'data:image/jpeg;base64,' + 'A'.repeat(3_000_001);
+      const result = shopSchema.safeParse({ ...validShop, photo: tooLong });
+      expect(result.success).toBe(false);
+    });
+
+    it('应该接受长度恰好 3_000_000 字符的合法 Data URL', () => {
+      const prefixLen = 'data:image/jpeg;base64,'.length;
+      const longPhoto = 'data:image/jpeg;base64,' + 'A'.repeat(3_000_000 - prefixLen);
+      const result = shopSchema.safeParse({ ...validShop, photo: longPhoto });
+      expect(result.success).toBe(true);
     });
   });
 });

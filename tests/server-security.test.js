@@ -268,4 +268,36 @@ describe('Zod 数据校验', () => {
     expect(res.status).toBe(400);
     expect(res.body.details).toBeDefined();
   });
+
+  // --- RED 阶段：路径型照片值拒绝 ---
+  it('应拒绝 /assets/shop-photos/demo.png 路径型照片值', async () => {
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', authHeader)
+      .send({
+        data: {
+          stations: [{
+            id: 'red-path-photo',
+            name: '路径照片站',
+            grade: 'A',
+            x: 400,
+            y: 400,
+            pos: 'top',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-PP1',
+              name: '路径照片商铺',
+              type: '商铺',
+              area: 10,
+              status: '营业中',
+              photo: '/assets/shop-photos/demo.png'
+            }]
+          }]
+        }
+      });
+
+    // 期望 400 拒绝，但当前 server.js 接受路径型值 → Red 阶段此断言失败
+    expect(res.status).toBe(400);
+    expect(res.body.details).toBeDefined();
+  });
 });
