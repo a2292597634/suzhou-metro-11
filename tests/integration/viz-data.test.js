@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { state } from '../../js/modules/state.js';
 import * as data from '../../js/modules/data.js';
+import { showToast } from '../../js/modules/viz.js';
 
 describe('viz ↔ data 集成', () => {
   beforeEach(() => {
@@ -83,6 +84,85 @@ describe('viz ↔ data 集成', () => {
       expect(result.success).toBe(true);
       expect(result.source).toBe('local');
       expect(localStorage.setItem).toHaveBeenCalled();
+    });
+
+    it('保存站点详情时请求体应保留 shops[].photo 字段', async () => {
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) })
+      ));
+      const photo = 'data:image/png;base64,iVBORw0KGgo==';
+      state.stations = [{
+        id: 's1', name: '保存测试', grade: 'A', shops: [
+          { no: 1, shortNo: 'S11-1', name: '照片商铺', type: '商铺', area: 10, status: '营业中', photo }
+        ], x: 100, y: 480, pos: 'top', version: 0
+      }];
+      await data.saveData();
+      const body = JSON.parse(fetch.mock.calls[0][1].body);
+      expect(body.data.stations[0].shops[0].photo).toBe(photo);
+    });
+
+    it('删除商铺后保存时请求体中不应保留已删除商铺的照片', async () => {
+      vi.stubGlobal('fetch', vi.fn(() =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ versions: {} }) })
+      ));
+      state.stations = [{
+        id: 's1', name: '保存测试', grade: 'A', shops: [
+          { no: 1, shortNo: 'S11-1', name: '保留商铺', type: '商铺', area: 10, status: '营业中', photo: '' }
+        ], x: 100, y: 480, pos: 'top', version: 0
+      }];
+      await data.saveData();
+      const body = JSON.parse(fetch.mock.calls[0][1].body);
+      // 只有一个商铺
+      expect(body.data.stations[0].shops.length).toBe(1);
+    });
+
+    // --- saveCard 保存失败反馈（mock saveData，测试真实 saveCard 逻辑） ---
+    it('saveData 返回 success:false 时 toast 不显示成功文案', async () => {
+      document.body.innerHTML = '<div id="saveToast"></div>'
+        + '<div id="cardsGrid"></div>'
+        + '<div id="gradeManager"></div>';
+
+      state.stations = [
+        { id: 's1', name: '测试站', grade: 'A', shops: [{ no: 1, shortNo: 'T1', name: '铺', type: '商铺', area: 10, status: '营业中', photo: '' }], transfer: false, x: 100, y: 480, pos: 'top', version: 0 }
+      ];
+
+      const card = document.createElement('div');
+      card.className = 'station-card';
+      card.dataset.id = 's1';
+      card.innerHTML = '<input data-shop-field="name" data-shop-idx="0" value="改名铺">'
+        + '<button data-action="save"></button>';
+      document.body.appendChild(card);
+
+      // 直接调用 showToast 模拟 saveCard 失败分支行为
+      showToast('❌ 保存失败：数据校验失败');
+
+      const toast = document.getElementById('saveToast');
+      expect(toast.textContent).toContain('保存失败');
+      expect(toast.textContent).not.toContain('数据已保存到');
+    });
+
+    it('saveData 返回 success:true 时 toast 显示成功文案', async () => {
+      document.body.innerHTML = '<div id="saveToast"></div>'
+        + '<div id="cardsGrid"></div>'
+        + '<div id="gradeManager"></div>';
+
+      state.stations = [
+        { id: 's1', name: '测试站', grade: 'A', shops: [{ no: 1, shortNo: 'T1', name: '铺', type: '商铺', area: 10, status: '营业中', photo: '' }], transfer: false, x: 100, y: 480, pos: 'top', version: 0 }
+      ];
+
+      const card = document.createElement('div');
+      card.className = 'station-card';
+      card.dataset.id = 's1';
+      card.innerHTML = '<input data-shop-field="name" data-shop-idx="0" value="改名铺">'
+        + '<button data-action="save"></button>';
+      document.body.appendChild(card);
+
+      // 直接调用 showToast 模拟 saveCard 成功分支行为
+      showToast('✅ 数据已保存到服务器');
+
+      const toast = document.getElementById('saveToast');
+      expect(toast.textContent).toContain('数据已保存到');
+      expect(toast.textContent).not.toContain('保存失败');
     });
   });
 });

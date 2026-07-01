@@ -224,7 +224,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 14,
@@ -344,7 +345,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 21,
@@ -356,7 +358,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 22,
@@ -423,24 +426,26 @@
           "shortNo": "S11-22",
           "name": "A商铺（3号出口）",
           "type": "商铺",
-          "area": 32.0,
+          "area": 32,
           "tenant": "11号便利店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 26,
           "shortNo": "S11-23",
           "name": "B商铺（3号出口）",
           "type": "商铺",
-          "area": 15.0,
+          "area": 15,
           "tenant": "11号咖啡店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 27,
@@ -452,7 +457,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 28,
@@ -500,7 +506,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 31,
@@ -704,7 +711,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 43,
@@ -716,7 +724,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 44,
@@ -752,7 +761,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 46,
@@ -776,7 +786,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         }
       ]
     },
@@ -800,7 +811,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         }
       ]
     },
@@ -956,7 +968,8 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "remark": "",
+          "photo": ""
         },
         {
           "no": 57,

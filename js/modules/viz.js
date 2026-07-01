@@ -205,7 +205,8 @@ export function renderCard(station, idx, expandedId) {
       <div class="shop-preview">
         ${previewShops.map(s => {
           const st = getStatusStyle(s.status);
-          return `<div class="preview-row">
+          const hasPhoto = s.photo && s.photo !== '';
+          return `<div class="preview-row"${hasPhoto ? ` data-photo="${escapeAttr(s.photo)}"` : ''}>
             <span class="status-dot ${st.dot}"></span>
             <span class="shop-name">${escapeHtml(s.name)}</span>
             <span class="shop-tenant">${s.tenant ? escapeHtml(s.tenant) : '—'}</span>
@@ -271,6 +272,7 @@ function renderDetail(station, idx) {
                 <th class="col-area">面积(㎡)</th>
                 <th class="col-tenant">商户</th>
                 <th class="col-status">状态</th>
+                <th class="col-photo">现场照片</th>
                 <th class="col-action"></th>
               </tr>
             </thead>
@@ -295,6 +297,13 @@ function renderDetail(station, idx) {
                       <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
                       <option value="装修中" ${shop.status === '装修中' ? 'selected' : ''}>装修中</option>
                     </select>
+                  </td>
+                  <td class="col-photo">
+                    ${shop.photo && shop.photo !== '' ? `<img class="photo-thumb" src="${escapeAttr(shop.photo)}" alt="${escapeAttr(shop.name)}照片" width="48" height="36">` : `<span class="photo-placeholder"></span>`}
+                    <button class="photo-btn" data-photo-action="${shop.photo && shop.photo !== '' ? 'replace' : 'import'}" title="${shop.photo && shop.photo !== '' ? '替换照片' : '导入照片'}">
+                      ${shop.photo && shop.photo !== '' ? '替换' : '导入'}
+                    </button>
+                    ${shop.photo && shop.photo !== '' ? `<button class="photo-btn photo-btn-delete" data-photo-action="delete" title="删除照片">删除</button>` : ''}
                   </td>
                   <td class="col-action">
                     <button class="delete-btn" data-shop-delete title="删除">
@@ -650,12 +659,115 @@ export function bindCardEvents() {
         contact: '',
         openDate: '',
         status: '未出租',
-        remark: ''
+        remark: '',
+        photo: ''
       };
       station.shops = station.shops || [];
       station.shops.push(newShop);
       expandedId = station.id;
       renderGrid();
+    });
+  });
+
+  // 照片预览弹窗
+  const photoPopup = document.getElementById('photoPreviewPopup');
+  if (!photoPopup) {
+    const popup = document.createElement('div');
+    popup.id = 'photoPreviewPopup';
+    popup.className = 'photo-preview-popup';
+    popup.style.display = 'none';
+    document.body.appendChild(popup);
+  }
+
+  // 照片导入/替换/删除按钮
+  grid.querySelectorAll('[data-photo-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const row = btn.closest('tr');
+      const card = btn.closest('.station-card');
+      const station = state.stations.find(s => s.id === card.dataset.id);
+      if (!station) return;
+      const sIdx = parseInt(row.dataset.shopIdx);
+      const shop = station.shops[sIdx];
+      if (!shop) return;
+      const action = btn.dataset.photoAction;
+
+      if (action === 'import' || action === 'replace') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp';
+        input.onchange = () => {
+          const file = input.files[0];
+          if (!file) return;
+          if (file.size > 2 * 1024 * 1024) {
+            showToast('❌ 图片文件不能超过 2MB');
+            return;
+          }
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            showToast('❌ 仅支持 JPEG、PNG、WebP 格式');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            shop.photo = reader.result;
+            expandedId = station.id;
+            renderGrid();
+            showToast('✅ 照片已导入，点击保存修改生效');
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      } else if (action === 'delete') {
+        if (confirm(`确定删除「${shop.name || '该商铺'}」的现场照片？`)) {
+          shop.photo = '';
+          expandedId = station.id;
+          renderGrid();
+          showToast('✅ 照片已删除，点击保存修改生效');
+        }
+      }
+    });
+  });
+
+  // 照片悬停预览
+  grid.querySelectorAll('.col-photo').forEach(cell => {
+    cell.addEventListener('mouseenter', (e) => {
+      const row = cell.closest('tr');
+      const sIdx = parseInt(row?.dataset?.shopIdx);
+      const card = cell.closest('.station-card');
+      const station = state.stations.find(s => s.id === card?.dataset?.id);
+      const shop = station?.shops?.[sIdx];
+      if (!shop || !shop.photo) return;
+      const popup = document.getElementById('photoPreviewPopup');
+      if (!popup) return;
+      const rect = cell.getBoundingClientRect();
+      popup.innerHTML = `<img src="${escapeAttr(shop.photo)}" alt="${escapeAttr(shop.name)}现场照片" style="max-width:280px;max-height:220px;"><div class="photo-preview-caption">${escapeHtml(shop.name)}</div>`;
+      popup.style.display = 'block';
+      popup.style.position = 'fixed';
+      popup.style.zIndex = '999';
+      popup.style.left = '';
+      popup.style.right = '';
+      popup.style.top = '';
+      popup.style.bottom = '';
+
+      // 相对于视口定位，避免撑开页面产生横向滚动条
+      const pw = popup.offsetWidth;
+      const gap = 6;
+      let left = rect.left + (rect.width - pw) / 2;
+      if (left < 0) left = gap;
+      if (left + pw > window.innerWidth) left = window.innerWidth - pw - gap;
+      popup.style.left = left + 'px';
+
+      const topBelow = rect.bottom + gap;
+      const ph = popup.offsetHeight;
+      if (topBelow + ph > window.innerHeight && rect.top - ph - gap > 0) {
+        popup.style.top = (rect.top - ph - gap) + 'px';
+      } else {
+        popup.style.top = topBelow + 'px';
+      }
+    });
+    cell.addEventListener('mouseleave', () => {
+      const popup = document.getElementById('photoPreviewPopup');
+      if (popup) popup.style.display = 'none';
     });
   });
 }
@@ -668,7 +780,7 @@ export function bindCardEvents() {
  * 保存单张展开卡片中的编辑内容
  * @param {HTMLElement} card 卡片 DOM 元素
  */
-function saveCard(card) {
+export function saveCard(card) {
   const station = state.stations.find(s => s.id === card.dataset.id);
   if (!station) return;
 
@@ -701,8 +813,13 @@ function saveCard(card) {
 
   // 保存到后端
   saveData().then(result => {
-    const source = result.source === 'server' ? '服务器' : '本地';
-    showToast(`✅ 数据已保存到${source}`);
+    if (result.success) {
+      const source = result.source === 'server' ? '服务器' : '本地';
+      showToast(`✅ 数据已保存到${source}`);
+    } else {
+      const msg = result.error || (result.needLogin ? '请先登录' : result.conflict ? '数据已被他人修改，请刷新后重试' : '保存失败');
+      showToast(`❌ 保存失败：${msg}`);
+    }
   });
 
   expandedId = station.id;

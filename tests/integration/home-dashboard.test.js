@@ -1103,3 +1103,114 @@ describe('首页综合经营看板', () => {
     expect(button.getAttribute('aria-expanded')).toBe('false');
   });
 });
+
+describe('趋势卡片点位明细与照片', () => {
+  it('趋势详情应包含当前站点商铺明细', () => {
+    mountDashboard();
+    const stationStats = [{
+      name: '测试站',
+      grade: 'A',
+      transfer: false,
+      shopCount: 3,
+      rented: 1,
+      renovating: 1,
+      vacant: 1,
+      rateStr: '66.7%',
+      shops: [
+        { name: '商铺1', shortNo: 'S11-1', type: '商铺', area: 10, tenant: '商户A', status: '营业中', photo: '' },
+        { name: '商铺2', shortNo: 'S11-2', type: '商铺', area: 15, tenant: '', status: '未出租', photo: '' },
+        { name: '多经点位', shortNo: 'S11-M1', type: '多经点位', area: 5, tenant: '', status: '未出租', photo: '' }
+      ]
+    }];
+    renderStationTrend(stationStats);
+
+    const firstNode = document.querySelector('.trend-station-node');
+    firstNode.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    const detail = document.querySelector('.trend-detail');
+    expect(detail.textContent).toContain('商铺明细');
+  });
+
+  it('有照片点位应显示缩略图', () => {
+    mountDashboard();
+    const stationStats = [{
+      name: '测试站',
+      grade: 'A',
+      transfer: false,
+      shopCount: 1,
+      rented: 1,
+      renovating: 0,
+      vacant: 0,
+      rateStr: '100.0%',
+      shops: [
+        { name: '有照片商铺', shortNo: 'S11-1', type: '商铺', area: 10, tenant: '商户A', status: '营业中', photo: 'data:image/jpeg;base64,/9j/4AAQ==' }
+      ]
+    }];
+    renderStationTrend(stationStats);
+
+    const firstNode = document.querySelector('.trend-station-node');
+    firstNode.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    const detail = document.querySelector('.trend-detail');
+    const img = detail.querySelector('.trend-shop-photo');
+    expect(img).not.toBeNull();
+    expect(img.src).toBe('data:image/jpeg;base64,/9j/4AAQ==');
+    expect(img.alt).toContain('有照片商铺');
+  });
+
+  it('无照片点位不应渲染破图', () => {
+    mountDashboard();
+    const stationStats = [{
+      name: '测试站',
+      grade: 'A',
+      transfer: false,
+      shopCount: 1,
+      rented: 0,
+      renovating: 0,
+      vacant: 1,
+      rateStr: '0.0%',
+      shops: [
+        { name: '无照片商铺', shortNo: 'S11-1', type: '商铺', area: 10, tenant: '', status: '未出租', photo: '' }
+      ]
+    }];
+    renderStationTrend(stationStats);
+
+    const firstNode = document.querySelector('.trend-station-node');
+    firstNode.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    const detail = document.querySelector('.trend-detail');
+    const imgs = detail.querySelectorAll('img[src=""]');
+    expect(imgs.length).toBe(0);
+  });
+
+  it('点位较多时应使用内部滚动且 SVG 尺寸不变', () => {
+    mountDashboard();
+    const shops = Array.from({ length: 8 }, (_, i) => ({
+      name: `商铺${i + 1}`,
+      shortNo: `S11-${i + 1}`,
+      type: '商铺',
+      area: 10 + i,
+      tenant: '',
+      status: '未出租',
+      photo: ''
+    }));
+    const stationStats = [{
+      name: '多商铺站',
+      grade: 'A',
+      transfer: false,
+      shopCount: 8,
+      rented: 0,
+      renovating: 0,
+      vacant: 8,
+      rateStr: '0.0%',
+      shops
+    }];
+    renderStationTrend(stationStats);
+
+    const firstNode = document.querySelector('.trend-station-node');
+    firstNode.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    const detail = document.querySelector('.trend-detail');
+    const shopsArea = detail.querySelector('.trend-detail-shops');
+    expect(shopsArea).not.toBeNull();
+
+    const svg = document.querySelector('.trend-chart');
+    expect(svg).not.toBeNull();
+  });
+});

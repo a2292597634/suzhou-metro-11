@@ -227,7 +227,10 @@ app.get('/api/data', async (req, res) => {
         contact: shop.contact || '',
         openDate: shop.openDate || '',
         status: shop.status,
-        remark: shop.remark || ''
+        remark: shop.remark || '',
+        power: shop.power || '',
+        water: shop.water || '/',
+        photo: shop.photo || ''
       }))
     }));
 
@@ -257,7 +260,11 @@ const shopSchema = z.object({
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
   power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
   water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
-  remark: z.string().max(500).optional().default('')
+  remark: z.string().max(500).optional().default(''),
+  photo: z.string().max(3_000_000).refine(
+    (v) => v === '' || /^data:image\/(jpeg|png|webp);base64,/.test(v),
+    { message: 'photo 必须为空字符串或 data:image/(jpeg|png|webp);base64,... Data URL' }
+  ).optional().default('')
 });
 
 const stationSchema = z.object({
@@ -399,6 +406,9 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
               openDate: shop.openDate,
               status: shop.status,
               remark: shop.remark,
+              power: shop.power || '',
+              water: shop.water || '/',
+              photo: shop.photo || '',
               stationId: s.id
             }
           });
@@ -560,11 +570,15 @@ function serveHtml(htmlPath, req, res) {
 
     const nonce = res.locals.nonce || generateNonce();
 
-    // 注入 nonce 到所有 <style> 和 <script> 标签（无 src 属性的内联标签）
+    // 注入 nonce 到所有 <style> 和 <script> 标签（无 src 属性的内联标签），并追加构建号防缓存
+    // Inject nonce, preserve existing query params, and append cache-bust fingerprint
+    const mtime = fs.statSync(htmlPath).mtimeMs.toString(36);
     let result = data
       .replace(/<style>/g, `<style nonce="${nonce}">`)
       .replace(/<script type="module">/g, `<script type="module" nonce="${nonce}">`)
-      .replace(/<script>/g, `<script nonce="${nonce}">`);
+      .replace(/<script>/g, `<script nonce="${nonce}">`)
+      .replace(/(<script type="module" src="[^"?]+)(\?[^"]*)?"/g, `$1?b=${mtime}"`)
+      .replace(/(<link rel="stylesheet" href="[^"?]+)(\?[^"]*)?"/g, `$1?b=${mtime}"`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(result);
@@ -578,9 +592,9 @@ app.get('/battle-map.html', (req, res) => serveHtml(path.join(__dirname, 'battle
 app.get('/data-viz.html', (req, res) => serveHtml(path.join(__dirname, 'data-viz.html'), req, res));
 
 // 允许的前端资源目录
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/css', express.static(path.join(__dirname, 'css'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
+app.use('/js', express.static(path.join(__dirname, 'js'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
+app.use('/assets', express.static(path.join(__dirname, 'assets'), { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store, must-revalidate'); res.setHeader('Expires', '0'); } }));
 // 仅暴露 default-data.json，屏蔽其他数据文件
 app.get('/data/default-data.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'data', 'default-data.json'));

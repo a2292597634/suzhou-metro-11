@@ -104,4 +104,122 @@ describe('认证数据流集成', () => {
     const res3 = await request(app).get('/package.json');
     expect(res3.status).toBe(404);
   });
+
+  it('POST /api/data 保存商铺照片后 GET 应返回同一照片', async () => {
+    if (!dbAvailable) return;
+
+    const photo = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', 'Bearer test-secret-token')
+      .send({
+        data: {
+          stations: [{
+            id: 'photo-test-station',
+            name: '照片测试站',
+            grade: 'A',
+            x: 100,
+            y: 100,
+            pos: 'top',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-T1',
+              name: '测试商铺',
+              type: '商铺',
+              area: 10,
+              status: '营业中',
+              photo
+            }]
+          }]
+        }
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    // 然后通过 GET 验证
+    const getRes = await request(app).get('/api/data');
+    expect(getRes.status).toBe(200);
+    const station = getRes.body.data.stations.find(s => s.id === 'photo-test-station');
+    expect(station).toBeDefined();
+    expect(station.shops[0].photo).toBe(photo);
+  });
+
+  it('POST /api/data 不传 photo 字段时应默认为空字符串', async () => {
+    if (!dbAvailable) return;
+
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', 'Bearer test-secret-token')
+      .send({
+        data: {
+          stations: [{
+            id: 'no-photo-station',
+            name: '无照片站',
+            grade: 'B',
+            x: 200,
+            y: 200,
+            pos: 'bottom',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-NP',
+              name: '无照片商铺',
+              type: '商铺',
+              area: 10,
+              status: '未出租'
+            }]
+          }]
+        }
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const getRes = await request(app).get('/api/data');
+    const station = getRes.body.data.stations.find(s => s.id === 'no-photo-station');
+    expect(station).toBeDefined();
+    expect(station.shops[0].photo).toBe('');
+  });
+
+  // --- RED 阶段：500 字符以上合法 Data URL 往返 ---
+  it('POST /api/data 应接受并保存 500 字符以上合法 Data URL 的商铺照片', async () => {
+    if (!dbAvailable) return;
+
+    // 构造 ~600 字符的合法 JPEG Data URL
+    const longPhoto = 'data:image/jpeg;base64,' + 'A'.repeat(580);
+
+    const res = await request(app)
+      .post('/api/data')
+      .set('Authorization', 'Bearer test-secret-token')
+      .send({
+        data: {
+          stations: [{
+            id: 'red-long-photo-station',
+            name: '长照片站',
+            grade: 'A',
+            x: 300,
+            y: 300,
+            pos: 'top',
+            shops: [{
+              no: 1,
+              shortNo: 'S11-LP1',
+              name: '长照片商铺',
+              type: '商铺',
+              area: 10,
+              status: '营业中',
+              photo: longPhoto
+            }]
+          }]
+        }
+      });
+
+    // 期望 200 通过，但当前 max(500) 会返回 400 → Red 阶段此断言失败
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const getRes = await request(app).get('/api/data');
+    const station = getRes.body.data.stations.find(s => s.id === 'red-long-photo-station');
+    expect(station).toBeDefined();
+    expect(station.shops[0].photo).toBe(longPhoto);
+  });
 });

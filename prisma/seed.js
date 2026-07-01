@@ -63,7 +63,8 @@ async function main() {
             status: shop.status,
             power: shop.power || '',
             water: shop.water || '/',
-            remark: shop.remark || ''
+            remark: shop.remark || '',
+            photo: shop.photo || ''
           }))
         }
       }
