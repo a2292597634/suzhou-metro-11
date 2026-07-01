@@ -78,7 +78,7 @@ rules:
 
   # 提案阶段规则
   proposal:
-    - change 命名：格式 YYYY-MM-DD-<动词>-<目标>，动词限定 add/refactor/fix/improve/remove，目标 kebab-case
+    - change 命名：格式 <动词>-<目标>-YYYY-MM-DD，动词限定 add/refactor/fix/improve/remove，目标 kebab-case，日期统一放在最后
     - 必须包含成功标准 (Success Criteria)：列出可验证的完成条件
     - Impact 必须列出具体的文件/目录变更，不使用模糊描述
     - proposal 声明的 capability 必须与 specs/ 目录一一对应
