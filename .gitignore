@@ -5,9 +5,11 @@ output/
 .env
 data/*
 !data/default-data.json
+!data/static-manifest.json
 .claude/settings.local.json
 CLAUDE.local.md
 screenshots/
 uploads/
+商铺照片/
 
 /generated/prisma

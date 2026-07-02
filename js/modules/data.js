@@ -5,6 +5,8 @@
 import { state } from './state.js';
 import { config, calcRate, normalizeGrade } from './utils.js';
 
+let currentSnapshotId = '';
+
 const DEFAULT_STATION_GRADES = {
   weiting: 'B',
   caoxieshan: 'C',
@@ -197,6 +199,43 @@ export function calcGlobalStats() {
   state.globalStats.vacantShops = vacant;
 }
 
+function applyLoadedData(data) {
+  const stations = data?.stations;
+  state.stations = (Array.isArray(stations) && stations.length > 0) ? stations : getDefaultStations();
+
+  const globalStats = data?.globalStats;
+  state.globalStats = (globalStats && Object.keys(globalStats).length > 0) ? globalStats : getDefaultGlobalStats();
+
+  const gradeInfo = data?.gradeInfo;
+  if (gradeInfo && Object.keys(gradeInfo).length > 0) state.gradeInfo = gradeInfo;
+}
+
+async function fetchStaticManifest() {
+  try {
+    const res = await fetch('/data/static-manifest.json');
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function fetchDefaultDataSnapshot() {
+  const res = await fetch('/data/default-data.json');
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+function parseSavedLocalData() {
+  const saved = localStorage.getItem(config.storageKey);
+  if (!saved) return { saved: '', data: null };
+  return { saved, data: JSON.parse(saved) };
+}
+
+function backupLocalSnapshot(snapshotId, saved) {
+  const backupSnapshotId = snapshotId || 'unknown';
+  localStorage.setItem(`${config.storageKey}_backup_${backupSnapshotId}`, saved);
+}
 // 派发数据来源变更事件
 function notifySource(source) {
   if (typeof window !== 'undefined') {
@@ -204,7 +243,7 @@ function notifySource(source) {
   }
 }
 
-// 加载数据（后端API > localStorage > 默认）
+// 加载数据（后端API > 静态 manifest/localStorage > 默认）
 export async function loadData() {
   // 先尝试从后端 API 加载
   try {
@@ -212,38 +251,54 @@ export async function loadData() {
     if (res.ok) {
       const result = await res.json();
       if (result.data) {
-        const stations = result.data.stations;
-        state.stations = (Array.isArray(stations) && stations.length > 0) ? stations : getDefaultStations();
-
-        const globalStats = result.data.globalStats;
-        state.globalStats = (globalStats && Object.keys(globalStats).length > 0) ? globalStats : getDefaultGlobalStats();
-
-        const gradeInfo = result.data.gradeInfo;
-        if (gradeInfo && Object.keys(gradeInfo).length > 0) state.gradeInfo = gradeInfo;
-
+        applyLoadedData(result.data);
+        currentSnapshotId = result.data.snapshotId || '';
         console.log('✅ 已从服务器加载数据');
         notifySource('server');
         return { source: 'server' };
       }
     }
   } catch (e) {
-    console.warn('服务器不可用，尝试本地存储', e);
+    console.warn('服务器不可用，尝试静态快照和本地存储', e);
+  }
+
+  let localSnapshot = { saved: '', data: null };
+  try {
+    localSnapshot = parseSavedLocalData();
+  } catch (e) {
+    console.warn('读取本地存储失败，继续尝试默认数据', e);
+  }
+
+  const manifest = await fetchStaticManifest();
+  const manifestSnapshotId = manifest?.snapshotId || '';
+  const localSnapshotId = localSnapshot.data?.snapshotId || '';
+
+  if (manifestSnapshotId && localSnapshot.saved && manifestSnapshotId !== localSnapshotId) {
+    try {
+      const defaultData = await fetchDefaultDataSnapshot();
+      if (defaultData) {
+        backupLocalSnapshot(localSnapshotId, localSnapshot.saved);
+        applyLoadedData(defaultData);
+        currentSnapshotId = defaultData.snapshotId || manifestSnapshotId;
+        console.log('✅ 已从静态快照加载新数据');
+        notifySource('static-snapshot');
+        return {
+          source: 'static-snapshot',
+          snapshotUpdated: true,
+          previousSnapshotId: localSnapshotId,
+          snapshotId: currentSnapshotId
+        };
+      }
+    } catch (e) {
+      console.warn('静态快照加载失败，回退到本地存储', e);
+    }
   }
 
   // 回退到 localStorage
   try {
-    const saved = localStorage.getItem(config.storageKey);
-    if (saved) {
-      const data = JSON.parse(saved);
-      const stations = data.stations;
-      state.stations = (Array.isArray(stations) && stations.length > 0) ? stations : getDefaultStations();
-
-      const globalStats = data.globalStats;
-      state.globalStats = (globalStats && Object.keys(globalStats).length > 0) ? globalStats : getDefaultGlobalStats();
-
-      const gradeInfo = data.gradeInfo;
-      if (gradeInfo && Object.keys(gradeInfo).length > 0) state.gradeInfo = gradeInfo;
-
+    if (localSnapshot.saved && localSnapshot.data) {
+      applyLoadedData(localSnapshot.data);
+      currentSnapshotId = localSnapshot.data.snapshotId || manifestSnapshotId || '';
       console.log('✅ 已从本地存储加载数据');
       notifySource('local');
       return { source: 'local' };
@@ -254,12 +309,10 @@ export async function loadData() {
 
   // 尝试从 /data/default-data.json 加载默认数据
   try {
-    const res = await fetch('/data/default-data.json');
-    if (res.ok) {
-      const defaultData = await res.json();
-      state.stations = defaultData.stations || [];
-      state.globalStats = defaultData.globalStats || getDefaultGlobalStats();
-      if (defaultData.gradeInfo) state.gradeInfo = defaultData.gradeInfo;
+    const defaultData = await fetchDefaultDataSnapshot();
+    if (defaultData) {
+      applyLoadedData(defaultData);
+      currentSnapshotId = defaultData.snapshotId || manifestSnapshotId || '';
       console.log('✅ 已从 JSON 文件加载默认数据');
       notifySource('default');
       return { source: 'default' };
@@ -271,10 +324,10 @@ export async function loadData() {
   // 内联兜底（最终降级）
   state.stations = getDefaultStations();
   state.globalStats = getDefaultGlobalStats();
+  currentSnapshotId = '';
   notifySource('default');
   return { source: 'default' };
 }
-
 // 登录 — 向服务端提交密码获取 HttpOnly Cookie
 export async function login(password) {
   try {
@@ -384,6 +437,7 @@ export function saveToLocal(data) {
   try {
     localStorage.setItem(config.storageKey, JSON.stringify({
       ...data,
+      snapshotId: data.snapshotId ?? currentSnapshotId ?? '',
       savedAt: new Date().toISOString()
     }));
   } catch (e) {

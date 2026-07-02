@@ -2,7 +2,7 @@
  * 作战图 E2E 测试 — Puppeteer
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import puppeteer from 'puppeteer';
+import { launchBrowser } from './browser-helper.js';
 
 const BASE = `http://localhost:${process.env.PORT || 3000}`;
 
@@ -10,7 +10,7 @@ describe('作战图 E2E', () => {
   let browser, page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    browser = await launchBrowser();
     page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
     await page.goto(`${BASE}/battle-map.html`, { timeout: 60000 });

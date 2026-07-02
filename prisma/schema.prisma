@@ -23,7 +23,8 @@ model Station {
 }
 
 model Shop {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
+  shopUid   String     @unique @default(uuid())
   no        Int
   shortNo   String
   name      String
@@ -33,11 +34,38 @@ model Shop {
   contact   String?
   openDate  String?
   status    String
-  power     String?  @default("")
-  water     String?  @default("/")
+  power     String?    @default("")
+  water     String?    @default("/")
   remark    String?
-  station   Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  station   Station    @relation(fields: [stationId], references: [id], onDelete: Cascade)
   stationId String
+  photo     ShopPhoto?
+}
+
+model ShopPhoto {
+  id                  String    @id @default(uuid())
+  shopUid             String    @unique
+  mimeType            String
+  byteSize            Int
+  sha256              String
+  content             Bytes
+  publishedStaticPath String?
+  publishedSha256     String?
+  publishedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  shop                Shop      @relation(fields: [shopUid], references: [shopUid], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model StaticPublishStatus {
+  id          Int       @id @default(1)
+  status      String    @default("idle")
+  error       String?
+  requestedAt DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model GlobalStats {

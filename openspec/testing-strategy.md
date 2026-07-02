@@ -159,6 +159,7 @@ $env:PORT='4173'; npm run test:e2e
 ```
 
 预览服务对正式页面返回 `Content-Security-Policy: default-src 'self'`，用于验证与生产一致的资源约束；E2E 不 mock 首页渲染、导航或交互。
+涉及后端写接口或测试数据库状态的 E2E 文件必须串行运行，避免跨文件并发污染共享数据库。`npm run test:e2e` 使用 `--no-file-parallelism`。E2E 浏览器启动统一使用 `tests/e2e/browser-helper.js`：优先读取 `PUPPETEER_EXECUTABLE_PATH`，本地缺少 Puppeteer 下载版 Chrome 时可回退到系统 Edge。
 
 ---
 

@@ -85,4 +85,69 @@ describe('viz ↔ data 集成', () => {
       expect(localStorage.setItem).toHaveBeenCalled();
     });
   });
-});
+
+  describe('照片 API 与静态发布状态', () => {
+    it('上传照片应调用 PUT /api/shops/:shopUid/photo 并更新商铺 photo/photoHash', async () => {
+      const { uploadShopPhoto } = await import('../../js/modules/viz.js');
+      const shop = { shopUid: 'shop_uid_upload', photo: '', photoHash: '' };
+      const file = new File([new Uint8Array([1, 2, 3])], 'shop.png', { type: 'image/png' });
+      const fetchMock = vi.fn(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ photoUrl: '/api/shop-photos/shop_uid_upload?v=abc123', sha256: 'abc123' })
+      }));
+
+      const result = await uploadShopPhoto(shop, file, fetchMock);
+
+      expect(fetchMock).toHaveBeenCalledWith('/api/shops/shop_uid_upload/photo', expect.objectContaining({ method: 'PUT', credentials: 'include' }));
+      expect(fetchMock.mock.calls[0][1].body).toBeInstanceOf(FormData);
+      expect(result.success).toBe(true);
+      expect(shop.photo).toBe('/api/shop-photos/shop_uid_upload?v=abc123');
+      expect(shop.photoHash).toBe('abc123');
+    });
+
+    it('删除照片应调用 DELETE /api/shops/:shopUid/photo 并清空照片字段', async () => {
+      const { deleteShopPhoto } = await import('../../js/modules/viz.js');
+      const shop = { shopUid: 'shop_uid_delete', photo: '/api/shop-photos/shop_uid_delete?v=abc123', photoHash: 'abc123' };
+      const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true }) }));
+
+      const result = await deleteShopPhoto(shop, fetchMock);
+
+      expect(fetchMock).toHaveBeenCalledWith('/api/shops/shop_uid_delete/photo', expect.objectContaining({ method: 'DELETE', credentials: 'include' }));
+      expect(result.success).toBe(true);
+      expect(shop.photo).toBe('');
+      expect(shop.photoHash).toBe('');
+    });
+
+    it('上传失败、401、400 不应误报成功或更新照片字段', async () => {
+      const { uploadShopPhoto } = await import('../../js/modules/viz.js');
+      const shop = { shopUid: 'shop_uid_fail', photo: '', photoHash: '' };
+      const file = new File([new Uint8Array([1])], 'bad.png', { type: 'image/png' });
+
+      const unauthorized = await uploadShopPhoto(shop, file, vi.fn(() => Promise.resolve({ ok: false, status: 401, json: () => Promise.resolve({ error: '未授权' }) })));
+      expect(unauthorized.success).toBe(false);
+      expect(unauthorized.needLogin).toBe(true);
+      expect(shop.photo).toBe('');
+
+      const badRequest = await uploadShopPhoto(shop, file, vi.fn(() => Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: '图片类型校验失败' }) })));
+      expect(badRequest.success).toBe(false);
+      expect(badRequest.error).toContain('图片类型校验失败');
+      expect(shop.photo).toBe('');
+    });
+
+    it('静态发布状态展示函数应查询状态并可请求重新发布', async () => {
+      const { loadStaticPublishStatus, requestStaticPublish } = await import('../../js/modules/viz.js');
+      const fetchMock = vi.fn(url => {
+        if (String(url).endsWith('/api/static-publish/status')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'failed', error: 'push failed' }) });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'pending' }) });
+      });
+
+      const status = await loadStaticPublishStatus(fetchMock);
+      const retry = await requestStaticPublish(fetchMock);
+
+      expect(status).toEqual({ status: 'failed', error: 'push failed' });
+      expect(retry).toEqual({ success: true, status: 'pending' });
+      expect(fetchMock).toHaveBeenCalledWith('/api/static-publish/request', expect.objectContaining({ method: 'POST', credentials: 'include' }));
+    });
+  });});

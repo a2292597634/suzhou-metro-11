@@ -4,8 +4,16 @@
  */
 
 const { PrismaClient } = require('@prisma/client');
+const crypto = require('crypto');
 const defaultData = require('../data/default-data.json');
 const prisma = new PrismaClient();
+
+function buildSeedShopUid(stationId, shop, index) {
+  if (shop.shopUid) return shop.shopUid;
+  const stableNo = shop.shortNo || shop.no || 'shop';
+  const source = stationId + ':' + stableNo + ':' + index;
+  return 'shop_' + crypto.createHash('sha256').update(source).digest('hex').slice(0, 24);
+}
 
 async function main() {
   // 检查是否强制覆盖（--force 参数）
@@ -20,6 +28,7 @@ async function main() {
     }
   } else {
     console.log('--force 模式：将覆盖已有数据');
+    await prisma.shopPhoto.deleteMany();
     await prisma.shop.deleteMany();
     await prisma.station.deleteMany();
     await prisma.globalStats.deleteMany();
@@ -51,7 +60,8 @@ async function main() {
         transfer: s.transfer,
         transferLine: s.transferLine || null,
         shops: {
-          create: s.shops.map(shop => ({
+          create: s.shops.map((shop, index) => ({
+            shopUid: buildSeedShopUid(s.id, shop, index),
             no: shop.no,
             shortNo: shop.shortNo,
             name: shop.name,
@@ -115,11 +125,17 @@ async function main() {
   console.log('\n数据导入完成！');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
+
+module.exports = {
+  buildSeedShopUid
+};

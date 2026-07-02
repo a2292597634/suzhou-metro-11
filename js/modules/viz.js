@@ -117,6 +117,157 @@ export function getStatusStyle(status) {
   return STATUS_MAP[status] || { dot: 'status-default', badge: '', label: status };
 }
 
+function createClientShopUid() {
+  if (globalThis.crypto?.randomUUID) {
+    return `shop_${globalThis.crypto.randomUUID()}`;
+  }
+  return `shop_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getApiBase() {
+  return state.apiBase || '';
+}
+
+function findShopForControl(element) {
+  const row = element.closest('tr');
+  const card = element.closest('.station-card');
+  if (!row || !card) return {};
+  const station = state.stations.find(s => s.id === card.dataset.id);
+  const shopIndex = Number.parseInt(row.dataset.shopIdx, 10);
+  const shop = station?.shops?.[shopIndex];
+  return { station, shop, row };
+}
+
+function hasShopPhoto(shop) {
+  return typeof shop?.photo === 'string' && shop.photo.trim() !== '';
+}
+
+export function calculatePhotoPreviewPosition({
+  anchorRect,
+  popupWidth = 0,
+  popupHeight = 0,
+  viewportWidth = 0,
+  viewportHeight = 0,
+  gap = 8,
+  padding = 8
+} = {}) {
+  const rect = anchorRect || {};
+  const safeGap = Math.max(0, Number(gap) || 0);
+  const safePadding = Math.max(0, Number(padding) || 0);
+  const safeViewportWidth = Math.max(0, Number(viewportWidth) || 0);
+  const safeViewportHeight = Math.max(0, Number(viewportHeight) || 0);
+  const safePopupWidth = Math.min(
+    Math.max(0, Number(popupWidth) || 0),
+    Math.max(0, safeViewportWidth - safePadding * 2)
+  );
+  const safePopupHeight = Math.min(
+    Math.max(0, Number(popupHeight) || 0),
+    Math.max(0, safeViewportHeight - safePadding * 2)
+  );
+  const anchorLeft = Number(rect.left) || 0;
+  const anchorTop = Number(rect.top) || 0;
+  const anchorBottom = Number(rect.bottom) || anchorTop;
+  const anchorWidth = Number(rect.width) || 0;
+  const maxLeft = Math.max(safePadding, safeViewportWidth - safePopupWidth - safePadding);
+  const desiredLeft = anchorLeft + anchorWidth / 2 - safePopupWidth / 2;
+  const left = Math.max(safePadding, Math.min(maxLeft, desiredLeft));
+  const belowTop = anchorBottom + safeGap;
+  const aboveTop = anchorTop - safePopupHeight - safeGap;
+  const hasRoomBelow = belowTop + safePopupHeight <= safeViewportHeight - safePadding;
+  const hasRoomAbove = aboveTop >= safePadding;
+  const desiredTop = hasRoomBelow || !hasRoomAbove ? belowTop : aboveTop;
+  const maxTop = Math.max(safePadding, safeViewportHeight - safePopupHeight - safePadding);
+  const top = Math.max(safePadding, Math.min(maxTop, desiredTop));
+
+  return { left, top };
+}
+
+function renderShopPhotoCell(shop) {
+  const hasPhoto = hasShopPhoto(shop);
+  return `
+    ${hasPhoto ? `<img class="photo-thumb" src="${escapeAttr(shop.photo)}" alt="${escapeAttr(shop.name || '商铺')}照片" width="48" height="36">` : '<span class="photo-placeholder"></span>'}
+    <button class="photo-btn" data-photo-action="${hasPhoto ? 'replace' : 'import'}" title="${hasPhoto ? '替换照片' : '导入照片'}">
+      ${hasPhoto ? '替换' : '导入'}
+    </button>
+    ${hasPhoto ? '<button class="photo-btn photo-btn-delete" data-photo-action="delete" title="删除照片">删除</button>' : ''}
+  `;
+}
+
+async function readErrorMessage(response, fallback) {
+  const body = await response.json().catch(() => ({}));
+  return body.error || fallback;
+}
+
+export async function uploadShopPhoto(shop, file, fetchImpl = fetch) {
+  if (!shop?.shopUid) {
+    return { success: false, error: '请先保存商铺后再上传照片' };
+  }
+  const formData = new FormData();
+  formData.append('photo', file);
+  try {
+    const res = await fetchImpl(`${getApiBase()}/api/shops/${encodeURIComponent(shop.shopUid)}/photo`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: formData
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+        needLogin: res.status === 401,
+        error: res.status === 401 ? '请先登录后再上传照片' : await readErrorMessage(res, '照片上传失败')
+      };
+    }
+    const body = await res.json();
+    shop.photo = body.photoUrl || '';
+    shop.photoHash = body.sha256 || '';
+    return { success: true, ...body };
+  } catch {
+    return { success: false, error: '照片未保存到服务器，请检查网络后重试' };
+  }
+}
+
+export async function deleteShopPhoto(shop, fetchImpl = fetch) {
+  if (!shop?.shopUid) {
+    return { success: false, error: '商铺身份缺失，无法删除照片' };
+  }
+  try {
+    const res = await fetchImpl(`${getApiBase()}/api/shops/${encodeURIComponent(shop.shopUid)}/photo`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+        needLogin: res.status === 401,
+        error: res.status === 401 ? '请先登录后再删除照片' : await readErrorMessage(res, '照片删除失败')
+      };
+    }
+    shop.photo = '';
+    shop.photoHash = '';
+    return { success: true };
+  } catch {
+    return { success: false, error: '照片删除失败，请检查网络后重试' };
+  }
+}
+
+export async function loadStaticPublishStatus(fetchImpl = fetch) {
+  const res = await fetchImpl(`${getApiBase()}/api/static-publish/status`);
+  if (!res.ok) return { status: 'failed', error: '静态发布状态查询失败' };
+  return res.json();
+}
+
+export async function requestStaticPublish(fetchImpl = fetch) {
+  const res = await fetchImpl(`${getApiBase()}/api/static-publish/request`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { success: false, error: body.error || '静态发布请求失败' };
+  }
+  return { success: true, ...body };
+}
+
 // ============================================
 // 渲染函数（DOM 操作）
 // ============================================
@@ -205,7 +356,8 @@ export function renderCard(station, idx, expandedId) {
       <div class="shop-preview">
         ${previewShops.map(s => {
           const st = getStatusStyle(s.status);
-          return `<div class="preview-row">
+          const hasPhoto = s.photo && s.photo !== '';
+          return `<div class="preview-row"${hasPhoto ? ` data-photo="${escapeAttr(s.photo)}"` : ''}>
             <span class="status-dot ${st.dot}"></span>
             <span class="shop-name">${escapeHtml(s.name)}</span>
             <span class="shop-tenant">${s.tenant ? escapeHtml(s.tenant) : '—'}</span>
@@ -271,6 +423,7 @@ function renderDetail(station, idx) {
                 <th class="col-area">面积(㎡)</th>
                 <th class="col-tenant">商户</th>
                 <th class="col-status">状态</th>
+                <th class="col-photo">现场照片</th>
                 <th class="col-action"></th>
               </tr>
             </thead>
@@ -295,6 +448,9 @@ function renderDetail(station, idx) {
                       <option value="未出租" ${shop.status === '未出租' ? 'selected' : ''}>未出租</option>
                       <option value="装修中" ${shop.status === '装修中' ? 'selected' : ''}>装修中</option>
                     </select>
+                  </td>
+                  <td class="col-photo">
+                    ${renderShopPhotoCell(shop)}
                   </td>
                   <td class="col-action">
                     <button class="delete-btn" data-shop-delete title="删除">
@@ -641,6 +797,7 @@ export function bindCardEvents() {
       const station = state.stations.find(s => s.id === card.dataset.id);
       if (!station) return;
       const newShop = {
+        shopUid: createClientShopUid(),
         no: (station.shops?.length || 0) + 1,
         shortNo: '待定',
         name: '新商铺',
@@ -650,12 +807,104 @@ export function bindCardEvents() {
         contact: '',
         openDate: '',
         status: '未出租',
-        remark: ''
+        remark: '',
+        photo: '',
+        photoHash: ''
       };
       station.shops = station.shops || [];
       station.shops.push(newShop);
       expandedId = station.id;
       renderGrid();
+    });
+  });
+
+  // 照片预览弹窗
+  const photoPopup = document.getElementById('photoPreviewPopup');
+  if (!photoPopup) {
+    const popup = document.createElement('div');
+    popup.id = 'photoPreviewPopup';
+    popup.className = 'photo-preview-popup';
+    popup.style.display = 'none';
+    document.body.appendChild(popup);
+  }
+
+  // 照片导入/替换/删除按钮
+  grid.querySelectorAll('[data-photo-action]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const { station, shop } = findShopForControl(btn);
+      if (!station || !shop) return;
+      const action = btn.dataset.photoAction;
+
+      if (action === 'import' || action === 'replace') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp';
+        input.onchange = async () => {
+          const file = input.files?.[0];
+          if (!file) return;
+          if (file.size > 2 * 1024 * 1024) {
+            showToast('❌ 图片文件不能超过 2MB');
+            return;
+          }
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            showToast('❌ 仅支持 JPEG、PNG、WebP 格式');
+            return;
+          }
+          const result = await uploadShopPhoto(shop, file);
+          if (result.success) {
+            expandedId = station.id;
+            renderGrid();
+            showToast('✅ 照片已上传');
+          } else {
+            showToast(result.error || '照片上传失败');
+          }
+        };
+        input.click();
+      } else if (action === 'delete') {
+        if (!confirm(`确定删除「${shop.name || '该商铺'}」的现场照片？`)) return;
+        deleteShopPhoto(shop).then(result => {
+          if (result.success) {
+            expandedId = station.id;
+            renderGrid();
+            showToast('✅ 照片已删除');
+          } else {
+            showToast(result.error || '照片删除失败');
+          }
+        });
+      }
+    });
+  });
+
+  // 照片悬停预览
+  grid.querySelectorAll('.col-photo').forEach(cell => {
+    cell.addEventListener('mouseenter', () => {
+      const { shop } = findShopForControl(cell);
+      if (!shop || !hasShopPhoto(shop)) return;
+      const popup = document.getElementById('photoPreviewPopup');
+      if (!popup) return;
+      const rect = cell.getBoundingClientRect();
+      popup.innerHTML = `<img src="${escapeAttr(shop.photo)}" alt="${escapeAttr(shop.name || '商铺')}现场照片"><div class="photo-preview-caption">${escapeHtml(shop.name || '')}</div>`;
+      popup.style.display = 'block';
+      popup.style.position = 'fixed';
+      popup.style.zIndex = '999';
+      popup.style.visibility = 'hidden';
+      const position = calculatePhotoPreviewPosition({
+        anchorRect: rect,
+        popupWidth: popup.offsetWidth,
+        popupHeight: popup.offsetHeight,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight
+      });
+      popup.style.left = `${position.left}px`;
+      popup.style.top = `${position.top}px`;
+      popup.style.right = 'auto';
+      popup.style.bottom = 'auto';
+      popup.style.visibility = 'visible';
+    });
+    cell.addEventListener('mouseleave', () => {
+      const popup = document.getElementById('photoPreviewPopup');
+      if (popup) popup.style.display = 'none';
     });
   });
 }
@@ -668,7 +917,7 @@ export function bindCardEvents() {
  * 保存单张展开卡片中的编辑内容
  * @param {HTMLElement} card 卡片 DOM 元素
  */
-function saveCard(card) {
+export function saveCard(card) {
   const station = state.stations.find(s => s.id === card.dataset.id);
   if (!station) return;
 
@@ -701,8 +950,13 @@ function saveCard(card) {
 
   // 保存到后端
   saveData().then(result => {
-    const source = result.source === 'server' ? '服务器' : '本地';
-    showToast(`✅ 数据已保存到${source}`);
+    if (result.success) {
+      const source = result.source === 'server' ? '服务器' : '本地';
+      showToast(`✅ 数据已保存到${source}`);
+    } else {
+      const msg = result.error || (result.needLogin ? '请先登录' : result.conflict ? '数据已被他人修改，请刷新后重试' : '保存失败');
+      showToast(`❌ 保存失败：${msg}`);
+    }
   });
 
   expandedId = station.id;

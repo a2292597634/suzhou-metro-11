@@ -43,6 +43,94 @@ const upload = multer({
   }
 });
 
+
+const MAX_SHOP_PHOTO_BYTES = 2 * 1024 * 1024;
+const SHOP_PHOTO_MIME_EXTENSIONS = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp'
+};
+
+const photoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_SHOP_PHOTO_BYTES }
+});
+
+function getPhotoExtensionFromMimeType(mimeType) {
+  return SHOP_PHOTO_MIME_EXTENSIONS[mimeType] || '';
+}
+
+function detectPhotoMimeType(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) return '';
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return 'image/png';
+  }
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return '';
+}
+
+function createPhotoValidationError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function validateShopPhotoUpload(file) {
+  const buffer = file?.buffer;
+  const declaredMimeType = file?.mimetype;
+  const byteSize = file?.size ?? buffer?.length ?? 0;
+
+  if (!Buffer.isBuffer(buffer) || byteSize === 0) {
+    throw createPhotoValidationError('图片文件不能为空');
+  }
+  if (byteSize > MAX_SHOP_PHOTO_BYTES) {
+    throw createPhotoValidationError('图片大小不能超过 2MB', 413);
+  }
+  if (!getPhotoExtensionFromMimeType(declaredMimeType)) {
+    throw createPhotoValidationError('仅支持 JPEG、PNG 或 WebP 图片格式');
+  }
+
+  const detectedMimeType = detectPhotoMimeType(buffer);
+  if (!detectedMimeType || detectedMimeType !== declaredMimeType) {
+    throw createPhotoValidationError('图片类型校验失败，请上传真实的 JPEG、PNG 或 WebP 图片');
+  }
+
+  return {
+    mimeType: declaredMimeType,
+    byteSize,
+    sha256: crypto.createHash('sha256').update(buffer).digest('hex'),
+    ext: getPhotoExtensionFromMimeType(declaredMimeType)
+  };
+}
+
+function parsePhotoUpload(req, res, next) {
+  photoUpload.single('photo')(req, res, (err) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: '图片大小不能超过 2MB' });
+    }
+    return res.status(400).json({ error: err.message || '图片上传失败' });
+  });
+}
 // 解析 Cookie（使用 SESSION_SECRET 签名）
 app.use(cookieParser(SESSION_SECRET));
 
@@ -190,7 +278,12 @@ app.get('/api/auth-status', (req, res) => {
 app.get('/api/data', async (req, res) => {
   try {
     const stations = await prisma.station.findMany({
-      include: { shops: true },
+      include: {
+        shops: {
+          include: { photo: true },
+          orderBy: { no: 'asc' }
+        }
+      },
       orderBy: { x: 'asc' }
     });
 
@@ -218,6 +311,7 @@ app.get('/api/data', async (req, res) => {
       version: s.version,
       transferLine: s.transferLine,
       shops: s.shops.map(shop => ({
+        shopUid: shop.shopUid,
         no: shop.no,
         shortNo: shop.shortNo,
         name: shop.name,
@@ -227,7 +321,11 @@ app.get('/api/data', async (req, res) => {
         contact: shop.contact || '',
         openDate: shop.openDate || '',
         status: shop.status,
-        remark: shop.remark || ''
+        power: shop.power || '',
+        water: shop.water || '/',
+        remark: shop.remark || '',
+        photo: buildShopPhotoUrl(shop),
+        photoHash: shop.photo?.sha256 || ''
       }))
     }));
 
@@ -246,6 +344,7 @@ app.get('/api/data', async (req, res) => {
 
 // Zod 校验 schemas（增强版：添加长度限制和数组规模限制）
 const shopSchema = z.object({
+  shopUid: z.string().min(1).max(100).optional(),
   no: z.number().int().min(0),
   shortNo: z.string().max(50).optional().default(''),
   name: z.string().min(1).max(200),
@@ -257,7 +356,9 @@ const shopSchema = z.object({
   status: z.enum(['营业中', '未出租', '装修中']).optional().default('未出租'),
   power: z.union([z.enum(['20KW', '30KW']), z.literal('')]).optional().default(''),
   water: z.union([z.enum(['有', '/']), z.literal('')]).optional().default('/'),
-  remark: z.string().max(500).optional().default('')
+  remark: z.string().max(500).optional().default(''),
+  photo: z.string().max(500).refine(value => !value || !value.startsWith('data:image/'), { message: '照片内容必须通过照片 API 上传' }).optional().default(''),
+  photoHash: z.string().max(100).optional().default('')
 });
 
 const stationSchema = z.object({
@@ -287,6 +388,41 @@ const gradeInfoSchema = z.record(z.string().max(10), z.object({
   color: z.string().min(1).max(20)
 }));
 
+function buildShopPhotoUrl(shop) {
+  if (!shop.photo) return '';
+  return `/api/shop-photos/${encodeURIComponent(shop.shopUid)}?v=${shop.photo.sha256.slice(0, 12)}`;
+}
+
+function normalizeShopUid(shop) {
+  return shop.shopUid && shop.shopUid.trim() ? shop.shopUid.trim() : crypto.randomUUID();
+}
+
+function collectRequestShopUids(stations) {
+  return stations
+    .flatMap(station => station.shops || [])
+    .map(shop => shop.shopUid)
+    .filter(uid => typeof uid === 'string' && uid.trim())
+    .map(uid => uid.trim());
+}
+
+function toShopWriteData(shop, stationId, shopUid) {
+  return {
+    shopUid,
+    no: shop.no,
+    shortNo: shop.shortNo,
+    name: shop.name,
+    type: shop.type,
+    area: shop.area,
+    tenant: shop.tenant,
+    contact: shop.contact,
+    openDate: shop.openDate,
+    status: shop.status,
+    power: shop.power,
+    water: shop.water,
+    remark: shop.remark,
+    stationId
+  };
+}
 // 完整数据 schema 带重复 ID 检查
 const dataSchema = z.object({
   stations: z.array(stationSchema).max(100).optional().default([]),
@@ -298,6 +434,12 @@ const dataSchema = z.object({
     return new Set(ids).size === ids.length;
   },
   { message: 'stations 数组包含重复的 ID', path: ['stations'] }
+).refine(
+  (data) => {
+    const shopUids = collectRequestShopUids(data.stations || []);
+    return new Set(shopUids).size === shopUids.length;
+  },
+  { message: 'shops 数组包含重复的 shopUid', path: ['stations'] }
 );
 
 // 保存数据（需要认证 + 限流）
@@ -314,18 +456,24 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. 完整同步 — 删除不在请求中的站点
+      // 1. 完整同步站点，删除不在请求中的站点会级联删除其商铺和照片。
       const requestStationIds = data.stations.map(s => s.id);
       if (requestStationIds.length > 0) {
-        await tx.shop.deleteMany({ where: { stationId: { notIn: requestStationIds } } });
         await tx.station.deleteMany({ where: { id: { notIn: requestStationIds } } });
       } else {
-        // 清空所有数据
         await tx.shop.deleteMany();
         await tx.station.deleteMany();
       }
 
-      // 2. 保存站点和商铺（原子乐观锁版本号校验）
+      // 2. 删除请求中不存在的商铺；仍存在的 shopUid 用 upsert 保留照片关系。
+      const requestShopUids = collectRequestShopUids(data.stations);
+      if (requestShopUids.length > 0) {
+        await tx.shop.deleteMany({ where: { shopUid: { notIn: requestShopUids } } });
+      } else {
+        await tx.shop.deleteMany();
+      }
+
+      // 3. 保存站点和商铺（原子乐观锁版本号校验）
       for (const s of data.stations) {
         const existing = await tx.station.findUnique({ where: { id: s.id } });
 
@@ -383,29 +531,17 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
           });
         }
 
-        // 删除该站点的旧商铺，插入新商铺
-        await tx.shop.deleteMany({ where: { stationId: s.id } });
-
         for (const shop of (s.shops || [])) {
-          await tx.shop.create({
-            data: {
-              no: shop.no,
-              shortNo: shop.shortNo,
-              name: shop.name,
-              type: shop.type,
-              area: shop.area,
-              tenant: shop.tenant,
-              contact: shop.contact,
-              openDate: shop.openDate,
-              status: shop.status,
-              remark: shop.remark,
-              stationId: s.id
-            }
+          const shopUid = normalizeShopUid(shop);
+          await tx.shop.upsert({
+            where: { shopUid },
+            update: toShopWriteData(shop, s.id, shopUid),
+            create: toShopWriteData(shop, s.id, shopUid)
           });
         }
       }
 
-      // 3. 保存全局统计
+      // 4. 保存全局统计
       if (data.globalStats) {
         await tx.globalStats.upsert({
           where: { id: 1 },
@@ -427,7 +563,7 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
         });
       }
 
-      // 4. 完整同步分级信息 — 删除不在请求中的
+      // 5. 完整同步分级信息 — 删除不在请求中的
       const requestGradeKeys = Object.keys(data.gradeInfo);
       if (requestGradeKeys.length > 0) {
         await tx.gradeInfo.deleteMany({ where: { id: { notIn: requestGradeKeys } } });
@@ -470,7 +606,128 @@ app.post('/api/data', authenticateToken, rateLimiter, async (req, res) => {
     res.status(500).json({ error: '数据库保存失败' });
   }
 });
+function formatStaticPublishStatus(row) {
+  if (!row) {
+    return { status: 'idle', error: '', requestedAt: null, startedAt: null, finishedAt: null, updatedAt: null };
+  }
+  return {
+    status: row.status,
+    error: row.error || '',
+    requestedAt: row.requestedAt,
+    startedAt: row.startedAt,
+    finishedAt: row.finishedAt,
+    updatedAt: row.updatedAt
+  };
+}
+// 上传或替换商铺现场主图（需要认证 + 限流）
+app.put('/api/shops/:shopUid/photo', authenticateToken, rateLimiter, parsePhotoUpload, async (req, res) => {
+  const shopUid = req.params.shopUid;
+  try {
+    const shop = await prisma.shop.findUnique({ where: { shopUid } });
+    if (!shop) {
+      return res.status(404).json({ error: '商铺不存在' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: '请上传字段名为 photo 的图片文件' });
+    }
 
+    const meta = validateShopPhotoUpload(req.file);
+    const photo = await prisma.shopPhoto.upsert({
+      where: { shopUid },
+      update: {
+        mimeType: meta.mimeType,
+        byteSize: meta.byteSize,
+        sha256: meta.sha256,
+        content: req.file.buffer
+      },
+      create: {
+        shopUid,
+        mimeType: meta.mimeType,
+        byteSize: meta.byteSize,
+        sha256: meta.sha256,
+        content: req.file.buffer
+      }
+    });
+
+    res.json({
+      shopUid,
+      photoUrl: `/api/shop-photos/${encodeURIComponent(shopUid)}?v=${photo.sha256.slice(0, 12)}`,
+      sha256: photo.sha256,
+      mimeType: photo.mimeType,
+      byteSize: photo.byteSize
+    });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    if (statusCode >= 500) console.error('照片保存失败:', err.message);
+    res.status(statusCode).json({ error: statusCode >= 500 ? '照片保存失败' : err.message });
+  }
+});
+
+// 读取商铺现场主图
+app.get('/api/shop-photos/:shopUid', async (req, res) => {
+  try {
+    const photo = await prisma.shopPhoto.findUnique({ where: { shopUid: req.params.shopUid } });
+    if (!photo) {
+      return res.status(404).json({ error: '照片不存在' });
+    }
+
+    res.setHeader('Content-Type', photo.mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('ETag', `"${photo.sha256}"`);
+    res.send(Buffer.from(photo.content));
+  } catch (err) {
+    console.error('照片读取失败:', err.message);
+    res.status(500).json({ error: '照片读取失败' });
+  }
+});
+
+// 删除商铺现场主图（需要认证 + 限流）
+app.delete('/api/shops/:shopUid/photo', authenticateToken, rateLimiter, async (req, res) => {
+  try {
+    await prisma.shopPhoto.deleteMany({ where: { shopUid: req.params.shopUid } });
+    res.json({ success: true, shopUid: req.params.shopUid });
+  } catch (err) {
+    console.error('照片删除失败:', err.message);
+    res.status(500).json({ error: '照片删除失败' });
+  }
+});
+// 查询静态发布状态
+app.get('/api/static-publish/status', async (req, res) => {
+  try {
+    const status = await prisma.staticPublishStatus.findUnique({ where: { id: 1 } });
+    res.json(formatStaticPublishStatus(status));
+  } catch (err) {
+    console.error('读取静态发布状态失败:', err.message);
+    res.status(500).json({ error: '读取静态发布状态失败' });
+  }
+});
+
+// 请求静态发布（只记录 pending 状态，由受控脚本或外部 runner 执行发布）
+app.post('/api/static-publish/request', authenticateToken, rateLimiter, async (req, res) => {
+  try {
+    const now = new Date();
+    const status = await prisma.staticPublishStatus.upsert({
+      where: { id: 1 },
+      update: {
+        status: 'pending',
+        error: null,
+        requestedAt: now,
+        startedAt: null,
+        finishedAt: null
+      },
+      create: {
+        id: 1,
+        status: 'pending',
+        error: null,
+        requestedAt: now
+      }
+    });
+    res.json(formatStaticPublishStatus(status));
+  } catch (err) {
+    console.error('请求静态发布失败:', err.message);
+    res.status(500).json({ error: '请求静态发布失败' });
+  }
+});
 // 获取本机 IP
 app.get('/api/ip', (req, res) => {
   const interfaces = os.networkInterfaces();
@@ -508,7 +765,12 @@ app.get('/api/template-excel', async (req, res) => {
 app.get('/api/export-excel', async (req, res) => {
   try {
     const stations = await prisma.station.findMany({
-      include: { shops: true },
+      include: {
+        shops: {
+          include: { photo: true },
+          orderBy: { no: 'asc' }
+        }
+      },
       orderBy: { x: 'asc' }
     });
     const globalStats = await prisma.globalStats.findUnique({ where: { id: 1 } });
@@ -587,7 +849,7 @@ app.get('/data/default-data.json', (req, res) => {
 });
 
 // 导出供测试使用
-module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, rateLimiter };
+module.exports = { app, authenticateToken, corsMiddleware, setSecurityHeaders, rateLimiter, validateShopPhotoUpload, getPhotoExtensionFromMimeType };
 
 // 启动服务器
 if (require.main === module) {

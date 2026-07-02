@@ -1,0 +1,99 @@
+{
+  "snapshotId": "2026-07-02T08:40:07.355Z-aae34b2e9b44",
+  "generatedAt": "2026-07-02T08:40:07.355Z",
+  "dataHash": "aae34b2e9b44e9c4809eab2dd07b48f7778c1e4ef5355704b2274e7fa501dabf",
+  "photoCount": 13,
+  "photos": [
+    {
+      "shopUid": "shop_21ee9519f5e1108e76ad6003",
+      "sha256": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0",
+      "path": "/assets/shop-photos/shop_21ee9519f5e1108e76ad6003-3dcaa2d9e0c8.png",
+      "mimeType": "image/png",
+      "byteSize": 454349
+    },
+    {
+      "shopUid": "shop_0385702a00643b4f22a77926",
+      "sha256": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0",
+      "path": "/assets/shop-photos/shop_0385702a00643b4f22a77926-3dcaa2d9e0c8.png",
+      "mimeType": "image/png",
+      "byteSize": 454349
+    },
+    {
+      "shopUid": "shop_96592ddde6edc59d47c4d12d",
+      "sha256": "bbd429de150f1b82c1886819b14a566161e0b571a15b8ed7c5e62d26a4a3e9e7",
+      "path": "/assets/shop-photos/shop_96592ddde6edc59d47c4d12d-bbd429de150f.png",
+      "mimeType": "image/png",
+      "byteSize": 324051
+    },
+    {
+      "shopUid": "shop_0b0cb269e503d9c32357f197",
+      "sha256": "8022a9414f0fdb9ebc2413a5202fd9571d5a0d70b9c5867a5233235d02e04462",
+      "path": "/assets/shop-photos/shop_0b0cb269e503d9c32357f197-8022a9414f0f.png",
+      "mimeType": "image/png",
+      "byteSize": 150224
+    },
+    {
+      "shopUid": "shop_9b06352780ab29855f49d2b4",
+      "sha256": "85b8e3b65b77911d78473bd023f100f431bb50579724b587d1314ca50c28c46e",
+      "path": "/assets/shop-photos/shop_9b06352780ab29855f49d2b4-85b8e3b65b77.png",
+      "mimeType": "image/png",
+      "byteSize": 124480
+    },
+    {
+      "shopUid": "shop_f73420c6c0db8feb19666ce5",
+      "sha256": "bbd429de150f1b82c1886819b14a566161e0b571a15b8ed7c5e62d26a4a3e9e7",
+      "path": "/assets/shop-photos/shop_f73420c6c0db8feb19666ce5-bbd429de150f.png",
+      "mimeType": "image/png",
+      "byteSize": 324051
+    },
+    {
+      "shopUid": "shop_a28695c9ea6aaef1bd3272f2",
+      "sha256": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0",
+      "path": "/assets/shop-photos/shop_a28695c9ea6aaef1bd3272f2-3dcaa2d9e0c8.png",
+      "mimeType": "image/png",
+      "byteSize": 454349
+    },
+    {
+      "shopUid": "shop_461fa44b8e888fefbf43f2ae",
+      "sha256": "9b4bcb53238c9835b7101b4f46e714aacd84b72d7b46d972d47039ea0483a4a7",
+      "path": "/assets/shop-photos/shop_461fa44b8e888fefbf43f2ae-9b4bcb53238c.png",
+      "mimeType": "image/png",
+      "byteSize": 672341
+    },
+    {
+      "shopUid": "shop_a8315d890094b9b131fe689d",
+      "sha256": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0",
+      "path": "/assets/shop-photos/shop_a8315d890094b9b131fe689d-3dcaa2d9e0c8.png",
+      "mimeType": "image/png",
+      "byteSize": 454349
+    },
+    {
+      "shopUid": "shop_c830396c85b3a60d3f4c6a32",
+      "sha256": "be5c25dda86b68667876e3258c3aed42b6fe5e87e5d699b1526d37a43215f909",
+      "path": "/assets/shop-photos/shop_c830396c85b3a60d3f4c6a32-be5c25dda86b.png",
+      "mimeType": "image/png",
+      "byteSize": 427022
+    },
+    {
+      "shopUid": "shop_8420d5f8aa3751a65fa8ebb6",
+      "sha256": "d96f5d51519b7b0517b1c214771bbccf5d6f31d2dd27fb60ed4057a01e59597c",
+      "path": "/assets/shop-photos/shop_8420d5f8aa3751a65fa8ebb6-d96f5d51519b.png",
+      "mimeType": "image/png",
+      "byteSize": 636627
+    },
+    {
+      "shopUid": "shop_931ccff676c74af7e4856668",
+      "sha256": "ac891226c881deb9d4c9c13da4cb53c4cd5b710067ba904e5967f15f3a6aa3bf",
+      "path": "/assets/shop-photos/shop_931ccff676c74af7e4856668-ac891226c881.png",
+      "mimeType": "image/png",
+      "byteSize": 190525
+    },
+    {
+      "shopUid": "shop_9969ddd981becfadd84d3a8d",
+      "sha256": "43195c0d24dc63afd788ab5f45fe2c23fe8c422d52c85b1d1cda85e6d3cac86e",
+      "path": "/assets/shop-photos/shop_9969ddd981becfadd84d3a8d-43195c0d24dc.png",
+      "mimeType": "image/png",
+      "byteSize": 788573
+    }
+  ]
+}

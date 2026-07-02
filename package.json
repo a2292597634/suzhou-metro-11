@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "vitest run --exclude='tests/e2e/**'",
-    "test:e2e": "vitest run tests/e2e/",
+    "test:e2e": "vitest run tests/e2e/ --no-file-parallelism",
     "test:all": "vitest run",
     "test:watch": "vitest",
     "export-hd": "node tools/export-hd.js",
@@ -16,7 +16,8 @@
     "excel-export": "node tools/excel-export.js",
     "excel-import": "node tools/excel-import.js",
     "init-from-excel": "node tools/init-from-excel.js",
-    "setup": "node scripts/setup.mjs"
+    "setup": "node scripts/setup.mjs",
+    "import-shop-photos": "node tools/import-shop-photos.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

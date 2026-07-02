@@ -2,7 +2,7 @@
  * 首页 E2E 测试 — Puppeteer
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import puppeteer from 'puppeteer';
+import { launchBrowser } from './browser-helper.js';
 
 const BASE = `http://localhost:${process.env.PORT || 3000}`;
 
@@ -10,7 +10,7 @@ describe('首页 E2E', () => {
   let browser, page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    browser = await launchBrowser();
     page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
     await page.goto(`${BASE}/index.html`, { timeout: 60000 });
@@ -316,7 +316,7 @@ describe('首页 E2E', () => {
     expect(expanded.rows).toBe(1);
     expect(expanded.station).toBe('花桥博览中心站');
     expect(expanded.aria).toBe('true');
-    expect(expanded.headers).toEqual(['编号', '商铺名称', '属性', '面积', '租户', '状态']);
+    expect(expanded.headers).toEqual(['编号', '商铺名称', '属性', '面积', '租户', '状态', '照片']);
 
     const visibleButtons = await page.$$('.station-row:not([hidden]) .btn-expand');
     await visibleButtons[1].click();

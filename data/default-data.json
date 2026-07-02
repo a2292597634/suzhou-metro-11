@@ -1,4 +1,5 @@
 {
+  "snapshotId": "2026-07-02T08:40:07.355Z-aae34b2e9b44",
   "stations": [
     {
       "id": "weiting",
@@ -8,9 +9,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_8c24e50dae75cb3867aed372",
           "no": 1,
           "shortNo": "S11-1",
           "name": "A商铺",
@@ -20,7 +23,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -32,9 +39,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_e9710689d9b2653645d47b63",
           "no": 2,
           "shortNo": "S11-2",
           "name": "A商铺（2号出口）",
@@ -44,9 +53,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_63392f6c53e0f4dff585c888",
           "no": 3,
           "shortNo": "S11-3",
           "name": "B商铺（4号出口）",
@@ -56,7 +70,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -68,9 +86,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_56dc3146ec67ae6c371afe18",
           "no": 4,
           "shortNo": "S11-4",
           "name": "A商铺（3号出口）",
@@ -80,9 +100,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_1771c83a53662d2d206b4ef9",
           "no": 5,
           "shortNo": "S11-5",
           "name": "B1商铺（4号出口）",
@@ -92,9 +117,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_769ae739d0407703de85448b",
           "no": 6,
           "shortNo": "S11-6",
           "name": "B2商铺（4号出口）",
@@ -104,7 +134,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -116,9 +150,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_128d790841f1c699e724bac9",
           "no": 7,
           "shortNo": "S11-7",
           "name": "A商铺（3号出口）",
@@ -128,9 +164,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_f00aaafe384b49119eac0cc7",
           "no": 8,
           "shortNo": "S11-8",
           "name": "B商铺（4号出口）",
@@ -140,7 +181,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -152,9 +197,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_9ff74f11e0c531b7b3be2b98",
           "no": 9,
           "shortNo": "S11-9",
           "name": "A商铺（2号出口）",
@@ -164,9 +211,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_23da2604e5ab7fe66ada1dd7",
           "no": 10,
           "shortNo": "S11-10",
           "name": "B商铺（3号出口）",
@@ -176,9 +228,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_e12c0a99b065e9d8c7aef881",
           "no": 11,
           "shortNo": "S11-11",
           "name": "C商铺（4号出口）",
@@ -188,7 +245,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -200,9 +261,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_92c489a28e2925a5d75e8b32",
           "no": 12,
           "shortNo": "S11-12",
           "name": "A商铺（3号出口）",
@@ -212,9 +275,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_21ee9519f5e1108e76ad6003",
           "no": 13,
           "shortNo": "S11-13",
           "name": "B商铺（4号出口）",
@@ -224,9 +292,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_21ee9519f5e1108e76ad6003-3dcaa2d9e0c8.png",
+          "photoHash": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0"
         },
         {
+          "shopUid": "shop_7386ba6e19b1986840ac0ea1",
           "no": 14,
           "shortNo": "待定",
           "name": "多经点位1",
@@ -236,9 +309,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_7811a8193a7469beec753a30",
           "no": 15,
           "shortNo": "待定",
           "name": "多经点位2",
@@ -248,7 +326,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -260,9 +342,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_ebab30788ea1d6a47ed9447c",
           "no": 16,
           "shortNo": "S11-14",
           "name": "A商铺（3号出口）",
@@ -272,9 +356,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_d96ab3874ada234f733da00f",
           "no": 17,
           "shortNo": "S11-15",
           "name": "B商铺（4号出口）",
@@ -284,7 +373,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -296,9 +389,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_f7ce2aebb2d547e18e8faf95",
           "no": 18,
           "shortNo": "S11-16",
           "name": "A商铺（1号出口）",
@@ -308,9 +403,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_180c9f2c5335d3372f4f6339",
           "no": 19,
           "shortNo": "S11-17",
           "name": "B商铺（2号出口）",
@@ -320,7 +420,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -332,9 +436,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_0385702a00643b4f22a77926",
           "no": 20,
           "shortNo": "S11-18",
           "name": "A商铺（4号出口）",
@@ -344,9 +450,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_0385702a00643b4f22a77926-3dcaa2d9e0c8.png",
+          "photoHash": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0"
         },
         {
+          "shopUid": "shop_96592ddde6edc59d47c4d12d",
           "no": 21,
           "shortNo": "S11-19",
           "name": "A1商铺（4号出口）",
@@ -356,9 +467,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_96592ddde6edc59d47c4d12d-bbd429de150f.png",
+          "photoHash": "bbd429de150f1b82c1886819b14a566161e0b571a15b8ed7c5e62d26a4a3e9e7"
         },
         {
+          "shopUid": "shop_69384b75f76ce2cbfbef17ec",
           "no": 22,
           "shortNo": "S11-18-1",
           "name": "多经点位",
@@ -368,7 +484,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -380,9 +500,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_5203a1259b56912016152dbc",
           "no": 23,
           "shortNo": "S11-20",
           "name": "A商铺（1号出口）",
@@ -392,9 +514,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_5c2cd1e5f6d2054c9704c040",
           "no": 24,
           "shortNo": "S11-21",
           "name": "B商铺（3号出口）",
@@ -404,7 +531,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -416,33 +547,45 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_0b0cb269e503d9c32357f197",
           "no": 25,
           "shortNo": "S11-22",
           "name": "A商铺（3号出口）",
           "type": "商铺",
-          "area": 32.0,
+          "area": 32,
           "tenant": "11号便利店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_0b0cb269e503d9c32357f197-8022a9414f0f.png",
+          "photoHash": "8022a9414f0fdb9ebc2413a5202fd9571d5a0d70b9c5867a5233235d02e04462"
         },
         {
+          "shopUid": "shop_9b06352780ab29855f49d2b4",
           "no": 26,
           "shortNo": "S11-23",
           "name": "B商铺（3号出口）",
           "type": "商铺",
-          "area": 15.0,
+          "area": 15,
           "tenant": "11号咖啡店",
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_9b06352780ab29855f49d2b4-85b8e3b65b77.png",
+          "photoHash": "85b8e3b65b77911d78473bd023f100f431bb50579724b587d1314ca50c28c46e"
         },
         {
+          "shopUid": "shop_f73420c6c0db8feb19666ce5",
           "no": 27,
           "shortNo": "S11-24",
           "name": "C商铺（1号2号出口）",
@@ -452,9 +595,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_f73420c6c0db8feb19666ce5-bbd429de150f.png",
+          "photoHash": "bbd429de150f1b82c1886819b14a566161e0b571a15b8ed7c5e62d26a4a3e9e7"
         },
         {
+          "shopUid": "shop_4610e5491d7dcc7b74d38591",
           "no": 28,
           "shortNo": "S11-18-2",
           "name": "多经点位1",
@@ -464,9 +612,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_ef49a49ae3921d65d2aae603",
           "no": 29,
           "shortNo": "待定",
           "name": "多经点位2",
@@ -476,7 +629,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -488,9 +645,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_a28695c9ea6aaef1bd3272f2",
           "no": 30,
           "shortNo": "S11-25",
           "name": "A商铺",
@@ -500,9 +659,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_a28695c9ea6aaef1bd3272f2-3dcaa2d9e0c8.png",
+          "photoHash": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0"
         },
         {
+          "shopUid": "shop_6f17eac86f5ca4c40d1e9996",
           "no": 31,
           "shortNo": "待定",
           "name": "多经点位",
@@ -512,7 +676,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -524,9 +692,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_a40145a6c1383d76ef193b64",
           "no": 32,
           "shortNo": "S11-26",
           "name": "A商铺（1号出口）",
@@ -536,9 +706,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_6991232eeb15b2bf749174ab",
           "no": 33,
           "shortNo": "S11-27",
           "name": "B商铺（2号出口）",
@@ -548,9 +723,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_a22908213039ef16aacdb90b",
           "no": 34,
           "shortNo": "S11-28",
           "name": "C商铺（4号出口）",
@@ -560,7 +740,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -572,9 +756,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_4f905b561f0fae59f8f85e02",
           "no": 35,
           "shortNo": "S11-29",
           "name": "A商铺（1号出口）",
@@ -584,9 +770,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_8f09e720f9f374b603d4596a",
           "no": 36,
           "shortNo": "S11-30",
           "name": "B商铺（3号出口）",
@@ -596,9 +787,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_8f3fc8285a9a5d628f465072",
           "no": 37,
           "shortNo": "S11-31",
           "name": "C商铺（2号出口）",
@@ -608,7 +804,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -620,9 +820,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_a3a5f4b0a7bc375d3213a7de",
           "no": 38,
           "shortNo": "S11-32",
           "name": "A商铺（1号出口）",
@@ -632,9 +834,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_0ba21fa6a446acc825ddc7ad",
           "no": 39,
           "shortNo": "S11-33",
           "name": "B商铺（3号出口）",
@@ -644,7 +851,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -656,9 +867,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_50835843c72562ef8a536e6c",
           "no": 40,
           "shortNo": "S11-34",
           "name": "A商铺（2号出口）",
@@ -668,9 +881,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_8d3c4aa7ba43c2fbaca176a0",
           "no": 41,
           "shortNo": "S11-35",
           "name": "B商铺（4号出口）",
@@ -680,7 +898,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -692,9 +914,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_461fa44b8e888fefbf43f2ae",
           "no": 42,
           "shortNo": "S11-36",
           "name": "A商铺（1号出口）",
@@ -704,9 +928,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_461fa44b8e888fefbf43f2ae-9b4bcb53238c.png",
+          "photoHash": "9b4bcb53238c9835b7101b4f46e714aacd84b72d7b46d972d47039ea0483a4a7"
         },
         {
+          "shopUid": "shop_a8315d890094b9b131fe689d",
           "no": 43,
           "shortNo": "S11-37",
           "name": "B商铺（3号出口）",
@@ -716,9 +945,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_a8315d890094b9b131fe689d-3dcaa2d9e0c8.png",
+          "photoHash": "3dcaa2d9e0c82b13041b498e44d56d4b9804b44353fac8e953d6d042554368b0"
         },
         {
+          "shopUid": "shop_e0fb34c94a20b50d905bdcd4",
           "no": 44,
           "shortNo": "待定",
           "name": "多经点位",
@@ -728,7 +962,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -740,9 +978,11 @@
       "y": 480,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_c830396c85b3a60d3f4c6a32",
           "no": 45,
           "shortNo": "S11-38",
           "name": "A商铺（1号出口）",
@@ -752,9 +992,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_c830396c85b3a60d3f4c6a32-be5c25dda86b.png",
+          "photoHash": "be5c25dda86b68667876e3258c3aed42b6fe5e87e5d699b1526d37a43215f909"
         },
         {
+          "shopUid": "shop_d26a56fe9d174ce9f56380cd",
           "no": 46,
           "shortNo": "S11-39",
           "name": "A1商铺（1号出口）",
@@ -764,9 +1009,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_8420d5f8aa3751a65fa8ebb6",
           "no": 47,
           "shortNo": "S11-40",
           "name": "A2商铺（1号出口）",
@@ -776,7 +1026,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_8420d5f8aa3751a65fa8ebb6-d96f5d51519b.png",
+          "photoHash": "d96f5d51519b7b0517b1c214771bbccf5d6f31d2dd27fb60ed4057a01e59597c"
         }
       ]
     },
@@ -788,9 +1042,11 @@
       "y": 480,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_931ccff676c74af7e4856668",
           "no": 48,
           "shortNo": "S11-41",
           "name": "A商铺（1号出口）",
@@ -800,7 +1056,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_931ccff676c74af7e4856668-ac891226c881.png",
+          "photoHash": "ac891226c881deb9d4c9c13da4cb53c4cd5b710067ba904e5967f15f3a6aa3bf"
         }
       ]
     },
@@ -812,9 +1072,11 @@
       "y": 580,
       "pos": "right",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_e5b3bd0c6a997846d755f70e",
           "no": 49,
           "shortNo": "S11-43",
           "name": "A商铺（3号出口）",
@@ -824,9 +1086,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_131dcb9f3de57cf8094839a8",
           "no": 50,
           "shortNo": "S11-44",
           "name": "B商铺（4号出口）",
@@ -836,7 +1103,11 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -848,9 +1119,11 @@
       "y": 720,
       "pos": "left",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_c67b3affc83d771d00c9ebaf",
           "no": 51,
           "shortNo": "S11-45",
           "name": "A商铺（1号出口）",
@@ -860,9 +1133,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_e9a7e623555b2772755e9e57",
           "no": 52,
           "shortNo": "S11-46",
           "name": "B商铺（3号出口）",
@@ -872,7 +1150,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -884,9 +1166,11 @@
       "y": 780,
       "pos": "right",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_8552170b42b18d59606b6586",
           "no": 53,
           "shortNo": "S11-47",
           "name": "A商铺（1号出口）",
@@ -896,7 +1180,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -908,9 +1196,11 @@
       "y": 800,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_3befac51c183b254eef57722",
           "no": 54,
           "shortNo": "S11-48",
           "name": "A商铺（3号出口）",
@@ -920,7 +1210,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -932,9 +1226,11 @@
       "y": 820,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_fe24e184400dd2eea59958f3",
           "no": 55,
           "shortNo": "S11-49",
           "name": "A商铺（1号出口）",
@@ -944,9 +1240,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_9969ddd981becfadd84d3a8d",
           "no": 56,
           "shortNo": "S11-50",
           "name": "B商铺（3号出口）",
@@ -956,9 +1257,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "/assets/shop-photos/shop_9969ddd981becfadd84d3a8d-43195c0d24dc.png",
+          "photoHash": "43195c0d24dc63afd788ab5f45fe2c23fe8c422d52c85b1d1cda85e6d3cac86e"
         },
         {
+          "shopUid": "shop_8215da31290a896c66473140",
           "no": 57,
           "shortNo": "S11-51",
           "name": "C商铺（5号出口）",
@@ -968,7 +1274,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -980,9 +1290,11 @@
       "y": 840,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_a2aafafeba89370689228cdd",
           "no": 58,
           "shortNo": "S11-52",
           "name": "A商铺（1号出口）",
@@ -992,9 +1304,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_bdacb6bab26f79e2e35560b9",
           "no": 59,
           "shortNo": "S11-53",
           "name": "B商铺（2号出口）",
@@ -1004,9 +1321,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_56d18085a22428966b34e24d",
           "no": 60,
           "shortNo": "S11-54",
           "name": "C商铺（3号出口）",
@@ -1016,9 +1338,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_2b132f2693b93f2dba892171",
           "no": 61,
           "shortNo": "S11-55",
           "name": "D商铺（4号出口）",
@@ -1028,7 +1355,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -1040,9 +1371,11 @@
       "y": 840,
       "pos": "top",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_e7d37be90819312686be2ac6",
           "no": 62,
           "shortNo": "S11-56",
           "name": "A商铺（1号出口)",
@@ -1052,9 +1385,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_c896a92d1d4178b57fa39449",
           "no": 63,
           "shortNo": "S11-57",
           "name": "B商铺（2号出口)",
@@ -1064,7 +1402,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -1076,9 +1418,11 @@
       "y": 840,
       "pos": "bottom",
       "transfer": false,
+      "version": 1,
       "transferLine": null,
       "shops": [
         {
+          "shopUid": "shop_6b7b85c3e29c0dad123c8a4a",
           "no": 64,
           "shortNo": "S11-58",
           "name": "A商铺（1号出口）",
@@ -1088,9 +1432,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_af44e7f1ab3142305d9226e4",
           "no": 65,
           "shortNo": "S11-59",
           "name": "B商铺（2号出口）",
@@ -1100,9 +1449,14 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_e8b279466ea6955782d7262d",
           "no": 66,
           "shortNo": "S11-60",
           "name": "C商铺（3号出口）",
@@ -1112,7 +1466,11 @@
           "contact": "",
           "openDate": "",
           "status": "未出租",
-          "remark": ""
+          "power": "",
+          "water": "/",
+          "remark": "",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     },
@@ -1124,9 +1482,11 @@
       "y": 840,
       "pos": "top",
       "transfer": true,
+      "version": 1,
       "transferLine": "上海11号线",
       "shops": [
         {
+          "shopUid": "shop_e2616c9c7869fb8dc3174f3f",
           "no": 67,
           "shortNo": "待定",
           "name": "A号商铺",
@@ -1136,9 +1496,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": "上海花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "上海花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_45ca86f40df81f3f926b719e",
           "no": 68,
           "shortNo": "待定",
           "name": "B号商铺",
@@ -1148,9 +1513,14 @@
           "contact": "",
           "openDate": "",
           "status": "装修中",
-          "remark": "上海花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "上海花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_299e261ec7ddffd076095a59",
           "no": 69,
           "shortNo": "待定",
           "name": "C号商铺",
@@ -1160,9 +1530,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": "上海花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "上海花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_ec3ca936819bec7b648bf3cc",
           "no": 70,
           "shortNo": "待定",
           "name": "D号商铺",
@@ -1172,9 +1547,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": "上海花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "上海花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_943f8e082d995e206d15ceec",
           "no": 71,
           "shortNo": "待定",
           "name": "E号商铺",
@@ -1184,9 +1564,14 @@
           "contact": "",
           "openDate": "",
           "status": "装修中",
-          "remark": "苏州花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "苏州花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_c0d498eee73de244970b3245",
           "no": 72,
           "shortNo": "待定",
           "name": "F号商铺",
@@ -1196,9 +1581,14 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": "苏州花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "苏州花桥站",
+          "photo": "",
+          "photoHash": ""
         },
         {
+          "shopUid": "shop_aa5f0172cc759d4183f854d7",
           "no": 73,
           "shortNo": "待定",
           "name": "G号商铺",
@@ -1208,17 +1598,23 @@
           "contact": "",
           "openDate": "",
           "status": "营业中",
-          "remark": "苏州花桥站"
+          "power": "",
+          "water": "/",
+          "remark": "苏州花桥站",
+          "photo": "",
+          "photoHash": ""
         }
       ]
     }
   ],
   "globalStats": {
+    "id": 1,
     "statsDate": "2024年5月20日",
     "totalShops": 66,
     "rentedShops": 33,
     "vacantShops": 33,
-    "rentRate": "50.0%"
+    "rentRate": "50.0%",
+    "updatedAt": "2026-07-01T16:01:38.985Z"
   },
   "gradeInfo": {
     "S": {

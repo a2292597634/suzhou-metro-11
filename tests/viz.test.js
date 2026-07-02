@@ -318,6 +318,54 @@ describe('数据可视化模块', () => {
       expect(card.classList.contains('expanded')).toBe(true);
       expect(card.querySelector('.card-detail')).not.toBeNull();
     });
+
+    it('展开商铺表格应渲染动态 URL、静态路径和无照片占位', async () => {
+      const { renderCards } = await import('../js/modules/viz.js');
+      const stations = [
+        {
+          id: 'photo-station',
+          name: '照片站',
+          grade: 'A',
+          transfer: false,
+          shops: [
+            { shopUid: 'shop_api', no: 1, name: '动态照片铺', type: '商铺', area: 10, status: '营业中', photo: '/api/shop-photos/shop_api?v=abc123', photoHash: 'abc123' },
+            { shopUid: 'shop_static', no: 2, name: '静态照片铺', type: '商铺', area: 10, status: '未出租', photo: '/assets/shop-photos/shop_static-abc123.jpg', photoHash: 'abc123' },
+            { shopUid: 'shop_empty', no: 3, name: '无照片铺', type: '商铺', area: 10, status: '未出租', photo: '', photoHash: '' }
+          ]
+        }
+      ];
+
+      renderCards(stations, 'photo-station', 'all', 'default');
+
+      const previews = document.querySelectorAll('.photo-thumb');
+      expect(previews).toHaveLength(2);
+      expect(previews[0].getAttribute('src')).toBe('/api/shop-photos/shop_api?v=abc123');
+      expect(previews[1].getAttribute('src')).toBe('/assets/shop-photos/shop_static-abc123.jpg');
+      expect(document.querySelectorAll('.photo-placeholder')).toHaveLength(1);
+      expect(document.querySelector('[data-photo-action="replace"]')).not.toBeNull();
+      expect(document.querySelector('[data-photo-action="import"]')).not.toBeNull();
+      expect(document.querySelector('img[src=""]')).toBeNull();
+    });
+
+    it('照片悬浮预览应限制在视口内且底部空间不足时向上显示', async () => {
+      const { calculatePhotoPreviewPosition } = await import('../js/modules/viz.js');
+
+      const position = calculatePhotoPreviewPosition({
+        anchorRect: {
+          left: 1180,
+          top: 620,
+          bottom: 656,
+          width: 120
+        },
+        popupWidth: 300,
+        popupHeight: 240,
+        viewportWidth: 1280,
+        viewportHeight: 720
+      });
+
+      expect(position.left).toBe(972);
+      expect(position.top).toBe(372);
+    });
   });
 
   describe('XSS 防护', () => {

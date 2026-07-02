@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { state } from '../../js/modules/state.js';
 import {
   calcHomeStats,
+  initHome,
   renderDashboardEmptyStates,
   renderDashboardOverview,
   renderStationTable,
@@ -93,6 +94,7 @@ describe('首页综合经营看板', () => {
       const css = readFileSync(dataVizCssPath, 'utf8');
       expect(css).toMatch(/\.cards-grid\s*\{[^}]*display:\s*grid/s);
       expect(css).toMatch(/\.charts-row\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+      expect(css).toContain('.photo-preview-popup');
     }
   });
 
@@ -844,7 +846,7 @@ describe('首页综合经营看板', () => {
     expect(visibleNames).toEqual(['花桥']);
   });
 
-  it('应该在站点主行后展开包含完整六列字段的商铺明细', () => {
+  it('应该在站点主行后展开包含完整七列字段的商铺明细', () => {
     const stationStats = [{
       name: '唯亭',
       grade: 'S',
@@ -892,7 +894,8 @@ describe('首页综合经营看板', () => {
       '属性',
       '面积',
       '租户',
-      '状态'
+      '状态',
+      '照片'
     ]);
     expect(detailRow.querySelectorAll('.shop-row')).toHaveLength(2);
     expect(detailRow.textContent.replace(/\s+/g, ' ')).toContain(
@@ -1064,6 +1067,160 @@ describe('首页综合经营看板', () => {
     expect(document.querySelectorAll('.expand-row.expanded')).toHaveLength(0);
   });
 
+  it('应该在商铺明细中渲染动态照片路径的商铺主图', () => {
+    mountDashboard();
+    renderStationTable([{
+      name: '唯亭',
+      grade: 'S',
+      shopCount: 1,
+      multiSpot: 0,
+      totalArea: '20.0',
+      rentedArea: '20.0',
+      rented: 1,
+      renovating: 0,
+      vacant: 0,
+      rate: 100,
+      rateStr: '100.0%',
+      shops: [{
+        shortNo: 'WT-01',
+        name: '湖畔咖啡',
+        type: '商铺',
+        area: 20,
+        tenant: '苏州湖畔餐饮',
+        status: '营业中',
+        photo: '/api/shop-photos/shop_dynamic?v=abc123',
+        photoHash: 'abc123'
+      }]
+    }]);
+
+    document.querySelector('.station-row').click();
+
+    const image = document.querySelector('.shop-photo-thumb img');
+    expect(image).not.toBeNull();
+    expect(image.getAttribute('src')).toBe('/api/shop-photos/shop_dynamic?v=abc123');
+    expect(image.getAttribute('alt')).toContain('湖畔咖啡');
+  });
+
+  it('应该在商铺明细中渲染静态快照照片路径', () => {
+    mountDashboard();
+    renderStationTable([{
+      name: '花桥',
+      grade: 'A',
+      shopCount: 1,
+      multiSpot: 0,
+      totalArea: '18.0',
+      rentedArea: '0.0',
+      rented: 0,
+      renovating: 0,
+      vacant: 1,
+      rate: 0,
+      rateStr: '0.0%',
+      shops: [{
+        shortNo: 'HQ-01',
+        name: '静态照片铺',
+        type: '商铺',
+        area: 18,
+        tenant: '',
+        status: '未出租',
+        photo: '/assets/shop-photos/shop_static-abc123.jpg',
+        photoHash: 'abc123'
+      }]
+    }]);
+
+    document.querySelector('.station-row').click();
+
+    const image = document.querySelector('.shop-photo-thumb img');
+    expect(image).not.toBeNull();
+    expect(image.getAttribute('src')).toBe('/assets/shop-photos/shop_static-abc123.jpg');
+  });
+
+  it('应该在无照片时显示紧凑占位且不渲染空图片地址', () => {
+    mountDashboard();
+    renderStationTable([{
+      name: '草鞋山',
+      grade: 'B',
+      shopCount: 1,
+      multiSpot: 0,
+      totalArea: '12.0',
+      rentedArea: '0.0',
+      rented: 0,
+      renovating: 0,
+      vacant: 1,
+      rate: 0,
+      rateStr: '0.0%',
+      shops: [{
+        shortNo: 'CXS-01',
+        name: '无照片铺',
+        type: '商铺',
+        area: 12,
+        tenant: '',
+        status: '未出租',
+        photo: '',
+        photoHash: ''
+      }]
+    }]);
+
+    document.querySelector('.station-row').click();
+
+    expect(document.querySelector('.shop-photo-placeholder')).not.toBeNull();
+    expect(document.querySelector('.shop-photo-placeholder').textContent).toContain('无照片');
+    expect(document.querySelector('img[src=""]')).toBeNull();
+  });
+
+  it('应该在静态快照更新后使用新照片路径重新渲染首页', async () => {
+    mountDashboard();
+    localStorage.setItem('suzhou_m11_battle_map_data_v4', JSON.stringify({
+      snapshotId: 'old_snapshot',
+      stations: [{ id: 'old', name: '旧站', grade: 'C', shops: [] }],
+      globalStats: {},
+      gradeInfo: {}
+    }));
+    vi.stubGlobal('fetch', vi.fn(url => {
+      const target = String(url);
+      if (target.endsWith('/api/data')) {
+        return Promise.reject(new Error('api offline'));
+      }
+      if (target.endsWith('/data/static-manifest.json')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ snapshotId: 'new_snapshot' }) });
+      }
+      if (target.endsWith('/data/default-data.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            snapshotId: 'new_snapshot',
+            stations: [{
+              id: 'static-station',
+              name: '静态站',
+              grade: 'S',
+              transfer: false,
+              shops: [{
+                shopUid: 'shop_static_new',
+                shortNo: 'ST-01',
+                name: '新照片铺',
+                type: '商铺',
+                area: 10,
+                tenant: '',
+                status: '营业中',
+                photo: '/assets/shop-photos/shop_static_new-def456.webp',
+                photoHash: 'def456'
+              }]
+            }],
+            globalStats: {},
+            gradeInfo: {}
+          })
+        });
+      }
+      return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+    }));
+
+    await initHome();
+    document.querySelector('.station-row').click();
+
+    const image = document.querySelector('.shop-photo-thumb img');
+    expect(image).not.toBeNull();
+    expect(image.getAttribute('src')).toBe('/assets/shop-photos/shop_static_new-def456.webp');
+    expect(document.querySelector('.station-name-copy').textContent).toBe('静态站');
+  });
   it('应该通过键盘切换详情并同步展开按钮的 ARIA 状态', () => {
     const stationStats = [{
       name: '唯亭',

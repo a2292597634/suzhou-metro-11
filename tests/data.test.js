@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { state } from '../js/modules/state.js';
+import { config } from '../js/modules/utils.js';
 import { getDefaultStations, getDefaultGlobalStats, calcGlobalStats, saveToLocal, loadData, saveData } from '../js/modules/data.js';
 
 describe('数据管理', () => {
@@ -218,6 +219,109 @@ describe('数据管理', () => {
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler.mock.calls[0][0].detail).toEqual({ source: 'local' });
       window.removeEventListener('datasource:change', handler);
+    });
+  });
+
+
+  describe('静态 manifest 与 localStorage 版本处理', () => {
+    function savedLocal(snapshotId = 'same') {
+      return JSON.stringify({
+        snapshotId,
+        stations: [{ id: 'local-station', name: '本地站', grade: 'A', shops: [] }],
+        globalStats: { totalShops: 1 },
+        gradeInfo: { A: { name: 'A级', color: '#f00' } }
+      });
+    }
+
+    function staticDefault(snapshotId = 'new') {
+      return {
+        snapshotId,
+        stations: [{ id: 'static-station', name: '静态站', grade: 'S', shops: [{ shopUid: 'shop_static', photo: '/assets/shop-photos/shop_static-abc.png', photoHash: 'abc' }] }],
+        globalStats: { totalShops: 1 },
+        gradeInfo: { S: { name: 'S级', color: '#f00' } }
+      };
+    }
+
+    it('API 不可达且 manifest 不存在时应该沿用 localStorage', async () => {
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) return Promise.reject(new Error('网络错误'));
+        if (String(url).includes('/data/static-manifest.json')) return Promise.resolve({ ok: false });
+        return Promise.reject(new Error('不应加载 default-data'));
+      }));
+      localStorage.getItem = vi.fn(() => savedLocal('old'));
+
+      const result = await loadData();
+
+      expect(result).toEqual({ source: 'local' });
+      expect(fetch).toHaveBeenCalledWith('/data/static-manifest.json');
+      expect(state.stations[0].id).toBe('local-station');
+    });
+
+    it('manifest snapshotId 与 localStorage 相同时应该使用 localStorage', async () => {
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) return Promise.reject(new Error('网络错误'));
+        if (String(url).includes('/data/static-manifest.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ snapshotId: 'same' }) });
+        return Promise.reject(new Error('不应加载 default-data'));
+      }));
+      localStorage.getItem = vi.fn(() => savedLocal('same'));
+
+      const result = await loadData();
+
+      expect(result).toEqual({ source: 'local' });
+      expect(fetch).toHaveBeenCalledWith('/data/static-manifest.json');
+      expect(state.stations[0].id).toBe('local-station');
+    });
+
+    it('manifest snapshotId 更新时应该加载 default-data 并备份旧 localStorage', async () => {
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) return Promise.reject(new Error('网络错误'));
+        if (String(url).includes('/data/static-manifest.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ snapshotId: 'new' }) });
+        if (String(url).includes('/data/default-data.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(staticDefault('new')) });
+        return Promise.reject(new Error('未知请求'));
+      }));
+      const oldLocal = savedLocal('old');
+      localStorage.getItem = vi.fn(() => oldLocal);
+
+      const result = await loadData();
+
+      expect(result).toEqual({ source: 'static-snapshot', snapshotUpdated: true, previousSnapshotId: 'old', snapshotId: 'new' });
+      expect(state.stations[0].id).toBe('static-station');
+      expect(localStorage.setItem).toHaveBeenCalledWith('suzhou_m11_battle_map_data_v4_backup_old', oldLocal);
+    });
+
+    it('loadData() 使用新静态快照时应该派发 static-snapshot 数据来源事件', async () => {
+      const handler = vi.fn();
+      window.addEventListener('datasource:change', handler);
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) return Promise.reject(new Error('网络错误'));
+        if (String(url).includes('/data/static-manifest.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ snapshotId: 'new' }) });
+        if (String(url).includes('/data/default-data.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(staticDefault('new')) });
+        return Promise.reject(new Error('未知请求'));
+      }));
+      localStorage.getItem = vi.fn(() => savedLocal('old'));
+
+      const result = await loadData();
+
+      expect(result.source).toBe('static-snapshot');
+      expect(result.snapshotUpdated).toBe(true);
+      expect(handler.mock.calls.at(-1)[0].detail).toEqual({ source: 'static-snapshot' });
+      window.removeEventListener('datasource:change', handler);
+    });
+
+    it('saveToLocal() 应保存当前静态 snapshotId', async () => {
+      vi.stubGlobal('fetch', vi.fn(url => {
+        if (String(url).includes('/api/data')) return Promise.reject(new Error('网络错误'));
+        if (String(url).includes('/data/static-manifest.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ snapshotId: 'new' }) });
+        if (String(url).includes('/data/default-data.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(staticDefault('new')) });
+        return Promise.reject(new Error('未知请求'));
+      }));
+      localStorage.getItem = vi.fn(() => savedLocal('old'));
+      await loadData();
+
+      saveToLocal({ stations: state.stations, globalStats: state.globalStats, gradeInfo: state.gradeInfo });
+
+      const [, savedValue] = localStorage.setItem.mock.calls.find(call => call[0] === config.storageKey);
+      expect(JSON.parse(savedValue).snapshotId).toBe('new');
     });
   });
 

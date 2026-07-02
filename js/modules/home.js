@@ -5,7 +5,7 @@
 
 import { loadData, calcGlobalStats } from './data.js';
 import { state } from './state.js';
-import { escapeHtml, getGradeClass, normalizeGrade } from './utils.js';
+import { escapeHtml, escapeAttr, getGradeClass, normalizeGrade } from './utils.js';
 
 let cleanupStationTrend = null;
 
@@ -28,6 +28,21 @@ function getShopStatusClass(status, prefix = 'status-') {
   return `${prefix}vacant`;
 }
 
+function hasShopPhoto(shop) {
+  return typeof shop?.photo === 'string' && shop.photo.trim() !== '';
+}
+
+function renderShopPhotoCell(shop) {
+  if (!hasShopPhoto(shop)) {
+    return '<span class="shop-photo-placeholder">无照片</span>';
+  }
+  const name = shop?.name || shop?.shortNo || '商铺';
+  return `
+    <span class="shop-photo-thumb">
+      <img src="${escapeAttr(shop.photo)}" alt="${escapeAttr(name)}现场照片" loading="lazy" decoding="async">
+    </span>
+  `;
+}
 function getNiceTickStep(rawStep) {
   if (!Number.isFinite(rawStep) || rawStep <= 0) return 1;
 
@@ -377,6 +392,23 @@ function createTrendStationLabel(station, x, labelY) {
 
 function createTrendDetail(station, index, stationCount) {
   const gradeClass = getGradeClass(station?.grade, 'grade-');
+  const shops = Array.isArray(station?.shops) ? station.shops : [];
+
+  const shopRows = shops.map(shop => {
+    const hasPhoto = shop.photo && shop.photo !== '';
+    return `
+      <div class="trend-shop-row">
+        <div class="trend-shop-info">
+          <span class="trend-shop-name">${escapeHtml(shop.name)}</span>
+          <span class="trend-shop-meta">${escapeHtml(shop.type || '商铺')} · ${escapeHtml(shop.area)}㎡ · ${escapeHtml(shop.tenant || '—')}</span>
+        </div>
+        <div class="trend-shop-photo-wrap">
+          ${hasPhoto ? `<img class="trend-shop-photo" src="${escapeAttr(shop.photo)}" alt="${escapeAttr(shop.name)}现场照片">` : `<span class="trend-shop-photo-placeholder"></span>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+
   return `
     <div class="trend-detail-head">
       <span class="trend-detail-grade${gradeClass ? ` ${gradeClass}` : ''}">${escapeHtml(station?.grade)}</span>
@@ -392,6 +424,10 @@ function createTrendDetail(station, index, stationCount) {
     <div class="trend-detail-foot">
       <span>出租率 ${escapeHtml(station?.rateStr || '0.0%')}</span>
       <span>第 ${index + 1} / ${stationCount} 站</span>
+    </div>
+    <div class="trend-detail-shops">
+      <div class="trend-detail-shops-title">商铺明细（${shops.length}个）</div>
+      ${shopRows}
     </div>
   `;
 }
@@ -694,6 +730,7 @@ function renderStationTable(stationStats) {
           <td class="shop-area">${escapeHtml(shop.area)}㎡</td>
           <td class="shop-tenant">${shop.tenant ? escapeHtml(shop.tenant) : '<span class="text-muted">—</span>'}</td>
           <td class="shop-status"><span class="status-dot ${statusClass}"></span>${escapeHtml(shop.status)}</td>
+          <td class="shop-photo">${renderShopPhotoCell(shop)}</td>
         </tr>
       `;
     }).join('');
@@ -746,7 +783,7 @@ function renderStationTable(stationStats) {
             </div>
             <table class="shop-table">
               <thead>
-                <tr><th>编号</th><th>商铺名称</th><th>属性</th><th>面积</th><th>租户</th><th>状态</th></tr>
+                <tr><th>编号</th><th>商铺名称</th><th>属性</th><th>面积</th><th>租户</th><th>状态</th><th>照片</th></tr>
               </thead>
               <tbody>${shopsHtml}</tbody>
             </table>
