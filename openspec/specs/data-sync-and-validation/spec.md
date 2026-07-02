@@ -2,6 +2,7 @@
 
 ## Purpose
 定义 API 数据同步、校验、乐观锁、限流和 localStorage 回退策略，确保前后端数据一致性与安全性。
+
 ## Requirements
 ### Requirement: 保存时完整同步站点和分级信息
 `POST /api/data` MUST 在保存时删除数据库中存在于但不在请求中的站点和分级信息，确保数据完整同步。
