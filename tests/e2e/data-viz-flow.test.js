@@ -3,11 +3,17 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer from 'puppeteer';
-import { existsSync } from 'fs';
+import { existsSync, writeFileSync, unlinkSync } from 'fs';
 import { resolve } from 'path';
 
 const BASE = `http://localhost:${process.env.PORT || 3000}`;
-const PHOTO_FIXTURE = resolve('assets/shop-photos/S11-41_夏驾河公园站_美宜佳超市.png');
+
+// 1x1 红色像素 PNG（最小合法 PNG，CI 环境无需仓库中的二进制文件）
+const PNG_1X1_RED = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+  'base64'
+);
+const PHOTO_FIXTURE = resolve('test-photo-fixture.png');
 
 async function expandFirstCard(page) {
   await page.click('[data-filter="all"]');
@@ -23,6 +29,10 @@ describe('data-viz 页面 E2E', () => {
   let browser, page;
 
   beforeAll(async () => {
+    // CI 环境创建临时照片 fixture
+    if (!existsSync(PHOTO_FIXTURE)) {
+      writeFileSync(PHOTO_FIXTURE, PNG_1X1_RED);
+    }
     browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
     page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
@@ -32,6 +42,8 @@ describe('data-viz 页面 E2E', () => {
 
   afterAll(async () => {
     if (browser) await browser.close();
+    // 清理临时 fixture
+    try { unlinkSync(PHOTO_FIXTURE); } catch (_) {}
   });
 
   it('商业信息管理页应应用站点卡片网格并控制图表首屏比例', async () => {
