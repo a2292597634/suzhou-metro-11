@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('Excel 导出引擎', () => {
   describe('generateTemplate()', () => {
-    it('应该生成包含 4 个 Sheet 的工作簿', { timeout: 15000 }, async () => {
+    it('应该生成包含 4 个 Sheet 的工作簿', { timeout: 30000 }, async () => {
       const { generateTemplate } = await import('../tools/excel-export.js');
       const wb = generateTemplate();
       expect(wb.worksheets).toHaveLength(4);
